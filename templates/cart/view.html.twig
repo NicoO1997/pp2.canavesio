@@ -1,0 +1,72 @@
+{# templates/cart/view.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Carrito de Compras{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/cart.css') }}">
+{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+            {% for label, messages in app.flashes %}
+                <div class="alert alert-{{ label }}">
+                    {% for message in messages %}
+                        <p>{{ message }}</p>
+                     {% endfor %}
+                </div>
+            {% endfor %}
+    <h2 class="mb-4">Carrito de compras</h2>
+
+    {% if cart and cart.cartProductOrders|length > 0 %}
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Precio</th>
+                    <th>Cantidad</th>
+                    <th>Sub total</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% set total = 0 %}
+                {% for cartProductOrder in cart.cartProductOrders %}
+                    {% set subtotal = cartProductOrder.product.price * cartProductOrder.quantity %}
+                    {% set total = total + subtotal %}
+                    <tr>
+                        <td>{{ cartProductOrder.product.name }}</td>
+                        <td>{{ cartProductOrder.product.price }} USD</td>
+                        <td>
+                            <input type="number" class="form-control" id="quantity_{{ cartProductOrder.id }}" name="quantity" value="{{ cartProductOrder.quantity }}" min="1">
+                        </td>
+                        <td>{{ subtotal }} USD</td>
+                        <td>
+                            <form action="{{ path('cart_remove_product', { 'id': cartProductOrder.id }) }}" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="d-flex justify-content-between">
+            <a href="{{ path('product_list') }}" class="btn btn-warning">
+                <i class="fa fa-arrow-left"></i> Continue Comprando
+            </a>
+            <div>
+                <span class="me-3">Total: <strong>{{ total }} USD</strong></span>
+                <a href="{{ path('create-preference') }}" class="btn btn-success">
+                    Pagos <i class="fa fa-credit-card"></i>
+                </a>
+            </div>
+        </div>
+    {% else %}
+        <p class="text-center">Tu carrito está vacío.</p>
+    {% endif %}
+</div>
+{% endblock %}

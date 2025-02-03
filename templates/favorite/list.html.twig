@@ -1,0 +1,57 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="{{ asset('styles/favorite.css') }}">
+{% endblock %}
+
+{% block title %}Mis Favoritos{% endblock %}
+
+{% block body %}
+    <h1 class="favorites-heart">Mis Favoritos ❤️</h1>
+
+    {# Mostrar mensajes flash #}
+    {% for label, messages in app.flashes %}
+    <div class="alert alert-{{ label }}">
+        {% if label == 'success' %}✅{% endif %}
+        {% if label == 'danger' %}⚠️{% endif %}
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    </div>
+{% endfor %}
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Cantidad</th>
+                <th>Precio</th>
+                <th>Descripción</th>
+                <th>Marca</th>
+                <th>Imagen</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for favorite in favorites %}
+                <tr>
+                    <td>{{ favorite.product.name }}</td>
+                    <td>{{ favorite.product.quantity }}</td>
+                    <td>{{ favorite.product.price }}</td>
+                    <td>{{ favorite.product.description }}</td>
+                    <td>{{ favorite.product.brand }}</td>
+                    <td>
+                        {% if favorite.product.image %}
+                            <img src="data:image/jpeg;base64,{{ favorite.product.image }}" alt="Product Image" style="max-width: 100px; max-height: 100px;">
+                        {% endif %}
+                    </td>
+                    <td>
+                        <form action="{{ path('remove_favorite', {id: favorite.id}) }}" method="post" style="display: inline;">
+                            <button type="submit" class="btn btn-danger">Eliminar de Favoritos</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

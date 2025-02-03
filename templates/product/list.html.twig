@@ -1,0 +1,68 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+  <link href="{{ asset('styles/listaproductos.css') }}" rel="stylesheet" />
+{% endblock %}
+
+{% block title %}
+  Nuestros Productos
+{% endblock %}
+
+{% block body %}
+  <div class="nuevas-maquinarias">
+    <div style="text-align: center;">
+      <h2 class="productos-titulo">Nuevas Maquinarias</h2>
+    </div>
+    <div class="secciones-grid">
+    <a href="{{ path('used_machinery_section', { section: 'Tractores' }) }}" class="seccion-link">
+      <div class="seccion">
+          <img src="{{ asset('images/tractor_5090e_campo4_large_94dccff5e815fc6a0861f22279f8ae407d335310.jpg') }}" alt="Tractores" />
+          <h3 class="image-text">Tractores</h3>
+      </div>
+    </a>
+    <a href="{{ path('used_machinery_section', { section: 'Embutidoras' }) }}" class="seccion-link">
+      <div class="seccion">
+          <img src="{{ asset('images/Picadora-John-Deere-8600-1.jpg') }}" alt="Embutidoras" />
+          <h3 class="image-text">Embutidoras</h3>
+      </div>
+    </a>
+    <a href="{{ path('used_machinery_section', { section: 'Sembradoras' }) }}" class="seccion-link">
+      <div class="seccion">
+          <img src="{{ asset('images/sembradora_1035_campo2_large_940a6b5a5172a72b45a3dff635ad9346fc558dae.jpg') }}" alt="Sembradoras" />
+          <h3 class="image-text">Sembradoras</h3>
+      </div>
+    </a>
+    <a href="{{ path('used_machinery_section', { section: 'Equipos de Forraje' }) }}" class="seccion-link">
+      <div class="seccion">
+          <img src="{{ asset('images/Getreideernte_in_Sachsen_2H1A7879WI.jpg') }}" alt="Equipos de Forraje" />
+          <h3 class="image-text">Equipos de Forraje</h3>
+      </div>
+    </a>
+    </div>
+  </div>
+
+  <div style="text-align: center;">
+    <h1 class="productos-titulo">Nuestros Productos</h1>
+  </div>
+
+  <div class="productos-grid">
+    {% for product in products %}
+      <div class="producto-tarjeta">
+        <a href="{{ path('product_detail', { id: product.id }) }}" class="producto-link">
+          <div class="producto-imagen">
+            {% if product.image %}
+              <img src="data:image/jpeg;base64,{{ product.image }}" alt="{{ product.name }}" />
+            {% endif %}
+          </div>
+          <div class="producto-info">
+            <h2>{{ product.name }}</h2>
+            <p>${{ product.price }}</p>
+          </div>
+        </a>
+      </div>
+    {% endfor %}
+
+    <div class="imagen-fondo imagen--maquina1"></div>
+    <div class="imagen-fondo imagen--maquina2"></div>
+  </div>
+{% endblock %}

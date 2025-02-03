@@ -1,0 +1,74 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Crear Receta de Machine{% endblock %}
+
+{% block body %}
+<h1>Crear Receta de Machine</h1>
+
+<form method="post" action="{{ path('create_recipe_machine') }}">
+    <label for="recipe_name">Nombre de la Receta:</label>
+    <input type="text" id="recipe_name" name="recipe_name" required>
+
+    <h2>Productos</h2>
+    <div id="products">
+        <div class="product">
+            <label for="product_name_0">Nombre:</label>
+            <input type="text" id="product_name_0" name="products[0][name]" required>
+            <label for="product_quantity_0">Cantidad:</label>
+            <input type="number" id="product_quantity_0" name="products[0][quantity]" required min="1">
+            <label for="product_brand_0">Marca:</label>
+            <input type="text" id="product_brand_0" name="products[0][brand]" required>
+        </div>
+    </div>
+    <button type="button" id="add-product">Agregar Producto</button>
+    
+    <h2>Piezas</h2>
+    <div id="parts">
+        <div class="part">
+            <label for="part_name_0">Nombre:</label>
+            <input type="text" id="part_name_0" name="parts[0][name]" required>
+            <label for="part_quantity_0">Cantidad:</label>
+            <input type="number" id="part_quantity_0" name="parts[0][quantity]" required min="1">
+            <label for="part_brand_0">Marca:</label>
+            <input type="text" id="part_brand_0" name="parts[0][brand]" required>
+        </div>
+    </div>
+    <button type="button" id="add-part">Agregar Pieza</button>
+
+    <button type="submit">Crear Receta</button>
+</form>
+
+<script>
+    let partIndex = 1;
+    let productIndex = 1;
+
+    document.getElementById('add-part').addEventListener('click', () => {
+        const partDiv = document.createElement('div');
+        partDiv.classList.add('part');
+        partDiv.innerHTML = `
+            <label for="part_name_${partIndex}">Nombre:</label>
+            <input type="text" id="part_name_${partIndex}" name="parts[${partIndex}][name]" required>
+            <label for="part_quantity_${partIndex}">Cantidad:</label>
+            <input type="number" id="part_quantity_${partIndex}" name="parts[${partIndex}][quantity]" required>
+            <label for="part_brand_${partIndex}">Marca:</label>
+            <input type="text" id="part_brand_${partIndex}" name="parts[${partIndex}][brand]" required>`;
+        document.getElementById('parts').appendChild(partDiv);
+        partIndex++;
+    });
+
+    document.getElementById('add-product').addEventListener('click', () => {
+        const productDiv = document.createElement('div');
+        productDiv.classList.add('product');
+        productDiv.innerHTML = `
+            <label for="product_name_${productIndex}">Nombre:</label>
+            <input type="text" id="product_name_${productIndex}" name="products[${productIndex}][name]" required>
+            <label for="product_quantity_${productIndex}">Cantidad:</label>
+            <input type="number" id="product_quantity_${productIndex}" name="products[${productIndex}][quantity]" required>
+            <label for="product_brand_${productIndex}">Marca:</label>
+            <input type="text" id="product_brand_${productIndex}" name="products[${productIndex}][brand]" required>
+        `;
+        document.getElementById('products').appendChild(productDiv);
+        productIndex++;
+    });
+</script>
+{% endblock %}

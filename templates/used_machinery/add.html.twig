@@ -1,0 +1,82 @@
+{% extends 'base.html.twig' %}
+{% block title %}
+Agregar Maquinaria Usada
+{% endblock %}
+{% block stylesheets %}
+{{ parent() }}
+  <link href="{{ asset('styles/add_machinery.css') }}" rel="stylesheet" />
+{% endblock %}
+{% block body %}
+  <div class="form-container">
+    <h1>Nueva Maquinaria Usada</h1>
+{% for label, messages in app.session.flashbag.all() %}
+  {% for message in messages %}
+    <div class="alert alert-{{ label }}">{{ message }}</div>
+  {% endfor %}
+{% endfor %}
+
+{{ form_start(form) }}
+<div class="form-group-container">
+  <div class="form-group">
+    {{ form_label(form.category) }}
+    {{ form_widget(form.category) }}
+    {{ form_errors(form.category, {'attr': {'class': 'form-error'}}) }}
+  </div>
+
+  <div class="form-group">
+    {{ form_label(form.machineryName) }}
+    {{ form_widget(form.machineryName) }}
+    {{ form_errors(form.machineryName, {'attr': {'class': 'form-error'}}) }}
+  </div>
+
+  <div class="form-group">
+    {{ form_label(form.brand) }}
+    {{ form_widget(form.brand) }}
+    {{ form_errors(form.brand, {'attr': {'class': 'form-error'}}) }}
+  </div>
+
+  <div class="form-group">
+    {{ form_label(form.yearsOld) }}
+    {{ form_widget(form.yearsOld) }}
+    {{ form_errors(form.yearsOld, {'attr': {'class': 'form-error'}}) }}
+  </div>
+
+  <div class="form-group">
+    {{ form_label(form.months) }}
+    {{ form_widget(form.months) }}
+    {{ form_errors(form.months, {'attr': {'class': 'form-error'}}) }}
+  </div>
+
+  <div class="form-group">
+    {{ form_label(form.hoursOfUse) }}
+    {{ form_widget(form.hoursOfUse) }}
+    {{ form_errors(form.hoursOfUse, {'attr': {'class': 'form-error'}}) }}
+  </div>
+
+  <div class="form-group">
+    {{ form_label(form.lastService) }}
+    {{ form_widget(form.lastService) }}
+    {{ form_errors(form.lastService, {'attr': {'class': 'form-error'}}) }}
+  </div>
+
+  <div class="form-group">
+    {{ form_label(form.price) }}
+    {{ form_widget(form.price) }}
+    {{ form_errors(form.price, {'attr': {'class': 'form-error'}}) }}
+  </div>
+
+  <div class="form-group imagen-input">
+    {{ form_label(form.imageFilename) }}
+    {{ form_widget(form.imageFilename) }}
+    {{ form_errors(form.imageFilename, {'attr': {'class': 'form-error'}}) }}
+  </div>
+
+  <div class="form-group full-width">
+    <button type="submit">Agregar</button>
+    <a href="{{ path('app_home_page') }}" class="button">Volver</a>
+  </div>
+</div>
+{{ form_end(form) }}
+    </div>
+  </div>
+{% endblock %}

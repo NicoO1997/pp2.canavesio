@@ -1,0 +1,161 @@
+{# templates/home_page/index.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+  <link href="{{ asset('styles/principal.css') }}" rel="stylesheet" />
+{% endblock %}
+{% block title %}
+  Bienvenido a la Página Principal
+{% endblock %}
+
+{% block body %}
+  <header class="header-scroll">
+    <img src="{{ asset('images/66cf4982a8246.png') }}" alt="Logo Canavesio" class="logo" />
+    <nav class="nav-links">
+      <a href="{{ path('product_list') }}">Ir al Catálogo</a>
+      <a href="{{ path('cart_view') }}">Ir al Carrito</a>
+      <a href="{{ path('favorite_list') }}">Ir a Favoritos</a>
+      {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') %}
+        <a href="{{ path('app_add_used_machinery_page') }}" class="btn">Agregar Maquinaria Usada</a>
+      {% endif %}
+      <a href="{{ path('app_view_used_machinery') }}">Ver Maquinarias Usadas</a>
+      {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') %}
+        <a href="{{ path('app_view_used_machinery') }}" class="btn">Ver Stock</a>
+      {% endif %}
+    </nav>
+  </header>
+
+  <!-- Contenido existente -->
+  <div class="navegacion_barra" id="logoContainer">
+    <img class="imagen_logo" src="{{ asset('images/66cf4982a8246.png') }}" alt="Logo canavesio" width="400px" />
+  </div>
+  <div class="section-buttons">
+    <nav class="navegacion">
+      <a href="{{ path('product_list') }}" class="btn">Ir al Catálogo</a>
+      <a href="{{ path('cart_view') }}" class="btn">Ir al Carrito</a>
+      <a href="{{ path('favorite_list') }}" class="btn">Ir a Favoritos</a>
+      {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') %}
+        <a href="{{ path('app_add_used_machinery_page') }}" class="btn">Agregar Maquinaria Usada</a>
+      {% endif %}
+      <a href="{{ path('app_view_used_machinery') }}" class="btn">Ver Maquinarias Usadas</a>
+      {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') %}
+        <a href="{{ path('app_view_used_machinery') }}" class="btn">Ver Stock</a>
+      {% endif %}
+    </nav>
+  </div>
+
+  <section class="imagen">
+    <div class="contenido-imagen">
+      <h2>CANAVESIO HNOS <span>s.r.l</span></h2>
+      <div class="ubicacion">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-map-pin" width="80" height="80" viewBox="0 0 24 24" stroke-width="1.5" stroke="#ffc107" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+          <path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
+          <path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z" />
+        </svg>
+        <p>por ahi</p>
+      </div>
+      <a class="boton">Contactar</a>
+    </div>
+  </section>
+
+  <main class="contenedor-contenido sombra">
+    <div class="contenido" data-aos="fade-right">
+      <div class="alineado">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-brand-monday" width="56" height="56" viewBox="0 0 24 24" stroke-width="0.5" stroke="#000000" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+          <path d="M19.5 15.5m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0" />
+          <path d="M9.5 7a1.5 1.5 0 0 1 1.339 2.177l-4.034 7.074c-.264 .447 -.75 .749 -1.305 .749a1.5 1.5 0 0 1 -1.271 -2.297l3.906 -6.827a1.5 1.5 0 0 1 1.365 -.876z" />
+          <path d="M16.5 7a1.5 1.5 0 0 1 1.339 2.177l-4.034 7.074c-.264 .447 -.75 .749 -1.305 .749a1.5 1.5 0 0 1 -1.271 -2.297l3.906 -6.827a1.5 1.5 0 0 1 1.365 -.876z" />
+        </svg>
+        <h2>DESARROLLO</h2>
+        <span>Nuestros implementos agricolas se producen respetando altísimos estándares de seguridad.</span>
+      </div>
+      <img class="imagen1" src="{{ asset('imagenes/canavesiofoto2.jpeg') }}" />
+    </div>
+
+    <div class="contenido1" data-aos="fade-left">
+      <img class="imagen1" src="{{ asset('imagenes/canavesiofoto3.jpg') }}" />
+      <div class="alineado">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-device-landline-phone" width="56" height="56" viewBox="0 0 24 24" stroke-width="0.5" stroke="#000000" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+          <path d="M20 3h-2a2 2 0 0 0 -2 2v14a2 2 0 0 0 2 2h2a2 2 0 0 0 2 -2v-14a2 2 0 0 0 -2 -2z" />
+          <path d="M16 4h-11a3 3 0 0 0 -3 3v10a3 3 0 0 0 3 3h11" />
+          <path d="M12 8h-6v3h6z" />
+          <path d="M12 14v.01" />
+          <path d="M9 14v.01" />
+          <path d="M6 14v.01" />
+          <path d="M12 17v.01" />
+          <path d="M9 17v.01" />
+          <path d="M6 17v.01" />
+        </svg>
+        <h2>COMUNICACION</h2>
+        <span>A través de nuestros canales de contacto se le garantiza el acceso a las palabras y opiniones de expertos del sector.</span>
+      </div>
+    </div>
+
+    <div class="contenido" data-aos="fade-right">
+      <div class="alineado">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-brand-monday" width="56" height="56" viewBox="0 0 24 24" stroke-width="0.5" stroke="#000000" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+          <path d="M19.5 15.5m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0" />
+          <path d="M9.5 7a1.5 1.5 0 0 1 1.339 2.177l-4.034 7.074c-.264 .447 -.75 .749 -1.305 .749a1.5 1.5 0 0 1 -1.271 -2.297l3.906 -6.827a1.5 1.5 0 0 1 1.365 -.876z" />
+          <path d="M16.5 7a1.5 1.5 0 0 1 1.339 2.177l-4.034 7.074c-.264 .447 -.75 .749 -1.305 .749a1.5 1.5 0 0 1 -1.271 -2.297l3.906 -6.827a1.5 1.5 0 0 1 1.365 -.876z" />
+        </svg>
+        <h2>DESARROLLO</h2>
+        <span>Nuestros implementos agricolas se producen respetando altísimos estándares de seguridad.</span>
+      </div>
+      <img class="imagen1" src="{{ asset('imagenes/canavesiofoto2.jpeg') }}" />
+    </div>
+
+    <div class="contenido1" data-aos="fade-left">
+      <img class="imagen1" src="{{ asset('imagenes/canavesiofoto3.jpg') }}" />
+      <div class="alineado">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-device-landline-phone" width="56" height="56" viewBox="0 0 24 24" stroke-width="0.5" stroke="#000000" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+          <path d="M20 3h-2a2 2 0 0 0 -2 2v14a2 2 0 0 0 2 2h2a2 2 0 0 0 2 -2v-14a2 2 0 0 0 -2 -2z" />
+          <path d="M16 4h-11a3 3 0 0 0 -3 3v10a3 3 0 0 0 3 3h11" />
+          <path d="M12 8h-6v3h6z" />
+          <path d="M12 14v.01" />
+          <path d="M9 14v.01" />
+          <path d="M6 14v.01" />
+          <path d="M12 17v.01" />
+          <path d="M9 17v.01" />
+          <path d="M6 17v.01" />
+        </svg>
+        <h2>COMUNICACION</h2>
+        <span>A través de nuestros canales de contacto se le garantiza el acceso a las palabras y opiniones de expertos del sector.</span>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+  <script>
+    AOS.init({
+      duration: 1000, // Duración de la animación en milisegundos
+      easing: 'ease-out-cubic', // Tipo de transición
+      once: true // Si es true, la animación solo se ejecuta una vez
+    })
+  </script>
+
+  <script>
+    window.addEventListener('scroll', function () {
+      var header = document.querySelector('.header-scroll')
+      var sectionButtons = document.querySelector('.section-buttons')
+      var logoContainer = document.getElementById('logoContainer')
+      var scrollPosition = window.scrollY
+    
+      if (scrollPosition > 100) {
+        // Ajusta este valor según necesites
+        header.classList.add('visible')
+        sectionButtons.classList.add('hidden')
+        logoContainer.classList.add('hidden')
+      } else {
+        header.classList.remove('visible')
+        sectionButtons.classList.remove('hidden')
+        logoContainer.classList.remove('hidden')
+      }
+    })
+  </script>
+{% endblock %}

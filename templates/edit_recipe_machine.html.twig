@@ -1,0 +1,79 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Editar Receta de Machine{% endblock %}
+
+{% block body %}
+<h1>Editar Receta de Machine</h1>
+
+<form method="post" action="{{ path('edit_recipe_machine', {'id': recipe.id}) }}">
+    <label for="recipe_name">Nombre de la Receta:</label>
+    <input type="text" id="recipe_name" name="recipe_name" value="{{ recipe.name }}" required>
+
+    <h2>Piezas</h2>
+    <div id="parts">
+        {% for part in recipe.parts %}
+            <div class="part">
+                <label for="part_name_{{ loop.index0 }}">Nombre:</label>
+                <input type="text" id="part_name_{{ loop.index0 }}" name="parts[{{ loop.index0 }}][name]" value="{{ part.name }}" required>
+                <label for="part_quantity_{{ loop.index0 }}">Cantidad:</label>
+                <input type="number" id="part_quantity_{{ loop.index0 }}" name="parts[{{ loop.index0 }}][quantity]" value="{{ part.quantity }}" required>
+                <label for="part_brand_{{ loop.index0 }}">Marca:</label>
+                <input type="text" id="part_brand_{{ loop.index0 }}" name="parts[{{ loop.index0 }}][brand]" value="{{ part.brand }}" required>
+            </div>
+        {% endfor %}
+    </div>
+    <button type="button" id="add-part">Agregar Pieza</button>
+
+    <h2>Productos</h2>
+    <div id="products">
+        {% for product in recipe.products %}
+            <div class="product">
+                <label for="product_name_{{ loop.index0 }}">Nombre:</label>
+                <input type="text" id="product_name_{{ loop.index0 }}" name="products[{{ loop.index0 }}][name]" value="{{ product.name }}" required>
+                <label for="product_quantity_{{ loop.index0 }}">Cantidad:</label>
+                <input type="number" id="product_quantity_{{ loop.index0 }}" name="products[{{ loop.index0 }}][quantity]" value="{{ product.quantity }}" required>
+                <label for="product_brand_{{ loop.index0 }}">Marca:</label>
+                <input type="text" id="product_brand_{{ loop.index0 }}" name="products[{{ loop.index0 }}][brand]" value="{{ product.brand }}" required>
+            </div>
+        {% endfor %}
+    </div>
+    <button type="button" id="add-product">Agregar Producto</button>
+
+    <button type="submit">Actualizar Receta</button>
+</form>
+
+<script>
+    let partIndex = {{ recipe.parts|length | default(0) }};
+    let productIndex = {{ recipe.products|length | default(0) }};
+
+    document.getElementById('add-part').addEventListener('click', () => {
+        const partDiv = document.createElement('div');
+        partDiv.classList.add('part');
+        partDiv.innerHTML = `
+            <label for="part_name_${partIndex}">Nombre:</label>
+            <input type="text" id="part_name_${partIndex}" name="parts[${partIndex}][name]" required>
+            <label for="part_quantity_${partIndex}">Cantidad:</label>
+            <input type="number" id="part_quantity_${partIndex}" name="parts[${partIndex}][quantity]" required>
+            <label for="part_brand_${partIndex}">Marca:</label>
+            <input type="text" id="part_brand_${partIndex}" name="parts[${partIndex}][brand]" required>
+        `;
+        document.getElementById('parts').appendChild(partDiv);
+        partIndex++;
+    });
+
+    document.getElementById('add-product').addEventListener('click', () => {
+        const productDiv = document.createElement('div');
+        productDiv.classList.add('product');
+        productDiv.innerHTML = `
+            <label for="product_name_${productIndex}">Nombre:</label>
+            <input type="text" id="product_name_${productIndex}" name="products[${productIndex}][name]" required>
+            <label for="product_quantity_${productIndex}">Cantidad:</label>
+            <input type="number" id="product_quantity_${productIndex}" name="products[${productIndex}][quantity]" required>
+            <label for="product_brand_${productIndex}">Marca:</label>
+            <input type="text" id="product_brand_${productIndex}" name="products[${productIndex}][brand]" required>
+        `;
+        document.getElementById('products').appendChild(productDiv);
+        productIndex++;
+    });
+</script>
+{% endblock %}
