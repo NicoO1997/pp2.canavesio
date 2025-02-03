@@ -1,0 +1,14 @@
+{# templates/parts/new.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Agregar Nueva Parte</h1>
+
+    {{ form_start(form) }}
+        {{ form_row(form.name) }}
+        {{ form_row(form.quantity) }}
+        {{ form_row(form.brand) }}
+        {{ form_row(form.save) }}
+    {{ form_end(form) }}
+{% endblock %}

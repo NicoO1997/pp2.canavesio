@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Detalles de la Receta{% endblock %}
+
+{% block body %}
+<h1>Detalles de la Receta: {{ recipe.name }}</h1>
+
+<h2>Piezas</h2>
+<ul>
+    {% for part in recipe.parts %}
+        <li>
+            Nombre: {{ part.name | default('No especificado') }}<br>
+            Cantidad: {{ part.quantity | default('No especificado') }}<br>
+            Marca: {{ part.brand | default('No especificado') }}<br>
+            ID de la Pieza: {{ part.id | default('No especificado') }}
+        </li>
+    {% endfor %}
+</ul>
+
+<a href="{{ path('create_recipe_product') }}">Volver a crear receta</a>
+{% endblock %}

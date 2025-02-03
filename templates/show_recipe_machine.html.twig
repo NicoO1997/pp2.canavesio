@@ -1,0 +1,34 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Detalles de la Receta de Máquina{% endblock %}
+
+{% block body %}
+<h1>Detalles de la Receta de Máquina: {{ recipe.name }}</h1>
+
+<h2>Piezas</h2>
+<ul>
+    {% for part in recipe.parts %}
+        <li>
+            Nombre: {{ part.name | default('No especificado') }}<br>
+            Cantidad: {{ part.quantity | default('No especificado') }}<br>
+            Marca: {{ part.brand | default('No especificado') }}<br>
+            ID de la Pieza: {{ part.id | default('No especificado') }}
+        </li>
+    {% endfor %}
+</ul>
+
+<h2>Productos</h2>
+<ul>
+    {% for product in recipe.products %}
+        <li>
+            Nombre: {{ product.name | default('No especificado') }}<br>
+            Cantidad: {{ product.quantity | default('No especificado') }}<br>
+            Marca: {{ product.brand | default('No especificado') }}<br>
+            ID del Producto: {{ product.id | default('No especificado') }}
+        </li>
+    {% endfor %}
+</ul>
+
+<a href="{{ path('create_recipe_machine') }}">Volver a crear receta</a>
+<a href="{{ path('edit_recipe_machine', {'id': recipe.id}) }}">Editar Receta</a>
+{% endblock %}

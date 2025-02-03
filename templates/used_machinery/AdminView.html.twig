@@ -1,0 +1,83 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin - View Used Machineries{% endblock %}
+
+{% block body %}
+<h1>Admin - Used Machineries</h1>
+
+<p><a href="{{ path('app_home_page') }}">Back to Home</a></p>
+
+<div id="flash-messages"></div>
+
+{% if usedMachineries is not empty %}
+    <table>
+        <thead>
+            <tr>
+                <th>Machinery Name</th>
+                <th>Brand</th>
+                <th>Years Old</th>
+                <th>Months</th>
+                <th>Hours of Use</th>
+                <th>Last Service</th>
+                <th>Price</th>
+                <th>Image</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for machinery in usedMachineries %}
+            <form id="machinery-form-{{ machinery.id }}" action="{{ path('admin_update_used_machinery', { 'id': machinery.id }) }}" method="POST" enctype="multipart/form-data">
+                <tr id="machinery-{{ machinery.id }}">
+                    <td><input type="text" name="machineryName" value="{{ machinery.machineryName }}"></td>
+                    <td><input type="text" name="brand" value="{{ machinery.brand }}"></td>
+                    <td><input type="number" name="yearsOld" value="{{ machinery.yearsOld }}"></td>
+                    <td><input type="number" name="months" value="{{ machinery.months }}" min="0" max="11"></td>
+                    <td><input type="number" name="hoursOfUse" value="{{ machinery.hoursOfUse }}"></td>
+                    <td><input type="date" name="lastService" value="{{ machinery.lastService|date('Y-m-d') }}"></td>
+                    <td><input type="number" name="price" value="{{ machinery.price is not null ? machinery.price : '' }}" step="0.01"></td>
+                    <td>
+                        {% if machinery.imageFilename %}
+                            <img src="{{ asset('images/' ~ machinery.imageFilename) }}" alt="{{ machinery.machineryName }}" width="100">
+                        {% endif %}
+                        <input type="file" name="image" accept="image/*">
+                    </td>
+                    <td>
+                        <button type="button" onclick="submitAndReload({{ machinery.id }})">Save</button>
+                        <a href="{{ path('admin_delete_used_machinery', {'id': machinery.id}) }}" onclick="return confirm('Are you sure you want to delete this item?');">Delete</a>
+                    </td>
+                </tr>
+            </form>
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No used machineries found.</p>
+{% endif %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        function submitAndReload(machineryId) {
+            const form = document.getElementById(`machinery-form-${machineryId}`);
+            const formData = new FormData(form);
+
+            fetch(form.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Machinery updated successfully!');
+                    window.location.reload(); // Recargar la página automáticamente
+                } else {
+                    alert('Error updating machinery.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('There was an error updating the machinery.');
+            });
+        }
+    </script>
+{% endblock %}

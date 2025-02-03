@@ -1,0 +1,244 @@
+/* Estilos globales */
+html {
+    font-size: 62.5%;
+    box-sizing: border-box; /* hack para box model */
+}
+body {
+    background-image: linear-gradient(to top, grey 0%, white 100%);
+    background-size: cover; /* Ajusta el tamaño del fondo para cubrir todo el área visible */
+    background-attachment: fixed; /* Opcional: mantiene el fondo fijo mientras se desplaza el contenido */
+    font-family: "Krub", sans-serif;
+    font-size: 16px;
+}
+
+.header-scroll {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: #000;
+    color: #fff;
+    padding: 10px 0;
+    z-index: 1000;
+    display: none;
+    transition: all 0.3s ease;
+}
+.header-scroll.visible {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.header-scroll .logo {
+    max-height: 40px;
+    margin-left: 20px;
+}
+.header-scroll .nav-links {
+    display: flex;
+}
+.header-scroll .nav-links a {
+    color: #fff;
+    text-decoration: none;
+    margin-right: 20px;
+    font-size: 14px;
+    font-weight: bold;
+}
+.section-buttons {
+    transition: opacity 0.3s ease;
+}
+.section-buttons.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.navegacion_barra {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+    transition: opacity 0.3s ease;
+}
+
+.navegacion_barra.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+
+.navegacion_barra.scrolled {
+    justify-content: flex-start; /* Mueve el logo a la izquierda al hacer scroll */
+    padding: 0.5rem 2rem; /* Ajusta el padding si es necesario */
+}
+
+.imagen_logo {
+    width: 60%;
+    margin-right: 1rem;
+    transition: opacity 0.3s ease;
+}
+
+.section-buttons {
+    background-color: rgb(247, 164, 10);
+}
+
+/* Estilos para los botones */
+.btn {
+    display: inline-block;
+    padding: 1rem;
+    margin-top: 10px;
+    border-radius: 5px;
+    background-color: rgb(247, 164, 10); /* Color de fondo azul */
+    color: #ffffff !important; /* Color de texto blanco y uso de !important para asegurar su aplicación */
+    text-align: center; /* Centrar texto dentro del botón */
+    text-decoration: none;
+    font-size: 2rem;
+    font-weight: bold; /* Asegura que el texto sea visible y destacado */
+    cursor: pointer;
+    border: none; /* Remueve bordes para un diseño más limpio */
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.btn:hover {
+    background-color: rgb(182, 125, 18); /* Color de fondo más oscuro en hover */
+    color: black !important; /* Asegura que el texto siga siendo blanco */
+    text-decoration: none;
+}
+
+a.btn {
+    color: #ffffff !important; /* Asegura que los enlaces con clase .btn tengan texto blanco */
+    display: inline-block;
+}
+
+.navegacion {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-left: auto; /* Mueve la barra de navegación a la derecha del logo */
+    justify-content: space-between;
+}
+
+.navegacion a {
+    color: white;
+    text-decoration: none;
+    font-size: 2rem;
+    font-weight: bold;
+    padding: 1rem;
+}
+
+.navegacion a:hover{
+    color: white;
+    text-decoration: none;
+    font-size: 2rem;
+    font-weight: bold;
+    padding: 1rem;
+}
+
+.imagen {
+    background-image: url('../../assets/imagenes/canavesiofoto2.jpeg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center; /* o 'top', 'bottom', 'left', 'right' */
+    height: 640px;
+    width: 100%;
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+.contenido-imagen {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.7); /**anterior**/
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.contenido-imagen h2,
+.contenido-imagen p {
+    color: white;
+}
+
+.contenido-imagen .ubicacion {
+    display: flex;
+    align-items: flex-end;
+}
+
+.boton {
+    background-color: rgb(214, 113, 19);
+    color: white;
+    padding: .5rem 2rem;
+    margin-top: 3rem;
+    font-size: 2rem;
+    text-decoration: none;
+    text-transform: uppercase;
+    font-weight: bold;
+    border-radius: .5rem;
+    width: auto;
+    text-align: center;
+    border: none;
+    transition: background-color 1s, color 1s;
+}
+
+.boton:hover {
+    cursor: pointer;
+    background-color: rgb(175, 99, 11);
+    color: yellow;
+    text-decoration: none;
+}
+
+.contenedor-contenido {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 1rem;
+}
+
+.sombra {
+    box-shadow: 0px 5px 15px 0px rgba(112, 112, 112, 0.48);
+    background-color: white;
+    padding: 2rem;
+    border-radius: 1rem;
+}
+
+
+.contenido, .contenido1 {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.contenido h2, .contenido1 h2 {
+    font-size: 2.4rem;
+    color: #000;
+}
+
+.alineado {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+/* Animación de deslizamiento para imágenes */
+@keyframes slide-in {
+    0% {
+        transform: translateX(-100px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.imagen1 {
+        width: 50%;
+        height: auto;
+        border-radius: 1rem;
+    opacity: 0; /* Comienza invisible */
+    animation: slide-in 1s forwards; /* Aplica la animación de deslizamiento */
+}

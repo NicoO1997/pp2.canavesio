@@ -1,0 +1,25 @@
+controllers:
+    resource:
+        path: ../src/Controller/
+        namespace: App\Controller
+    type: attribute
+
+    # config/routes.yaml
+cart_add_product:
+    path: /cart/add/{productId}
+    controller: App\Controller\CartController::addProduct
+    methods: [POST]
+
+cart_view:
+    path: /cart
+    controller: App\Controller\CartController::viewCart
+
+create-preference:
+    path: /crear-preferencia
+    controller: App\Controller\PaymentController::createPreference
+
+
+# registro:
+#     path: /registro
+#     controller: App\Controller\RegistrationController::register
+

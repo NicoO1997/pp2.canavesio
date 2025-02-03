@@ -1,0 +1,25 @@
+# config/services.yaml
+
+# Parámetros globales
+parameters:
+    images_directory: '%kernel.project_dir%/public/images'
+    mercado_pago_access_token: '%env(MERCADO_PAGO_ACCESS_TOKEN)%'
+
+# Configuración por defecto para servicios
+services:
+    # Configuración por defecto para todos los servicios
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    # Servicios en src/
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+    # Definición explícita de servicios
+    App\Twig\AppExtension:
+        tags: [ 'twig.extension' ]

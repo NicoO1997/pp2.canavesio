@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+    <link href="{{ asset('styles/section.css') }}" rel="stylesheet" />
+{% endblock %}
+
+{% block body %}
+  <div class="section-container">
+    <h1>{{ section }}</h1>
+
+    {% if (usedMachineries|length) > 0 %}
+      <div class="usedMachineries-grid">
+        {% for machinery in usedMachineries %}
+          <a href="{{ path('used_machinery_detail', { id: machinery.id }) }}" class="usedMachinery-link">
+            <div class="usedMachinery-imagen">
+              {% if machinery.imageFilename %}
+                <img src="{{ asset('images/' ~ machinery.imageFilename) }}" alt="{{ machinery.machineryName }}" />
+              {% else %}
+                <div class="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">Sin imagen</div>
+              {% endif %}
+            </div>
+            <div class="usedMachinery-info">
+              <h2>{{ machinery.machineryName }}</h2>
+              <p>${{ machinery.price|number_format(2, ',', '.') }}</p>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <p class="text-xl">No hay maquinarias disponibles en esta sección.</p>
+        <svg class="mx-auto mt-4 w-24 h-24 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

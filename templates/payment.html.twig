@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}<link href="{{ asset('styles/payment.css') }}" rel="stylesheet">{% endblock %}
+{% block title %}Proceso de Pago{% endblock %}
+
+{% block body %}
+    <h1 class="pago-titulo">Proceso de Pago</h1>
+
+    <div class="pago-contenedor">
+        <p>Por favor, selecciona tu método de pago preferido.</p>
+
+        {# Contenedor para el botón de pago #}
+        <div id="wallet_container" class="pago-boton"></div>
+    </div>
+
+    {# Añadir el SDK de Mercado Pago #}
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
+
+    <script>
+        // Configurar Mercado Pago con tu clave pública
+      document.addEventListener('DOMContentLoaded', function () {
+    const preferenceId = "{{ preferenceId }}";
+
+    if (preferenceId) {
+        const mp = new MercadoPago('APP_USR-df884e88-c65a-40ff-84bc-3da637e8bc56', {
+            locale: 'es-AR' // Opcional
+        });
+
+        mp.bricks().create("wallet", "wallet_container", {
+            initialization: {
+                preferenceId: preferenceId
+            },
+            customization: {
+                texts: {
+                    valueProp: 'smart_option',
+                },
+            },
+        });
+    } else {
+        console.error("No se pudo obtener el preferenceId.");
+    }
+});
+
+    </script>
+{% endblock %}

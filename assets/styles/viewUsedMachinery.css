@@ -1,0 +1,154 @@
+/* Used Machineries Styles */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f6f9;
+    margin: 0;
+    padding: 20px;
+    color: #333;
+}
+
+.machinery-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.machinery-title {
+    text-align: center;
+    color: #2c3e50;
+    padding: 20px 0;
+    font-size: 2.5rem;
+    background-color: #f8f9fa;
+    margin: 0;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.machinery-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.machinery-table thead {
+    background-color: #3498db;
+    color: white;
+}
+
+.machinery-table th {
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    border-bottom: 2px solid #2980b9;
+}
+
+.machinery-table tr {
+    transition: background-color 0.3s ease;
+}
+
+.machinery-table tbody tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.machinery-table tbody tr:hover {
+    background-color: #e6f2ff;
+}
+
+.machinery-table td {
+    padding: 15px;
+    border-bottom: 1px solid #ddd;
+    vertical-align: middle;
+}
+
+.machinery-image {
+    max-width: 100px;
+    max-height: 100px;
+    border-radius: 8px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.machinery-image:hover {
+    transform: scale(1.1);
+}
+
+.machinery-age {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.machinery-age-new {
+    background-color: #2ecc71;
+    color: white;
+}
+
+.machinery-age-medium {
+    background-color: #f39c12;
+    color: white;
+}
+
+.machinery-age-old {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.no-machineries {
+    text-align: center;
+    color: #7f8c8d;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+    .machinery-table {
+        font-size: 0.9rem;
+    }
+
+    .machinery-table th,
+    .machinery-table td {
+        padding: 10px;
+    }
+
+    .machinery-image {
+        max-width: 70px;
+        max-height: 70px;
+    }
+}
+
+/* Animation for table rows */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.machinery-table tbody tr {
+    animation: fadeIn 0.5s ease-out;
+    animation-fill-mode: backwards;
+}
+
+.machinery-table tbody tr:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.machinery-table tbody tr:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.machinery-table tbody tr:nth-child(4) {
+    animation-delay: 0.3s;
+}

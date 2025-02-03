@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>All Recipes</title>
+    {% block stylesheets %}<link href="{{ asset('styles/recipe.css') }}" rel="stylesheet">{% endblock %}
+</head>
+<body>
+    <h1>RECETAS</h1>
+
+    <h2>MAQUINARIAS</h2>
+    <ul>
+        {% for recipe in machine_recipes %}
+            <li>
+                <strong>{{ recipe.name }}</strong><br>
+                <p>Partes: 
+                {% if recipe.parts is not empty %}
+                    {% for part in recipe.parts %}
+                        {{ part.name }}{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                {% else %}
+                    No tiene partes
+                {% endif %}
+                </p>
+                <p>Repuestos: 
+                {% if recipe.products is not empty %}
+                    {% for product in recipe.products %}
+                        {{ product.name }}{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                {% else %}
+                    No tiene repuestos
+                {% endif %}
+                </p>
+                <a href="{{ path('edit_recipe_machine', {'id': recipe.id}) }}">Editar</a>
+            </li>
+        {% else %}
+            <li class="no-recipes">No se encuentran recetas</li>
+        {% endfor %}
+    </ul>
+
+    <h2>REPUESTOS</h2>
+    <ul>
+        {% for recipe in product_recipes %}
+            <li>
+                <strong>{{ recipe.name }}</strong><br>
+                <p>Partes: 
+                {% if recipe.parts is not empty %}
+                    {% for part in recipe.parts %}
+                        {{ part.name }}{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                {% else %}
+                    No tiene partes
+                {% endif %}
+                </p>
+            </li>
+        {% else %}
+            <li class="no-recipes">No se encuentran recetas</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

@@ -1,0 +1,76 @@
+/* Estilos generales */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f9;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    text-align: center;
+    margin-top: 20px;
+    color: #444;
+}
+
+h2 {
+    color: #555;
+    text-align: center;
+    margin-top: 30px;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+li {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin: 10px;
+    padding: 20px;
+    width: 300px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+li:hover {
+    transform: translateY(-5px);
+}
+
+strong {
+    font-size: 18px;
+    color: #333;
+}
+
+li p {
+    margin: 10px 0;
+    color: #555;
+}
+
+li a {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+li a:hover {
+    background-color: #0056b3;
+}
+
+/* Estilo para indicar que no hay recetas */
+li.no-recipes {
+    text-align: center;
+    font-style: italic;
+    color: #888;
+}
