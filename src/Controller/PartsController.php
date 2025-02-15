@@ -1,10 +1,8 @@
 <?php
-// src/Controller/PartsController.php
 
 namespace App\Controller;
 
 use App\Entity\Parts;
-use App\Form\PartsType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,29 +11,50 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class PartsController extends AbstractController
 {
-    #[Route('/parts/new', name: 'parts_new')]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    #[Route('/parts/add', name: 'app_add_part')]
+    public function add(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $part = new Parts();
-        $form = $this->createForm(PartsType::class, $part);
+        if ($request->isMethod('POST')) {
+            $part = new Parts();
+            $part->setName($request->request->get('name'));
+            $part->setBrand($request->request->get('brand'));
+            $part->setQuantity((int)$request->request->get('quantity'));
 
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($part);
             $entityManager->flush();
 
-            return $this->redirectToRoute('parts_success');
+            $this->addFlash('success', 'Repuesto añadido correctamente');
+            return $this->redirectToRoute('app_ver_stock');
         }
 
-        return $this->render('parts/new.html.twig', [
-            'form' => $form->createView(),
+        return $this->render('parts/add.html.twig');
+    }
+
+    #[Route('/parts/edit/{id}', name: 'app_editar_repuesto')]
+    public function edit(Request $request, EntityManagerInterface $entityManager, Parts $part): Response
+    {
+        if ($request->isMethod('POST')) {
+            $part->setName($request->request->get('name'));
+            $part->setBrand($request->request->get('brand'));
+            $part->setQuantity((int)$request->request->get('quantity'));
+
+            $entityManager->flush();
+            $this->addFlash('success', 'Repuesto actualizado correctamente');
+            return $this->redirectToRoute('app_ver_stock');
+        }
+
+        return $this->render('parts/edit.html.twig', [
+            'part' => $part
         ]);
     }
 
-    #[Route('/parts/success', name: 'parts_success')]
-    public function success(): Response
+    #[Route('/parts/delete/{id}', name: 'app_eliminar_repuesto')]
+    public function delete(EntityManagerInterface $entityManager, Parts $part): Response
     {
-        return new Response('Part added successfully!');
+        $entityManager->remove($part);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Repuesto eliminado correctamente');
+        return $this->redirectToRoute('app_ver_stock');
     }
 }

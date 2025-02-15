@@ -174,4 +174,51 @@ class ProductController extends AbstractController
 
         return $this->redirectToRoute('product_detail', ['id' => $id]);
     }
+
+    #[Route('/stock/view', name: 'view_stock')]
+    public function viewStock(EntityManagerInterface $entityManager): Response
+    {
+        $products = $entityManager->getRepository(Product::class)->findAll();
+        
+        return $this->render('stock/view_stock.html.twig', [
+            'products' => $products
+        ]);
+    }
+
+    #[Route('/product/{id}/edit', name: 'product_edit', methods: ['POST'])]
+    public function edit(
+        Request $request,
+        Product $product,
+        EntityManagerInterface $entityManager
+    ): Response {
+        if ($this->isCsrfTokenValid('edit'.$product->getId(), $request->request->get('_token'))) {
+            $product->setName($request->request->get('name'));
+            $product->setBrand($request->request->get('brand'));
+            $product->setQuantity((int)$request->request->get('quantity'));
+            $product->setPrice($request->request->get('price'));
+            $product->setDescription($request->request->get('description'));
+
+            $entityManager->flush();
+
+            return $this->json(['message' => 'Cambios guardados correctamente']);
+        }
+
+        return $this->json(['message' => 'Token CSRF inválido'], 400);
+    }
+
+    #[Route('/product/{id}/delete', name: 'product_delete', methods: ['DELETE'])]
+    public function delete(
+        Request $request,
+        Product $product,
+        EntityManagerInterface $entityManager
+    ): Response {
+        if ($this->isCsrfTokenValid('delete'.$product->getId(), $request->request->get('_token'))) {
+            $entityManager->remove($product);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Producto eliminado correctamente');
+        }
+
+        return $this->redirectToRoute('product_list');
+    }
 }

@@ -21,7 +21,7 @@
       {% endif %}
       <a href="{{ path('app_view_used_machinery') }}">Ver Maquinarias Usadas</a>
       {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') %}
-        <a href="{{ path('app_view_used_machinery') }}" class="btn">Ver Stock</a>
+      <a href="{{ path('app_ver_stock') }}" class="btn">Ver Stock</a>
       {% endif %}
     </nav>
   </header>
@@ -40,7 +40,7 @@
       {% endif %}
       <a href="{{ path('app_view_used_machinery') }}" class="btn">Ver Maquinarias Usadas</a>
       {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') %}
-        <a href="{{ path('app_view_used_machinery') }}" class="btn">Ver Stock</a>
+      <a href="{{ path('app_ver_stock') }}" class="btn">Ver Stock</a>
       {% endif %}
     </nav>
   </div>

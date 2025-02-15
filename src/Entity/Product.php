@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
 class Product
@@ -27,30 +28,40 @@ class Product
      * @Assert\GreaterThan(
      *     value = 0,
      *     message = "La cantidad debe ser mayor a 0"
-     * )
-     */
+     * )
+     */
     #[ORM\Column(nullable: true)]
     private ?int $quantity = null;
+
+    /**
+     * @Assert\NotBlank(message="El stock mínimo es obligatorio")
+     * @Assert\GreaterThanOrEqual(
+     *     value = 0,
+     *     message = "El stock mínimo debe ser mayor o igual a 0"
+     * )
+     */
+    #[ORM\Column]
+    private int $minStock = 0;
 
     /**
      * @Assert\NotBlank(message="El precio es obligatorio")
      * @Assert\GreaterThan(
      *     value = 0,
      *     message = "El precio debe ser mayor a 0"
-     * )
-     */
+     * )
+     */
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2, nullable: true)]
     private ?string $price = null;
 
     /**
      * @Assert\NotBlank(message="La descripción es obligatoria")
-     */
+     */
     #[ORM\Column(length: 255)]
     private ?string $description = null;
 
     /**
      * @Assert\NotBlank(message="La marca es obligatoria")
-     */
+     */
     #[ORM\Column(length: 255)]
     private ?string $brand = null;
 
@@ -99,6 +110,7 @@ class Product
         $this->recipeMachines = new ArrayCollection();
     }
 
+    // Métodos básicos existentes
     public function getId(): ?int
     {
         return $this->id;
@@ -109,10 +121,9 @@ class Product
         return $this->name;
     }
 
-    public function setName(string $name): static
+    public function setName(?string $name): static
     {
-        $this->name = $name;
-
+        $this->name = $name !== null ? $name : '';
         return $this;
     }
 
@@ -123,11 +134,33 @@ class Product
 
     public function setQuantity(?int $quantity): static
     {
-        $this->quantity = $quantity;
-
+        $this->quantity = $quantity !== null ? $quantity : 0;
         return $this;
     }
 
+    public function getMinStock(): ?int
+    {
+        return $this->minStock;
+    }
+
+    public function setMinStock(int $minStock): static
+    {
+        $this->minStock = max(0, $minStock);
+        return $this;
+    }
+
+    // Nuevos métodos de utilidad como en Repuestos
+    public function hasEnoughStock(): bool
+    {
+        return $this->quantity > 0;
+    }
+
+    public function needsRestock(): bool
+    {
+        return $this->quantity <= $this->minStock;
+    }
+
+    // Resto de getters y setters existentes
     public function getPrice(): ?string
     {
         return $this->price;
@@ -136,7 +169,6 @@ class Product
     public function setPrice(?string $price): static
     {
         $this->price = $price;
-
         return $this;
     }
 
@@ -148,7 +180,6 @@ class Product
     public function setDescription(string $description): static
     {
         $this->description = $description;
-
         return $this;
     }
 
@@ -160,65 +191,6 @@ class Product
     public function setBrand(string $brand): static
     {
         $this->brand = $brand;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, UserFavoriteProduct>
-     */
-    public function getUserFavoriteProduct(): Collection
-    {
-        return $this->userFavoriteProduct;
-    }
-
-    public function addUserFavoriteProduct(UserFavoriteProduct $userFavoriteProduct): static
-    {
-        if (!$this->userFavoriteProduct->contains($userFavoriteProduct)) {
-            $this->userFavoriteProduct->add($userFavoriteProduct);
-            $userFavoriteProduct->setProduct($this);
-        }
-
-        return $this;
-    }
-
-    public function removeUserFavoriteProduct(UserFavoriteProduct $userFavoriteProduct): static
-    {
-        if ($this->userFavoriteProduct->removeElement($userFavoriteProduct)) {
-            if ($userFavoriteProduct->getProduct() === $this) {
-                $userFavoriteProduct->setProduct(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, CartProductOrder>
-     */
-    public function getCartProductOrder(): Collection
-    {
-        return $this->cartProductOrder;
-    }
-
-    public function addCartProductOrder(CartProductOrder $cartProductOrder): static
-    {
-        if (!$this->cartProductOrder->contains($cartProductOrder)) {
-            $this->cartProductOrder->add($cartProductOrder);
-            $cartProductOrder->setProduct($this);
-        }
-
-        return $this;
-    }
-
-    public function removeCartProductOrder(CartProductOrder $cartProductOrder): static
-    {
-        if ($this->cartProductOrder->removeElement($cartProductOrder)) {
-            if ($cartProductOrder->getProduct() === $this) {
-                $cartProductOrder->setProduct(null);
-            }
-        }
-
         return $this;
     }
 
@@ -230,13 +202,58 @@ class Product
     public function setImage(string $image): static
     {
         $this->image = $image;
-
         return $this;
     }
 
-    /**
-     * @return Collection<int, Parts>
-     */
+    // Métodos de colección existentes
+    public function getUserFavoriteProduct(): Collection
+    {
+        return $this->userFavoriteProduct;
+    }
+
+    public function addUserFavoriteProduct(UserFavoriteProduct $userFavoriteProduct): static
+    {
+        if (!$this->userFavoriteProduct->contains($userFavoriteProduct)) {
+            $this->userFavoriteProduct->add($userFavoriteProduct);
+            $userFavoriteProduct->setProduct($this);
+        }
+        return $this;
+    }
+
+    public function removeUserFavoriteProduct(UserFavoriteProduct $userFavoriteProduct): static
+    {
+        if ($this->userFavoriteProduct->removeElement($userFavoriteProduct)) {
+            if ($userFavoriteProduct->getProduct() === $this) {
+                $userFavoriteProduct->setProduct(null);
+            }
+        }
+        return $this;
+    }
+
+    public function getCartProductOrder(): Collection
+    {
+        return $this->cartProductOrder;
+    }
+
+    public function addCartProductOrder(CartProductOrder $cartProductOrder): static
+    {
+        if (!$this->cartProductOrder->contains($cartProductOrder)) {
+            $this->cartProductOrder->add($cartProductOrder);
+            $cartProductOrder->setProduct($this);
+        }
+        return $this;
+    }
+
+    public function removeCartProductOrder(CartProductOrder $cartProductOrder): static
+    {
+        if ($this->cartProductOrder->removeElement($cartProductOrder)) {
+            if ($cartProductOrder->getProduct() === $this) {
+                $cartProductOrder->setProduct(null);
+            }
+        }
+        return $this;
+    }
+
     public function getParts(): Collection
     {
         return $this->parts;
@@ -248,7 +265,6 @@ class Product
             $this->parts->add($part);
             $part->addProduct($this);
         }
-
         return $this;
     }
 
@@ -257,13 +273,9 @@ class Product
         if ($this->parts->removeElement($part)) {
             $part->removeProduct($this);
         }
-
         return $this;
     }
 
-    /**
-     * @return Collection<int, ProductPartsMachine>
-     */
     public function getProductPartsMachines(): Collection
     {
         return $this->productPartsMachines;
@@ -275,7 +287,6 @@ class Product
             $this->productPartsMachines->add($productPartsMachine);
             $productPartsMachine->setProduct($this);
         }
-
         return $this;
     }
 
@@ -286,13 +297,9 @@ class Product
                 $productPartsMachine->setProduct(null);
             }
         }
-
         return $this;
     }
 
-    /**
-     * @return Collection<int, RecipeMachine>
-     */
     public function getRecipeMachines(): Collection
     {
         return $this->recipeMachines;
@@ -304,7 +311,6 @@ class Product
             $this->recipeMachines->add($recipeMachine);
             $recipeMachine->addProduct($this);
         }
-
         return $this;
     }
 
@@ -313,7 +319,6 @@ class Product
         if ($this->recipeMachines->removeElement($recipeMachine)) {
             $recipeMachine->removeProduct($this);
         }
-
         return $this;
     }
 }

@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\SecurityBundle\Security;
+use App\Entity\Parts;
 
 class HomePageController extends AbstractController
 {
@@ -116,6 +117,16 @@ class HomePageController extends AbstractController
 
         return $this->render('used_machinery/view.html.twig', [
             'usedMachineries' => $usedMachineries,
+        ]);
+    }
+
+    #[Route('/view-stock', name: 'app_ver_stock')]
+    public function viewStock(EntityManagerInterface $entityManager): Response
+    {
+        $parts = $entityManager->getRepository(Parts::class)->findAll();
+        
+        return $this->render('stock/view_stock.html.twig', [
+            'parts' => $parts,
         ]);
     }
 }
