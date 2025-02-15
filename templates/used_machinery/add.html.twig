@@ -9,11 +9,6 @@ Agregar Maquinaria Usada
 {% block body %}
   <div class="form-container">
     <h1>Nueva Maquinaria Usada</h1>
-{% for label, messages in app.session.flashbag.all() %}
-  {% for message in messages %}
-    <div class="alert alert-{{ label }}">{{ message }}</div>
-  {% endfor %}
-{% endfor %}
 
 {{ form_start(form) }}
 <div class="form-group-container">

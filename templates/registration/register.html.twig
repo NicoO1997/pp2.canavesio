@@ -1,132 +1,134 @@
 {% extends 'base.html.twig' %}
-{% block stylesheets %}<link href="{{ asset('styles/register.css') }}" rel="stylesheet">{% endblock %}
+
+{% block stylesheets %}
+    <link href="{{ asset('styles/register.css') }}" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+{% endblock %}
+
 {% block title %}Register{% endblock %}
- 
+
 {% block body %}
+<div class="register-container">
+    <div class="imagenbienvenida" data-aos="fade-right" data-aos-duration="1000"></div>
     
-    <div class="register-container">
-        <div class="imagenbienvenida aos-init" data-aos="fade-left" data-aos-duration="1000"></div>
-        <div class="register-form-wrapper">
-            <h1 class="register-h1">Crea tu cuenta</h1>
+    <div class="register-form-wrapper">
+        <h1 class="register-h1">Crea tu cuenta</h1>
 
-            {{ form_errors(registrationForm) }}
+        {{ form_errors(registrationForm) }}
 
-            {{ form_start(registrationForm) }}
+        {{ form_start(registrationForm, {'attr': {'class': 'register-form', 'novalidate': 'novalidate'}}) }}
+            <div class="register-field">
+                {{ form_label(registrationForm.email, 'Email', {'label_attr': {'class': 'register-label'}}) }}
+                {{ form_widget(registrationForm.email, {
+                    'attr': {
+                        'class': 'register-input',
+                        'placeholder': 'Email'
+                    }
+                }) }}
+                {{ form_errors(registrationForm.email) }}
+            </div>
 
-            {{ form_start(registrationForm, {'attr': {'novalidate': 'novalidate'}}) }}
-                <div class="register-field">
-                    {{ form_label(registrationForm.email, 'Email', {'label_attr': {'class': 'register-label'}}) }}
-                    {{ form_widget(registrationForm.email, {
-                        'attr': {
-                            'class': 'register-input',
-                            'placeholder': 'Email'
-                        }
-                    }) }}
+            <div class="register-field">
+                {{ form_label(registrationForm.username, 'Nombre de usuario', {'label_attr': {'class': 'register-label'}}) }}
+                {{ form_widget(registrationForm.username, {
+                    'attr': {
+                        'class': 'register-input',
+                        'placeholder': 'Nombre de usuario'
+                    }
+                }) }}
+                {{ form_errors(registrationForm.username) }}
+            </div>
 
-                </div>
+            <div class="register-field">
+                {{ form_label(registrationForm.phone, 'Teléfono', {'label_attr': {'class': 'register-label'}}) }}
+                {{ form_widget(registrationForm.phone, {
+                    'attr': {
+                        'class': 'register-input',
+                        'placeholder': 'Teléfono (opcional)'
+                    }
+                }) }}
+                {{ form_errors(registrationForm.phone) }}
+            </div>
 
-                    {{ form_errors(registrationForm.email) }}
-                </div>
-                <div class="register-field" >
-                    {{ form_label(registrationForm.username, 'Nombre de usuario', {'label_attr': {'class': 'register-label'}}) }}
-                    {{ form_widget(registrationForm.username, {
-                        'attr': {
-                            'class': 'register-input',
-                            'placeholder': 'Nombre de usuario'
-                        }
-                    }) }}
-                    {{ form_errors(registrationForm.username) }}
-                </div>
+            <div class="register-field">
+                {{ form_label(registrationForm.plainPassword, 'Contraseña', {'label_attr': {'class': 'register-label'}}) }}
+                {{ form_widget(registrationForm.plainPassword, {
+                    'attr': {
+                        'class': 'register-input',
+                        'placeholder': 'Contraseña'
+                    }
+                }) }}
+                {{ form_errors(registrationForm.plainPassword) }}
+            </div>
 
-                <div class="register-field">
-                    {{ form_label(registrationForm.phone, 'Teléfono', {'label_attr': {'class': 'register-label'}}) }}
-                    {{ form_widget(registrationForm.phone, {
-                        'attr': {
-                            'class': 'register-input',
-                            'placeholder': 'Teléfono (opcional)'
-                        }
-                    }) }}
-                </div>
+            <div class="register-field">
+                {{ form_label(registrationForm.securityQuestion, 'Pregunta clave', {'label_attr': {'class': 'register-label'}}) }}
+                {{ form_widget(registrationForm.securityQuestion, {
+                    'attr': {
+                        'class': 'register-input'
+                    }
+                }) }}
+                {{ form_errors(registrationForm.securityQuestion) }}
+            </div>
 
-                
-                <div class="register-field">
-                    {{ form_label(registrationForm.plainPassword, 'Contraseña', {'label_attr': {'class': 'register-label'}}) }}
-                    {{ form_widget(registrationForm.plainPassword, {
-                        'attr': {
-                            'class': 'register-input',
-                            'placeholder': 'Contraseña'
-                        }
-                    }) }}
+            <div class="register-field">
+                {{ form_label(registrationForm.securityAnswer, 'Respuesta', {'label_attr': {'class': 'register-label'}}) }}
+                {{ form_widget(registrationForm.securityAnswer, {
+                    'attr': {
+                        'class': 'register-input',
+                        'placeholder': 'Escriba su respuesta'
+                    }
+                }) }}
+                {{ form_errors(registrationForm.securityAnswer) }}
+            </div>
 
-                    {{ form_errors(registrationForm.plainPassword) }}
-                </div>
-                <div class="register-field" >
-                    {{ form_label(registrationForm.securityQuestion, 'Pregunta clave', {'label_attr': {'class': 'register-label'}}) }}
-                    {{ form_widget(registrationForm.securityQuestion, {
-                        'attr': {
-                            'class': 'register-input'
-                        }
-                    }) }}
-                </div>
+            <div class="register-checkbox-wrapper">
+                {{ form_widget(registrationForm.agreeTerms, {
+                    'attr': {
+                        'class': 'register-checkbox'
+                    }
+                }) }}
+                <label class="register-checkbox-label">
+                    {{ form_label(registrationForm.agreeTerms) }}
+                    <span class="register-checkbox-text">Acepto los términos y condiciones</span>
+                </label>
+                {{ form_errors(registrationForm.agreeTerms) }}
+            </div>
 
-                <div class="register-field">
-                    {{ form_label(registrationForm.securityAnswer, 'Respuesta', {'label_attr': {'class': 'register-label'}}) }}
-                    {{ form_widget(registrationForm.securityAnswer, {
-                        'attr': {
-                            'class': 'register-input',
-                            'placeholder': 'Escriba su respuesta'
-                        }
-                    }) }}
-                </div>
+            <button type="submit" class="register-button">Registrarse</button>
+        {{ form_end(registrationForm) }}
 
-                <div class="register-checkbox-wrapper">
-                    {{ form_widget(registrationForm.agreeTerms, {
-                        'attr': {
-                            'class': 'register-checkbox'
-                        }
-                    }) }}
-                    <label class="register-checkbox-label">
-                        {{ form_label(registrationForm.agreeTerms) }}
-                        <span class="register-checkbox-text">Acepto los terminos y condiciones</span>
-                    </label>
-                </div>
-
-                <button type="submit" class="register-button">Registrarse</button>
-            {{ form_end(registrationForm) }}
-
-            <p class="register-login-prompt">¿Ya tenes una cuenta? <a href="{{ path('app_login') }}" class="register-login-link">Ingresa</a></p>
-        </div>
+        <p class="register-login-prompt">¿Ya tienes una cuenta? <a href="{{ path('app_login') }}" class="register-login-link">Ingresa</a></p>
     </div>
+</div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
-
-    <script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+<script>
     document.addEventListener('DOMContentLoaded', function() {
-    AOS.init({
-        duration: 1000,
-        once: true,
-        easing: 'ease-out-cubic'
-    });
-});
+        AOS.init({
+            duration: 1000,
+            once: true,
+            easing: 'ease-out-cubic'
+        });
 
+        const passwordField = document.querySelector('[name="registration_form[plainPassword]"]');
+        if (passwordField) {
+            const form = passwordField.closest('form');
 
-document.addEventListener('DOMContentLoaded', function() {
-    const passwordField = document.querySelector('[name="registration_form[plainPassword]"]');
-    const form = passwordField.closest('form');
+            form.addEventListener('submit', function(e) {
+                if (passwordField.value.length > 12) {
+                    e.preventDefault();
+                    alert('La contraseña no puede superar los 12 caracteres.');
+                    passwordField.focus();
+                }
+            });
 
-    form.addEventListener('submit', function(e) {
-        if (passwordField.value.length > 12) {
-            e.preventDefault();
-            alert('La contraseña no puede superar los 255 caracteres.');
-            passwordField.focus();
+            passwordField.addEventListener('input', function() {
+                if (this.value.length > 12) {
+                    this.value = this.value.slice(0, 12);
+                }
+            });
         }
     });
-
-    passwordField.addEventListener('input', function() {
-        if (this.value.length > 12) {
-            this.value = this.value.slice(0, 2);
-        }
-    });
-});
 </script>
 {% endblock %}
