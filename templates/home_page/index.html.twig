@@ -21,6 +21,9 @@
       {% endif %}
       <a href="{{ path('app_view_used_machinery') }}">Ver Maquinarias Usadas</a>
       {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') %}
+      <a href="{{ path('new_product') }}" class="btn">Agregar Repuesto</a>
+      {% endif %}
+      {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') %}
       <a href="{{ path('app_ver_stock') }}" class="btn">Ver Stock</a>
       {% endif %}
     </nav>
@@ -39,6 +42,9 @@
         <a href="{{ path('app_add_used_machinery_page') }}" class="btn">Agregar Maquinaria Usada</a>
       {% endif %}
       <a href="{{ path('app_view_used_machinery') }}" class="btn">Ver Maquinarias Usadas</a>
+      {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') %}
+      <a href="{{ path('new_product') }}" class="btn">Agregar Repuesto</a>
+      {% endif %}
       {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') %}
       <a href="{{ path('app_ver_stock') }}" class="btn">Ver Stock</a>
       {% endif %}

@@ -1,20 +1,136 @@
 {% extends 'base.html.twig' %}
 
+{% block stylesheets %}
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link href="{{ asset('styles/new_product.css') }}" rel="stylesheet" />
+{% endblock %}
+
 {% block title %}
-  Nuevo Producto
+    Agregar Repuesto
 {% endblock %}
 
 {% block body %}
-  <h1>Nuevo Producto</h1>
+    <div class="form-container">
+        <h1 class="form-title">Agregar Repuesto</h1>
 
-  {{ form_start(form) }}
-  {{ form_row(form.name) }}
-  {{ form_row(form.quantity) }}
-  {{ form_row(form.price) }}
-  {{ form_row(form.description) }}
-  {{ form_row(form.brand) }}
-  {{ form_row(form.image) }}
+        {{ form_start(form, {'attr': {'class': 'product-form'}}) }}
+            
+        <div class="form-flex-container">
+            <div class="form-column">
+                <div class="form-group">
+                    <div class="input-wrapper">
+                        {{ form_label(form.name, 'Nombre', {'label_attr': {'class': 'form-label required'}}) }}
+                        {{ form_widget(form.name, {'attr': {'class': 'form-control', 'placeholder': 'Ingrese el nombre del producto'}}) }}
+                        {{ form_errors(form.name, {'attr': {'class': 'form-error'}}) }}
+                    </div>
+                </div>
 
-  <button class="btn">Guardar</button>
-  {{ form_end(form) }}
+                <div class="form-group">
+                    <div class="input-wrapper">
+                        {{ form_label(form.quantity, 'Cantidad', {'label_attr': {'class': 'form-label required'}}) }}
+                        {{ form_widget(form.quantity, {'attr': {'class': 'form-control', 'placeholder': 'Ingrese la cantidad'}}) }}
+                        {{ form_errors(form.quantity, {'attr': {'class': 'form-error'}}) }}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="input-wrapper">
+                        {{ form_label(form.price, 'Precio', {'label_attr': {'class': 'form-label required'}}) }}
+                        {{ form_widget(form.price, {'attr': {'class': 'form-control', 'placeholder': 'Ingrese el precio'}}) }}
+                        {{ form_errors(form.price, {'attr': {'class': 'form-error'}}) }}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-column">
+                <div class="form-group">
+                    <div class="input-wrapper">
+                        {{ form_label(form.brand, 'Marca', {'label_attr': {'class': 'form-label required'}}) }}
+                        {{ form_widget(form.brand, {'attr': {'class': 'form-control', 'placeholder': 'Ingrese la marca'}}) }}
+                        {{ form_errors(form.brand, {'attr': {'class': 'form-error'}}) }}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="input-wrapper">
+                        {{ form_label(form.image, 'Imagen', {'label_attr': {'class': 'form-label required'}}) }}
+                        <div class="file-upload-wrapper">
+                            {{ form_widget(form.image, {'attr': {'class': 'form-control-file', 'data-text': 'Seleccionar imagen'}}) }}
+                            <span class="file-upload-info">Formatos permitidos: JPG, PNG, GIF</span>
+                        </div>
+                        {{ form_errors(form.image, {'attr': {'class': 'form-error'}}) }}
+                    </div>
+                </div>
+
+                <div class="form-group description-group">
+                    <div class="input-wrapper">
+                        {{ form_label(form.description, 'Descripción', {'label_attr': {'class': 'form-label required'}}) }}
+                        {{ form_widget(form.description, {'attr': {'class': 'form-control', 'placeholder': 'Ingrese la descripción del producto', 'rows': '3'}}) }}
+                        {{ form_errors(form.description, {'attr': {'class': 'form-error'}}) }}
+                    </div>
+                </div>
+
+                <div class="status-container">
+                    <label class="switch-label required">Estado del Producto</label>
+                    <div class="status-toggle">
+                        <label class="switch">
+                            {{ form_widget(form.isEnabled, {'attr': {'checked': false}}) }}
+                            <span class="slider"></span>
+                        </label>
+                        <span class="status-text" id="statusText">Deshabilitado</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-submit">
+                <span class="btn-text">Guardar Producto</span>
+            </button>
+        </div>
+
+        {{ form_end(form) }}
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleSwitch = document.querySelector('input[type="checkbox"]');
+            const statusText = document.getElementById('statusText');
+
+            toggleSwitch.checked = false;
+            statusText.textContent = 'Deshabilitado';
+            statusText.className = 'status-text status-disabled';
+
+            toggleSwitch.addEventListener('change', function() {
+                statusText.textContent = this.checked ? 'Habilitado' : 'Deshabilitado';
+                statusText.className = 'status-text ' + (this.checked ? 'status-enabled' : 'status-disabled');
+            });
+
+            const fileInput = document.querySelector('.form-control-file');
+            const fileInfo = document.querySelector('.file-upload-info');
+
+            fileInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    fileInfo.textContent = `Archivo seleccionado: ${this.files[0].name}`;
+                    fileInfo.classList.add('file-selected');
+                } else {
+                    fileInfo.textContent = 'Formatos permitidos: JPG, PNG, GIF';
+                    fileInfo.classList.remove('file-selected');
+                }
+            });
+
+            const form = document.querySelector('.product-form');
+            const inputs = form.querySelectorAll('.form-control, .form-control-file');
+
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.closest('.input-wrapper').classList.add('focused');
+                });
+
+                input.addEventListener('blur', function() {
+                    this.closest('.input-wrapper').classList.remove('focused');
+                });
+            });
+        });
+    </script>
 {% endblock %}

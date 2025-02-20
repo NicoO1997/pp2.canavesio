@@ -11,8 +11,6 @@
     <div class="page-stock">
         <h1>Stock de Productos</h1>
 
-
-        {# Mostrar mensajes flash #}
         {% for label, messages in app.flashes %}
             {% for message in messages %}
                 <div class="alert alert-{{ label }}">

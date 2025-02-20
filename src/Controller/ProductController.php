@@ -21,15 +21,15 @@ class ProductController extends AbstractController
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $product = new Product();
+        $product->setIsEnabled(false);
+        
         $form = $this->createForm(ProductType::class, $product);
 
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Manejar la subida de la imagen
             $imageFile = $form->get('image')->getData();
             if ($imageFile) {
-                // Convertir el contenido del archivo a base64
                 $imageData = base64_encode(file_get_contents($imageFile->getPathname()));
                 $product->setImage($imageData);
             }

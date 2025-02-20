@@ -72,6 +72,23 @@ class Product
     private ?string $image = null;
 
     /**
+     * @Assert\NotNull()
+     */
+    #[ORM\Column(type: 'boolean')]
+    private bool $isEnabled = true;
+
+    public function getIsEnabled(): bool
+    {
+        return $this->isEnabled;
+    }
+
+    public function setIsEnabled(bool $isEnabled): static
+    {
+        $this->isEnabled = $isEnabled;
+        return $this;
+    }
+
+    /**
      * @var Collection<int, UserFavoriteProduct>
      */
     #[ORM\OneToMany(targetEntity: UserFavoriteProduct::class, mappedBy: 'product', orphanRemoval: true)]
