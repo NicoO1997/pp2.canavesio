@@ -20,20 +20,19 @@
       <a href="{{ path('favorite_list') }}">Ir a Favoritos</a>
       {% endif %}
       
-      {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') %}
+      {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_VENDEDOR') %}
         <a href="{{ path('app_add_used_machinery_page') }}" class="btn">Agregar Maquinaria Usada</a>
       {% endif %}
       <a href="{{ path('app_view_used_machinery') }}">Ver Maquinarias Usadas</a>
       {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') %}
       <a href="{{ path('new_product') }}" class="btn">Agregar Repuesto</a>
       {% endif %}
-      {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') %}
+      {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') or is_granted('ROLE_VENDEDOR') %}
       <a href="{{ path('view_stock') }}" class="btn">Ver Stock</a>
       {% endif %}
     </nav>
   </header>
 
-  <!-- Contenido existente -->
   <div class="navegacion_barra" id="logoContainer">
     <img class="imagen_logo" src="{{ asset('images/66cf4982a8246.png') }}" alt="Logo canavesio" width="400px" />
   </div>
@@ -45,14 +44,14 @@
       <a href="{{ path('cart_view') }}" class="btn">Ir al Carrito</a>
       <a href="{{ path('favorite_list') }}" class="btn">Ir a Favoritos</a>
       {% endif %}
-      {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') %}
+      {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_VENDEDOR') %}
         <a href="{{ path('app_add_used_machinery_page') }}" class="btn">Agregar Maquinaria Usada</a>
       {% endif %}
       <a href="{{ path('app_view_used_machinery') }}" class="btn">Ver Maquinarias Usadas</a>
       {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') %}
       <a href="{{ path('new_product') }}" class="btn">Agregar Repuesto</a>
       {% endif %}
-      {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') %}
+      {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') or is_granted('ROLE_VENDEDOR') %}
       <a href="{{ path('view_stock') }}" class="btn">Ver Stock</a>
       {% endif %}
     </nav>

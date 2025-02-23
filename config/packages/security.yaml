@@ -3,7 +3,7 @@ security:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
 
     role_hierarchy:
-        ROLE_ADMIN: [ROLE_USER, ROLE_INVITADO, ROLE_GESTORSTOCK]
+        ROLE_ADMIN: [ROLE_USER, ROLE_VENDEDOR, ROLE_GESTORSTOCK]
         ROLE_SUPER_ADMIN: [ROLE_ADMIN, ROLE_ALLOWED_TO_SWITCH]
 
     providers:
@@ -34,9 +34,10 @@ security:
     access_control:
         - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/register, roles: PUBLIC_ACCESS }
-        - { path: ^/home/page, roles: [ROLE_USER, ROLE_ADMIN, ROLE_GESTORSTOCK] }
+        - { path: ^/home/page, roles: [ROLE_USER, ROLE_ADMIN, ROLE_GESTORSTOCK, ROLE_VENDEDOR] }
         - { path: ^/product, roles: [ROLE_USER, ROLE_ADMIN] }
-        - { path: ^/add-used-machinery, roles: [ROLE_ADMIN, ROLE_GESTORSTOCK ] }
+        - { path: ^/add-used-machinery, roles: [ROLE_ADMIN, ROLE_GESTORSTOCK] }
+        # Aquí puedes agregar más rutas específicas para cada rol
 
 when@test:
     security:

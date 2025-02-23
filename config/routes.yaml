@@ -18,7 +18,6 @@ create-preference:
     path: /crear-preferencia
     controller: App\Controller\PaymentController::createPreference
 
-
 # registro:
 #     path: /registro
 #     controller: App\Controller\RegistrationController::register

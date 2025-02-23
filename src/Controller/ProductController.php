@@ -14,6 +14,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 class ProductController extends AbstractController
 {
@@ -51,15 +52,13 @@ class ProductController extends AbstractController
         UserFavoriteProductRepository $userFavoriteProductRepository
     ): Response {
         $user = $this->getUser();
-        $products = $entityManager->getRepository(Product::class)->findAll();
+        
+        $products = $entityManager->getRepository(Product::class)->findEnabledProducts();
 
-        // Obtener IDs de productos favoritos del usuario actual
         $favoriteProductIds = [];
         if ($user) {
             $favorites = $userFavoriteProductRepository->findBy(['user' => $user]);
-            $favoriteProductIds = array_map(function ($favorite) {
-                return $favorite->getProduct()->getId();
-            }, $favorites);
+            $favoriteProductIds = array_map(fn($favorite) => $favorite->getProduct()->getId(), $favorites);
         }
 
         return $this->render('product/list.html.twig', [
@@ -67,6 +66,7 @@ class ProductController extends AbstractController
             'favoriteProductIds' => $favoriteProductIds,
         ]);
     }
+
 
     #[Route('/product/{id}', name: 'product_detail')]
     public function detail(
@@ -82,7 +82,6 @@ class ProductController extends AbstractController
             throw $this->createNotFoundException('El producto no existe');
         }
 
-        // Obtener IDs de productos favoritos del usuario actual
         $favoriteProductIds = [];
         if ($user) {
             $favorites = $userFavoriteProductRepository->findBy(['user' => $user]);
@@ -95,6 +94,36 @@ class ProductController extends AbstractController
             'product' => $product,
             'favoriteProductIds' => $favoriteProductIds,
         ]);
+    }
+
+    #[Route('/product/toggle-status/{id}', name: 'product_toggle_status', methods: ['POST'])]
+    public function toggleStatus(
+        Product $product,
+        Request $request,
+        EntityManagerInterface $entityManager
+    ): JsonResponse {
+        if (!$this->isCsrfTokenValid('edit' . $product->getId(), $request->request->get('_token'))) {
+            return new JsonResponse(['success' => false, 'message' => 'Token CSRF inválido'], 400);
+        }
+    
+        try {
+            $isEnabled = $request->request->get('isEnabled') === '1';
+            $product->setIsEnabled($isEnabled);
+    
+            $entityManager->persist($product);
+            $entityManager->flush();
+    
+            return new JsonResponse([
+                'success' => true,
+                'message' => 'Estado actualizado correctamente',
+                'newStatus' => $isEnabled
+            ]);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Error al actualizar el estado del producto'
+            ], 500);
+        }
     }
 
     #[Route('/product/{id}/favorite', name: 'add_favorite', methods: ['POST'])]
@@ -115,7 +144,6 @@ class ProductController extends AbstractController
             return $this->redirectToRoute('product_list');
         }
 
-        // Verificar si el producto ya está en favoritos
         $existingFavorite = $userFavoriteProductRepository->findOneBy([
             'user' => $user,
             'product' => $product,
@@ -175,27 +203,26 @@ class ProductController extends AbstractController
         return $this->redirectToRoute('product_detail', ['id' => $id]);
     }
 
-    
-
-    #[Route('/product/{id}/edit', name: 'product_edit', methods: ['POST'])]
-    public function edit(
-        Request $request,
-        Product $product,
-        EntityManagerInterface $entityManager
-    ): Response {
-        if ($this->isCsrfTokenValid('edit'.$product->getId(), $request->request->get('_token'))) {
-            $product->setName($request->request->get('name'));
-            $product->setBrand($request->request->get('brand'));
-            $product->setQuantity((int)$request->request->get('quantity'));
-            $product->setPrice($request->request->get('price'));
-            $product->setDescription($request->request->get('description'));
-
-            $entityManager->flush();
-
-            return $this->json(['message' => 'Cambios guardados correctamente']);
+    #[Route('/product/edit/{id}', name: 'product_edit', methods: ['POST'])]
+    public function editProduct(Request $request, EntityManagerInterface $entityManager, Product $product): JsonResponse
+    {
+        dump($request->request->all());
+        $csrfToken = $request->request->get('_token');
+        if (!$this->isCsrfTokenValid('edit' . $product->getId(), $csrfToken)) {
+            return new JsonResponse(['message' => 'Token CSRF inválido.'], 400);
         }
 
-        return $this->json(['message' => 'Token CSRF inválido'], 400);
+        if ($request->request->has('isEnabled')) {
+            $isEnabled = $request->request->get('isEnabled') === '1' ? true : false;
+            $product->setIsEnabled($isEnabled);
+        } else {
+            dump('⚠ No llegó isEnabled');
+        }
+
+        $entityManager->persist($product);
+        $entityManager->flush();
+
+        return new JsonResponse(['success' => true, 'message' => 'Producto actualizado correctamente.']);
     }
 
     #[Route('/product/{id}/delete', name: 'product_delete', methods: ['DELETE'])]

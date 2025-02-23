@@ -71,9 +71,6 @@ class Product
     #[ORM\Column(type: Types::TEXT)]
     private ?string $image = null;
 
-    /**
-     * @Assert\NotNull()
-     */
     #[ORM\Column(type: 'boolean')]
     private bool $isEnabled = true;
 

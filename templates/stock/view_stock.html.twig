@@ -19,7 +19,7 @@
             {% endfor %}
         {% endfor %}
 
-        {% if products is defined and products|filter(p => p.needsRestock)|length > 0 %}
+        {% if is_granted('ROLE_GESTORSTOCK') and products is defined and products|filter(p => p.needsRestock)|length > 0 %}
             <div class="stock-warning">
                 <strong>¡Atención!</strong> Los siguientes productos están por debajo o igual a su stock mínimo:
                 <ul>
@@ -64,26 +64,44 @@
                                 <td class="editable-cell" data-field="price">${{ product.price }}</td>
                                 <td class="editable-cell" data-field="description">{{ product.description }}</td>
                                 <td>
-                                    {% if not product.hasEnoughStock %}
-                                        <span class="status-badge out-of-stock">Sin Stock</span>
-                                    {% elseif product.needsRestock %}
-                                        <span class="status-badge low-stock">Stock Bajo</span>
-                                    {% else %}
-                                        <span class="status-badge in-stock">En Stock</span>
+                                    {% if is_granted('ROLE_GESTORSTOCK') %}
+                                        {% if not product.hasEnoughStock %}
+                                            <span class="status-badge out-of-stock">Sin Stock</span>
+                                        {% elseif product.needsRestock %}
+                                            <span class="status-badge low-stock">Stock Bajo</span>
+                                        {% else %}
+                                            <span class="status-badge in-stock">En Stock</span>
+                                        {% endif %}
+                                    {% elseif is_granted('ROLE_VENDEDOR') %}
+                                        <div class="status-toggle" data-field="isEnabled">
+                                            <button data-field="isEnabled" type="button" 
+                                                    class="btn {{ product.isEnabled ? 'btn-success' : 'btn-danger' }} toggle-status"
+                                                    data-status="{{ product.isEnabled ? '1' : '0' }}"
+                                                    onclick="toggleStatus(this)">
+                                                {{ product.isEnabled ? 'Habilitado' : 'Deshabilitado' }}
+                                            </button>
+                                        </div>
                                     {% endif %}
                                 </td>
                                 <td class="actions">
-                                    <button type="button" class="btn btn-secondary edit-btn" 
-                                            onclick="toggleEditing(this.closest('tr'))">Editar</button>
+                                    {% if is_granted('ROLE_GESTORSTOCK') %}
+                                        <button type="button" class="btn btn-secondary edit-btn" 
+                                                onclick="toggleEditing(this.closest('tr'), 'stock')">Editar Stock</button>
+                                    {% elseif is_granted('ROLE_VENDEDOR') %}
+                                        <button type="button" class="btn btn-secondary edit-btn" 
+                                                onclick="toggleEditing(this.closest('tr'), 'all')">Editar</button>
+                                    {% endif %}
                                     <button type="button" class="btn btn-primary save-btn" style="display:none;" 
                                             onclick="saveChanges(this.closest('tr'))">Guardar</button>
-                                    <form method="post" action="{{ path('product_delete', {id: product.id}) }}" 
-                                          onsubmit="return confirm('¿Estás seguro de que quieres eliminar este producto?');" 
-                                          style="display:inline;">
-                                        <input type="hidden" name="_method" value="DELETE">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ product.id) }}">
-                                        <button class="btn btn-danger">Eliminar</button>
-                                    </form>
+                                    {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_VENDEDOR') %}
+                                        <form method="post" action="{{ path('product_delete', {id: product.id}) }}" 
+                                            onsubmit="return confirm('¿Estás seguro de que quieres eliminar este producto?');" 
+                                            style="display:inline;">
+                                            <input type="hidden" name="_method" value="DELETE">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ product.id) }}">
+                                            <button class="btn btn-danger">Eliminar</button>
+                                        </form>
+                                    {% endif %}
                                     <input type="hidden" class="csrf-token" value="{{ csrf_token('edit' ~ product.id) }}">
                                 </td>
                             </tr>
@@ -96,134 +114,139 @@
                 </tbody>
             </table>
         </div>
-
-        {% if products is defined %}
-            <div class="stock-summary">
-                <h2>Resumen de Stock</h2>
-                <div class="summary-cards">
-                    <div class="summary-card total-products">
-                        <h3>Total Productos</h3>
-                        <p>{{ products|length }}</p>
-                    </div>
-                    <div class="summary-card low-stock">
-                        <h3>Stock Bajo</h3>
-                        <p>{{ products|filter(p => p.needsRestock)|length }}</p>
-                    </div>
-                    <div class="summary-card out-of-stock">
-                        <h3>Sin Stock</h3>
-                        <p>{{ products|filter(p => not p.hasEnoughStock)|length }}</p>
-                    </div>
-                </div>
-            </div>
-        {% endif %}
     </div>
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
     <script>
-        function toggleEditing(row) {
-            const cells = row.querySelectorAll('.editable-cell');
-            const editBtn = row.querySelector('.edit-btn');
-            const saveBtn = row.querySelector('.save-btn');
-            
-            cells.forEach(cell => {
-                const currentValue = cell.textContent.trim();
-                const field = cell.dataset.field;
-                
-                if (!cell.classList.contains('editing')) {
-                    const hasBajoStock = cell.classList.contains('bajo-stock');
-                    
-                    cell.classList.add('editing');
-                    const input = document.createElement('input');
-                    input.type = ['quantity', 'minStock'].includes(field) ? 'number' : 'text';
-                    input.value = field === 'price' ? currentValue.replace('$', '') : currentValue;
-                    input.name = field;
-                    input.className = 'form-control editable';
-                    cell.textContent = '';
-                    cell.appendChild(input);
-                    
-                    if (hasBajoStock) {
-                        cell.classList.add('bajo-stock');
-                    }
-                } else {
-                    cell.classList.remove('editing');
-                    const input = cell.querySelector('input');
-                    cell.textContent = field === 'price' ? '$' + input.value : input.value;
-                    
-                    if (field === 'quantity') {
-                        const quantity = parseInt(input.value);
-                        const minStock = parseInt(row.querySelector('[data-field="minStock"]').textContent);
-                        if (quantity <= minStock) {
-                            cell.classList.add('bajo-stock');
-                        } else {
-                            cell.classList.remove('bajo-stock');
-                        }
-                    }
-                }
-            });
+        function toggleEditing(row, mode) {
+    const cells = row.querySelectorAll('.editable-cell');
+    const editBtn = row.querySelector('.edit-btn');
+    const saveBtn = row.querySelector('.save-btn');
+    
+    cells.forEach(cell => {
+        const field = cell.dataset.field;
+        if (mode === 'all' ||
+            (mode === 'stock' && (field === 'quantity' || field === 'minStock')) ||
+            (mode === 'price' && field === 'price')) {
 
-            editBtn.style.display = editBtn.style.display === 'none' ? '' : 'none';
-            saveBtn.style.display = saveBtn.style.display === 'none' ? '' : 'none';
+            const currentValue = cell.textContent.trim();
+            
+            if (!cell.classList.contains('editing')) {
+                const hasBajoStock = cell.classList.contains('bajo-stock');
+                
+                cell.classList.add('editing');
+                const input = document.createElement('input');
+                input.type = ['quantity', 'minStock'].includes(field) ? 'number' : 'text';
+                input.value = field === 'price' ? currentValue.replace('$', '') : currentValue;
+                input.name = field;
+                input.className = 'form-control editable';
+                cell.textContent = '';
+                cell.appendChild(input);
+                
+                if (hasBajoStock) {
+                    cell.classList.add('bajo-stock');
+                }
+            } else {
+                cell.classList.remove('editing');
+                const input = cell.querySelector('input');
+                cell.textContent = field === 'price' ? '$' + input.value : input.value;
+            }
         }
+    });
 
-        function saveChanges(row) {
-            const id = row.dataset.id;
-            const formData = new FormData();
-            const csrfToken = row.querySelector('.csrf-token').value;
-            const saveBtn = row.querySelector('.save-btn');
-            
-            saveBtn.classList.add('loading');
-            
-            row.querySelectorAll('.editable-cell input').forEach(input => {
-                formData.append(input.name, input.value);
-            });
+    editBtn.style.display = editBtn.style.display === 'none' ? '' : 'none';
+    saveBtn.style.display = saveBtn.style.display === 'none' ? '' : 'none';
+}
 
-            formData.append('_token', csrfToken);
+    function toggleStatus(button) {
+        const currentStatus = button.dataset.status === '1';
+        const newStatus = currentStatus ? '0' : '1';
+        
+        const row = button.closest('tr');
+        const id = row.dataset.id;
+        const formData = new FormData();
+        const csrfToken = row.querySelector('.csrf-token').value;
+        
+        formData.append('isEnabled', newStatus);
+        formData.append('_token', csrfToken);
+        
+        fetch('{{ path('product_toggle_status', {'id': '__id__'}) }}'.replace('__id__', id), {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                button.dataset.status = newStatus;
+                button.textContent = newStatus === '0' ? 'Deshabilitado' : 'Habilitado';
+                button.className = `btn ${newStatus === '0' ? 'btn-danger' : 'btn-success'} toggle-status`;
+                window.location.reload();
+            } else {
+                throw new Error(data.message || 'Error al actualizar el estado');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al actualizar el estado del producto');
+        });
+    }
 
-            fetch('{{ path('product_edit', {'id': '__id__'}) }}'.replace('__id__', id), {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(errorData => {
-                        throw new Error(errorData.message);
-                    });
-                }
-                return response.json();
-            })
-            .then(data => {
-                const messageClass = data.message === 'No se han detectado cambios' ? 'alert-warning' : 'alert-success';
-                const successMessage = document.createElement('div');
-                successMessage.className = `alert ${messageClass}`;
-                successMessage.textContent = data.message;
-                row.closest('.stock-container').insertBefore(successMessage, row.closest('table'));
-                
-                if (data.message === 'Cambios guardados correctamente') {
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
-                } else {
-                    saveBtn.classList.remove('loading');
-                    setTimeout(() => {
-                        successMessage.remove();
-                    }, 2000);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                saveBtn.classList.remove('loading');
-                
-                const errorMessage = document.createElement('div');
-                errorMessage.className = 'alert alert-danger';
-                errorMessage.textContent = error.message;
-                row.closest('.stock-container').insertBefore(errorMessage, row.closest('table'));
-                
-                setTimeout(() => {
-                    errorMessage.remove();
-                }, 2000);
+function saveChanges(row) {
+    const id = row.dataset.id;
+    const formData = new FormData();
+    const csrfToken = row.querySelector('.csrf-token').value;
+    const saveBtn = row.querySelector('.save-btn');
+    
+    if (saveBtn) saveBtn.classList.add('loading');
+    
+    const statusBtn = row.querySelector('.toggle-status');
+    if (statusBtn) {
+        const status = statusBtn.dataset.status;
+        formData.append('isEnabled', status);
+        console.log('Estado enviado:', status);
+    }
+    
+    row.querySelectorAll('.editable-cell input').forEach(input => {
+        formData.append(input.name, input.value);
+    });
+
+    formData.append('_token', csrfToken);
+
+    for (let pair of formData.entries()) {
+        console.log(pair[0] + ': ' + pair[1]);
+    }
+
+    fetch('{{ path('product_edit', {'id': '__id__'}) }}'.replace('__id__', id), {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(errorData => {
+                throw new Error(errorData.message || 'Error en la actualización');
             });
         }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Respuesta exitosa:', data);
+        window.location.reload();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        if (saveBtn) saveBtn.classList.remove('loading');
+        
+        const errorMessage = document.createElement('div');
+        errorMessage.className = 'alert alert-danger';
+        errorMessage.textContent = error.message;
+        row.closest('.stock-container').insertBefore(errorMessage, row.closest('table'));
+        
+        setTimeout(() => {
+            errorMessage.remove();
+        }, 2000);
+    });
+}
     </script>
 {% endblock %}

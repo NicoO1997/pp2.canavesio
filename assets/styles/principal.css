@@ -1,12 +1,12 @@
-/* Estilos globales */
+
 html {
     font-size: 62.5%;
-    box-sizing: border-box; /* hack para box model */
+    box-sizing: border-box;
 }
 body {
     background-image: linear-gradient(to top, grey 0%, white 100%);
-    background-size: cover; /* Ajusta el tamaño del fondo para cubrir todo el área visible */
-    background-attachment: fixed; /* Opcional: mantiene el fondo fijo mientras se desplaza el contenido */
+    background-size: cover;
+    background-attachment: fixed;
     font-family: "Krub", sans-serif;
     font-size: 16px;
 }
@@ -65,8 +65,8 @@ body {
 
 
 .navegacion_barra.scrolled {
-    justify-content: flex-start; /* Mueve el logo a la izquierda al hacer scroll */
-    padding: 0.5rem 2rem; /* Ajusta el padding si es necesario */
+    justify-content: flex-start;
+    padding: 0.5rem 2rem;
 }
 
 .imagen_logo {
@@ -79,31 +79,30 @@ body {
     background-color: rgb(247, 164, 10);
 }
 
-/* Estilos para los botones */
 .btn {
     display: inline-block;
     padding: 1rem;
     margin-top: 10px;
     border-radius: 5px;
-    background-color: rgb(247, 164, 10); /* Color de fondo azul */
-    color: #ffffff !important; /* Color de texto blanco y uso de !important para asegurar su aplicación */
-    text-align: center; /* Centrar texto dentro del botón */
+    background-color: rgb(247, 164, 10);
+    color: #ffffff !important;
+    text-align: center;
     text-decoration: none;
     font-size: 2rem;
-    font-weight: bold; /* Asegura que el texto sea visible y destacado */
+    font-weight: bold;
     cursor: pointer;
-    border: none; /* Remueve bordes para un diseño más limpio */
+    border: none;
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .btn:hover {
-    background-color: rgb(182, 125, 18); /* Color de fondo más oscuro en hover */
-    color: black !important; /* Asegura que el texto siga siendo blanco */
+    background-color: rgb(182, 125, 18);
+    color: black !important;
     text-decoration: none;
 }
 
 a.btn {
-    color: #ffffff !important; /* Asegura que los enlaces con clase .btn tengan texto blanco */
+    color: #ffffff !important;
     display: inline-block;
 }
 
@@ -111,7 +110,7 @@ a.btn {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
-    margin-left: auto; /* Mueve la barra de navegación a la derecha del logo */
+    margin-left: auto;
     justify-content: space-between;
 }
 
@@ -135,7 +134,7 @@ a.btn {
     background-image: url('../../assets/imagenes/canavesiofoto2.jpeg');
     background-repeat: no-repeat;
     background-size: cover;
-    background-position: center; /* o 'top', 'bottom', 'left', 'right' */
+    background-position: center;
     height: 640px;
     width: 100%;
     position: relative;
@@ -144,7 +143,7 @@ a.btn {
 
 .contenido-imagen {
     position: absolute;
-    background-color: rgba(0, 0, 0, 0.7); /**anterior**/
+    background-color: rgba(0, 0, 0, 0.7);
     width: 100%;
     height: 100%;
     display: flex;
@@ -223,7 +222,6 @@ a.btn {
     text-align: center;
 }
 
-/* Animación de deslizamiento para imágenes */
 @keyframes slide-in {
     0% {
         transform: translateX(-100px);
@@ -236,9 +234,9 @@ a.btn {
 }
 
 .imagen1 {
-        width: 50%;
-        height: auto;
-        border-radius: 1rem;
-    opacity: 0; /* Comienza invisible */
-    animation: slide-in 1s forwards; /* Aplica la animación de deslizamiento */
+    width: 50%;
+    height: auto;
+    border-radius: 1rem;
+    opacity: 0;
+    animation: slide-in 1s forwards;
 }

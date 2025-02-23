@@ -27,6 +27,19 @@ class ProductRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+/**
+ * @return Product[]
+ */
+public function findEnabledProducts(): array
+{
+    return $this->createQueryBuilder('p')
+        ->where('p.isEnabled = :enabled') // Cambio aquí: isEnabled en lugar de is_enabled
+        ->setParameter('enabled', true)
+        ->orderBy('p.name', 'ASC')
+        ->getQuery()
+        ->getResult();
+}
+
     /**
      * @return Product[]
      */

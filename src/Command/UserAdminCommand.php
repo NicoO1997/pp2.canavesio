@@ -1,6 +1,5 @@
 <?php
 
-// src/Command/UserAdminCommand.php
 namespace App\Command;
 
 use App\Entity\User;
@@ -20,7 +19,7 @@ class UserAdminCommand extends Command
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private UserPasswordHasherInterface $passwordHasher
+        private UserPasswordHasherInterface $passwordHasher 
     ) {
         parent::__construct();
     }
