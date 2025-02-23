@@ -1,77 +1,114 @@
 {% extends 'base.html.twig' %}
+
 {% block title %}
-Agregar Maquinaria Usada
+Agregar Maquinaria
 {% endblock %}
+
 {% block stylesheets %}
 {{ parent() }}
-  <link href="{{ asset('styles/add_machinery.css') }}" rel="stylesheet" />
+<link href="{{ asset('styles/add_machinery.css') }}" rel="stylesheet" />
 {% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const isNewRadios = document.querySelectorAll('input[name="used_machinery[isNew]"]');
+    const usedFieldsContainer = document.querySelector('.used-fields-container');
+    
+    function toggleFields() {
+        const selectedRadio = document.querySelector('input[name="used_machinery[isNew]"]:checked');
+        if (selectedRadio) {
+            const isNew = selectedRadio.value === '1';
+            usedFieldsContainer.style.display = isNew ? 'none' : 'block';
+        }
+    }
+    
+    isNewRadios.forEach(radio => {
+        radio.addEventListener('change', toggleFields);
+    });
+    
+    // Ejecutar al cargar la página
+    toggleFields();
+});
+</script>
+{% endblock %}
+
 {% block body %}
-  <div class="form-container">
-    <h1>Nueva Maquinaria Usada</h1>
+<div class="form-container">
+    <h1>Agregar Maquinaria</h1>
 
-{{ form_start(form) }}
-<div class="form-group-container">
-  <div class="form-group">
-    {{ form_label(form.category) }}
-    {{ form_widget(form.category) }}
-    {{ form_errors(form.category, {'attr': {'class': 'form-error'}}) }}
-  </div>
+    {{ form_start(form) }}
+    <div class="form-group-container">
+        <div class="form-group machinery-type-selector">
+            {{ form_label(form.isNew) }}
+            {{ form_widget(form.isNew) }}
+            {{ form_errors(form.isNew, {'attr': {'class': 'form-error'}}) }}
+        </div>
 
-  <div class="form-group">
-    {{ form_label(form.machineryName) }}
-    {{ form_widget(form.machineryName) }}
-    {{ form_errors(form.machineryName, {'attr': {'class': 'form-error'}}) }}
-  </div>
+        {# Campos comunes para ambos tipos #}
+        <div class="form-group">
+            {{ form_label(form.category) }}
+            {{ form_widget(form.category) }}
+            {{ form_errors(form.category, {'attr': {'class': 'form-error'}}) }}
+        </div>
 
-  <div class="form-group">
-    {{ form_label(form.brand) }}
-    {{ form_widget(form.brand) }}
-    {{ form_errors(form.brand, {'attr': {'class': 'form-error'}}) }}
-  </div>
+        <div class="form-group">
+            {{ form_label(form.machineryName) }}
+            {{ form_widget(form.machineryName) }}
+            {{ form_errors(form.machineryName, {'attr': {'class': 'form-error'}}) }}
+        </div>
 
-  <div class="form-group">
-    {{ form_label(form.yearsOld) }}
-    {{ form_widget(form.yearsOld) }}
-    {{ form_errors(form.yearsOld, {'attr': {'class': 'form-error'}}) }}
-  </div>
+        <div class="form-group">
+            {{ form_label(form.brand) }}
+            {{ form_widget(form.brand) }}
+            {{ form_errors(form.brand, {'attr': {'class': 'form-error'}}) }}
+        </div>
 
-  <div class="form-group">
-    {{ form_label(form.months) }}
-    {{ form_widget(form.months) }}
-    {{ form_errors(form.months, {'attr': {'class': 'form-error'}}) }}
-  </div>
+        <div class="form-group">
+            {{ form_label(form.price) }}
+            {{ form_widget(form.price) }}
+            {{ form_errors(form.price, {'attr': {'class': 'form-error'}}) }}
+        </div>
 
-  <div class="form-group">
-    {{ form_label(form.hoursOfUse) }}
-    {{ form_widget(form.hoursOfUse) }}
-    {{ form_errors(form.hoursOfUse, {'attr': {'class': 'form-error'}}) }}
-  </div>
+        <div class="form-group imagen-input">
+            {{ form_label(form.imageFilename) }}
+            {{ form_widget(form.imageFilename) }}
+            {{ form_errors(form.imageFilename, {'attr': {'class': 'form-error'}}) }}
+        </div>
 
-  <div class="form-group">
-    {{ form_label(form.lastService) }}
-    {{ form_widget(form.lastService) }}
-    {{ form_errors(form.lastService, {'attr': {'class': 'form-error'}}) }}
-  </div>
+        {# Campos solo para maquinaria usada #}
+        <div class="used-fields-container">
+            <div class="form-group">
+                {{ form_label(form.yearsOld) }}
+                {{ form_widget(form.yearsOld) }}
+                {{ form_errors(form.yearsOld, {'attr': {'class': 'form-error'}}) }}
+            </div>
 
-  <div class="form-group">
-    {{ form_label(form.price) }}
-    {{ form_widget(form.price) }}
-    {{ form_errors(form.price, {'attr': {'class': 'form-error'}}) }}
-  </div>
+            <div class="form-group">
+                {{ form_label(form.months) }}
+                {{ form_widget(form.months) }}
+                {{ form_errors(form.months, {'attr': {'class': 'form-error'}}) }}
+            </div>
 
-  <div class="form-group imagen-input">
-    {{ form_label(form.imageFilename) }}
-    {{ form_widget(form.imageFilename) }}
-    {{ form_errors(form.imageFilename, {'attr': {'class': 'form-error'}}) }}
-  </div>
+            <div class="form-group">
+                {{ form_label(form.hoursOfUse) }}
+                {{ form_widget(form.hoursOfUse) }}
+                {{ form_errors(form.hoursOfUse, {'attr': {'class': 'form-error'}}) }}
+            </div>
 
-  <div class="form-group full-width">
-    <button type="submit">Agregar</button>
-    <a href="{{ path('app_home_page') }}" class="button">Volver</a>
-  </div>
-</div>
-{{ form_end(form) }}
+            <div class="form-group">
+                {{ form_label(form.lastService) }}
+                {{ form_widget(form.lastService) }}
+                {{ form_errors(form.lastService, {'attr': {'class': 'form-error'}}) }}
+            </div>
+        </div>
+
+        <div class="form-group full-width">
+            <button type="submit" class="btn btn-primary">Agregar</button>
+            <a href="{{ path('app_home_page') }}" class="button btn btn-secondary">Volver</a>
+        </div>
     </div>
-  </div>
+    {{ form_end(form) }}
+</div>
 {% endblock %}

@@ -44,6 +44,20 @@ class UsedMachinery
     #[ORM\Column(nullable: true)]
     private ?string $imageFilename = null;
 
+    #[ORM\Column(type: 'boolean')]
+    private bool $isNew = false;
+
+    public function getIsNew(): bool
+    {
+        return $this->isNew;
+    }
+
+    public function setIsNew(bool $isNew): self
+    {
+        $this->isNew = $isNew;
+        return $this;
+    }
+
     public function getId(): ?int
     {
         return $this->id;

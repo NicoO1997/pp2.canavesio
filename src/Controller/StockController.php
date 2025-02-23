@@ -14,11 +14,12 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route('/stock')]
 class StockController extends AbstractController
 {
-    #[Route('/view', name: 'app_view_stock', methods: ['GET'])]
-    public function viewStock(ProductRepository $productRepository): Response
+    #[Route('/stock/view', name: 'view_stock')]
+    public function viewStock(EntityManagerInterface $entityManager): Response
     {
-        $products = $productRepository->findAll();
-
+        $user = $this->getUser();
+        $products = $entityManager->getRepository(Product::class)->findAll();
+        
         return $this->render('stock/view_stock.html.twig', [
             'products' => $products
         ]);
@@ -85,6 +86,6 @@ class StockController extends AbstractController
             }
         }
 
-        return $this->redirectToRoute('app_view_stock');
+        return $this->redirectToRoute('view_stock');
     }
 }

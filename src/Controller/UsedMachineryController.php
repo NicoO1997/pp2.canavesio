@@ -30,40 +30,54 @@ class UsedMachineryController extends AbstractController
     #[Route('/add-used-machinery', name: 'app_add_used_machinery_page')]
     public function showAddUsedMachineryForm(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $usedMachinery = new UsedMachinery();
-        $form = $this->createForm(UsedMachineryType::class, $usedMachinery);
-
+        $machinery = new UsedMachinery();
+        $form = $this->createForm(UsedMachineryType::class, $machinery);
+        
         $form->handleRequest($request);
-
+        
         if ($form->isSubmitted() && $form->isValid()) {
-            // Manejar la subida de la imagen
+            $isNew = $form->get('isNew')->getData();
+            
+            if ($isNew) {
+                $machinery->setHoursOfUse(0);
+                $machinery->setMonths(0);
+                $machinery->setYearsOld(0);
+                $machinery->setLastService(new \DateTime());
+            }
+            
             $imageFile = $form->get('imageFilename')->getData();
             if ($imageFile) {
-                $extension = $imageFile->guessExtension();
-                $newFilename = uniqid() . '.' . $extension;
-
-                try {
-                    $imageFile->move(
-                        $this->getParameter('images_directory'),
-                        $newFilename
-                    );
-                    $usedMachinery->setImageFilename($newFilename);
-                } catch (FileException $e) {
-                    $this->addFlash('error', 'Error al subir la imagen.');
-                    return $this->redirectToRoute('app_add_used_machinery_page');
-                }
+                $newFilename = $this->handleImageUpload($imageFile);
+                $machinery->setImageFilename($newFilename);
             }
-
-            $entityManager->persist($usedMachinery);
+            
+            $entityManager->persist($machinery);
             $entityManager->flush();
-
-            $this->addFlash('success', 'Maquinaria usada añadida con éxito.');
+            
+            $this->addFlash('success', 'Maquinaria agregada con éxito.');
             return $this->redirectToRoute('app_view_used_machinery');
         }
-
+        
         return $this->render('used_machinery/add.html.twig', [
             'form' => $form->createView(),
         ]);
+    }
+
+    private function handleImageUpload(UploadedFile $imageFile): string
+    {
+        $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+        $newFilename = $originalFilename.'-'.uniqid().'.'.$imageFile->guessExtension();
+
+        try {
+            $imageFile->move(
+                $this->getParameter('images_directory'),
+                $newFilename
+            );
+        } catch (FileException $e) {
+            throw new \Exception('Error al subir la imagen');
+        }
+
+        return $newFilename;
     }
 
     #[Route('/add-used-machinery/submit', name: 'app_add_used_machinery', methods: ['GET', 'POST'])]

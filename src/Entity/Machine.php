@@ -34,6 +34,10 @@ class Machine
     #[ORM\Column(type: Types::TEXT)]
     private ?string $image = null;
 
+
+    #[ORM\Column(type: 'boolean')]
+    private bool $isNew = true;
+
     /**
      * @var Collection<int, ProductPartsMachine>
      */
@@ -129,6 +133,17 @@ class Machine
     {
         $this->image = $image;
 
+        return $this;
+    }
+
+    public function getIsNew(): bool
+    {
+        return $this->isNew;
+    }
+
+    public function setIsNew(bool $isNew): self
+    {
+        $this->isNew = $isNew;
         return $this;
     }
 

@@ -45,11 +45,11 @@ class RegistrationController extends AbstractController
                     
                     // Lógica de asignación de roles
                     $roles = ['ROLE_USER'];
-                    if (strpos($email, 'santiagoaragonadmin@gmail.com') !== false) {
+                    if (strpos($email, 'admin@prueba.com') !== false) {
                         $roles = ['ROLE_ADMIN'];
-                    } elseif (strpos($email, 'santiagoaragonstock@gmail.com') !== false) {
-                        $roles = ['ROLE_GESTORSTOCK'];
-                    } elseif (strpos($email, 'santiagoaragonventas@gmail.com') !== false) {
+                    } elseif (strpos($email, 'stock@prueba.com') !== false) {
+                        $roles = ['ROLE_GESTORSTOCK'];              
+                    } elseif (strpos($email, 'ventas@prueba.com') !== false) {
                         $roles = ['ROLE_VENDEDOR'];
                     }
             

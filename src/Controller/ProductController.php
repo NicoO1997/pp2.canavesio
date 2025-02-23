@@ -175,15 +175,7 @@ class ProductController extends AbstractController
         return $this->redirectToRoute('product_detail', ['id' => $id]);
     }
 
-    #[Route('/stock/view', name: 'view_stock')]
-    public function viewStock(EntityManagerInterface $entityManager): Response
-    {
-        $products = $entityManager->getRepository(Product::class)->findAll();
-        
-        return $this->render('stock/view_stock.html.twig', [
-            'products' => $products
-        ]);
-    }
+    
 
     #[Route('/product/{id}/edit', name: 'product_edit', methods: ['POST'])]
     public function edit(

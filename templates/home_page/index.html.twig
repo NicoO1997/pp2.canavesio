@@ -13,9 +13,13 @@
   <header class="header-scroll">
     <img src="{{ asset('images/66cf4982a8246.png') }}" alt="Logo Canavesio" class="logo" />
     <nav class="nav-links">
+     {% if is_granted('ROLE_ADMIN') %}
       <a href="{{ path('product_list') }}">Ir al Catálogo</a>
+      
       <a href="{{ path('cart_view') }}">Ir al Carrito</a>
       <a href="{{ path('favorite_list') }}">Ir a Favoritos</a>
+      {% endif %}
+      
       {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') %}
         <a href="{{ path('app_add_used_machinery_page') }}" class="btn">Agregar Maquinaria Usada</a>
       {% endif %}
@@ -24,7 +28,7 @@
       <a href="{{ path('new_product') }}" class="btn">Agregar Repuesto</a>
       {% endif %}
       {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') %}
-      <a href="{{ path('app_ver_stock') }}" class="btn">Ver Stock</a>
+      <a href="{{ path('view_stock') }}" class="btn">Ver Stock</a>
       {% endif %}
     </nav>
   </header>
@@ -35,9 +39,12 @@
   </div>
   <div class="section-buttons">
     <nav class="navegacion">
+    {% if is_granted('ROLE_ADMIN') %}
       <a href="{{ path('product_list') }}" class="btn">Ir al Catálogo</a>
+      
       <a href="{{ path('cart_view') }}" class="btn">Ir al Carrito</a>
       <a href="{{ path('favorite_list') }}" class="btn">Ir a Favoritos</a>
+      {% endif %}
       {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') %}
         <a href="{{ path('app_add_used_machinery_page') }}" class="btn">Agregar Maquinaria Usada</a>
       {% endif %}
@@ -46,7 +53,7 @@
       <a href="{{ path('new_product') }}" class="btn">Agregar Repuesto</a>
       {% endif %}
       {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') %}
-      <a href="{{ path('app_ver_stock') }}" class="btn">Ver Stock</a>
+      <a href="{{ path('view_stock') }}" class="btn">Ver Stock</a>
       {% endif %}
     </nav>
   </div>
