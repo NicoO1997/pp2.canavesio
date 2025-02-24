@@ -1,0 +1,254 @@
+@charset "UTF-8";
+/* Estilos base */
+body {
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+  background: #f8fafc;
+  margin: 0;
+  padding: 2rem;
+  color: #1e293b;
+  line-height: 1.5;
+}
+
+.machinery-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0/0.1), 0 2px 4px -2px rgb(0 0 0/0.1);
+  overflow: hidden;
+  padding-bottom: 2rem;
+  border: 2px solid #cbd5e1;
+}
+
+/* Título y encabezado */
+.machinery-title {
+  text-align: center;
+  color: #0f172a;
+  padding: 2.5rem 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(to right, #f8fafc, #fff, #f8fafc);
+  margin: 0;
+  border-bottom: 2px solid #94a3b8;
+}
+
+/* Tabla principal */
+.machinery-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 1rem;
+}
+
+/* Encabezados de tabla */
+.machinery-table thead {
+  background: #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.machinery-table th {
+  padding: 1.25rem 1.5rem;
+  text-align: left;
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 2px solid #94a3b8;
+  transition: all 0.2s ease;
+  background: #f1f5f9;
+}
+
+.machinery-table th:hover {
+  background-color: #e2e8f0;
+  color: #0f172a;
+}
+
+/* Filas y celdas de la tabla */
+.machinery-table tbody tr {
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.machinery-table tbody tr:hover {
+  background-color: #f8fafc;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  z-index: 1;
+}
+
+.machinery-table td {
+  padding: 1.25rem 1.5rem;
+  border: 2px solid #cbd5e1;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.machinery-table tr:hover td {
+  border-color: #94a3b8;
+  background-color: #f8fafc;
+}
+
+/* Estilos para la edad de la maquinaria */
+.machinery-age {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border: 1px solid;
+}
+
+.machinery-age-new {
+  background-color: #dcfce7;
+  color: #166534;
+  border-color: #166534;
+}
+
+.machinery-age-new:hover {
+  background-color: #bbf7d0;
+  transform: scale(1.05);
+}
+
+.machinery-age-medium {
+  background-color: #fef3c7;
+  color: #92400e;
+  border-color: #92400e;
+}
+
+.machinery-age-medium:hover {
+  background-color: #fde68a;
+  transform: scale(1.05);
+}
+
+.machinery-age-old {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border-color: #991b1b;
+}
+
+.machinery-age-old:hover {
+  background-color: #fecaca;
+  transform: scale(1.05);
+}
+
+/* Imágenes */
+.machinery-image {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  cursor: zoom-in;
+  border: 3px solid #cbd5e1;
+}
+
+.machinery-image:hover {
+  transform: scale(1.5);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  border-color: #94a3b8;
+}
+
+/* Mensaje de no hay maquinaria */
+.no-machineries {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  color: #64748b;
+  font-size: 1.125rem;
+  background: linear-gradient(to right, #f8fafc, #fff, #f8fafc);
+  border-radius: 12px;
+  margin: 2rem;
+  border: 3px dashed #94a3b8;
+}
+
+/* Animaciones */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.machinery-table tbody tr {
+  animation: slideIn 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+.machinery-table tbody tr:nth-child(n) {
+  animation-delay: calc(0.1s * var(--row-index, 0));
+}
+
+/* Responsive */
+@media screen and (max-width: 1024px) {
+  body {
+    padding: 1rem;
+  }
+  .machinery-container {
+    border-radius: 12px;
+  }
+  .machinery-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .machinery-title {
+    font-size: 2rem;
+    padding: 1.5rem 0;
+  }
+}
+@media screen and (max-width: 768px) {
+  .machinery-table th,
+  .machinery-table td {
+    padding: 1rem;
+    font-size: 0.875rem;
+    border-width: 1px;
+  }
+  .machinery-image {
+    width: 80px;
+    height: 80px;
+  }
+  .machinery-age {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.75rem;
+  }
+}
+/* Scrollbar personalizado */
+.machinery-container {
+  scroll-behavior: smooth;
+}
+
+.machinery-container::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.machinery-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.machinery-container::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border-radius: 4px;
+}
+
+.machinery-container::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Separación entre filas */
+.machinery-table tbody tr:not(:last-child) td {
+  border-bottom: 2px solid #cbd5e1;
+}
+
+/*# sourceMappingURL=viewUsedMachinery.css.map */
