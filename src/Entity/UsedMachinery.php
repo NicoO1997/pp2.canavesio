@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\UsedMachineryRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\DBAL\Types\Types;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UsedMachineryRepository::class)]
 class UsedMachinery
@@ -15,30 +16,43 @@ class UsedMachinery
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "El nombre no puede estar vacío")]
     private ?string $machineryName = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "La marca no puede estar vacía")]
     private ?string $brand = null;
 
     #[ORM\Column]
+    #[Assert\NotBlank(message: "Los años no pueden estar vacíos")]
+    #[Assert\GreaterThan(0, message: "Los años deben ser mayores a 0")]
     private ?int $yearsOld = null;
 
     #[ORM\Column]
+    #[Assert\NotBlank(message: "Los meses no pueden estar vacíos")]
+    #[Assert\Range(
+        min: 1,
+        max: 11,
+        notInRangeMessage: "Los meses deben estar entre {{ min }} y {{ max }}"
+    )]
     private ?int $months = null;
 
     #[ORM\Column]
+    #[Assert\NotBlank(message: "Las horas de uso no pueden estar vacías")]
+    #[Assert\GreaterThanOrEqual(0, message: "Las horas de uso deben ser 0 o mayores")]
     private ?int $hoursOfUse = null;
 
     #[ORM\Column(type: 'date')]
+    #[Assert\NotBlank(message: "La fecha de último servicio no puede estar vacía")]
+    #[Assert\LessThanOrEqual("today", message: "La fecha de último servicio no puede ser posterior al día de hoy")]
     private ?\DateTimeInterface $lastService = null;
 
     #[ORM\Column(nullable: true)]
+    #[Assert\GreaterThan(0, message: "El precio debe ser mayor a 0")]
     private ?float $price = null;
 
-    /**
-     * @Assert\NotBlank(message="La categoría es obligatoria")
-     */
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "La categoría es obligatoria")]
     private ?string $category = null;
 
     #[ORM\Column(nullable: true)]

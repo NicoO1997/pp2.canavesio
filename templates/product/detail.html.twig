@@ -66,6 +66,10 @@
         </div>
       </div>
     </div>
+    
+    <div class="btn-container">
+      <a href="{{ path('product_list') }}" class="btn-volver">Volver</a>
+    </div>
   </div>
 {% endblock %}
 
@@ -74,14 +78,36 @@
     document.addEventListener('DOMContentLoaded', function () {
       const addToCartButton = document.querySelector('.btn-carrito')
       const addToFavoriteButton = document.querySelector('.btn-favorito')
-    
+      const favoriteForm = document.querySelector('.form-favorito')
+      
       addToCartButton.addEventListener('click', function () {
         console.log('Producto agregado al carrito')
       })
-    
-      if (addToFavoriteButton && !addToFavoriteButton.disabled) {
-        addToFavoriteButton.addEventListener('click', function () {
-          console.log('Producto agregado a favoritos')
+      
+      if (addToFavoriteButton && !addToFavoriteButton.disabled && favoriteForm) {
+        favoriteForm.addEventListener('submit', function (event) {
+          event.preventDefault()
+          
+          fetch(this.action, {
+            method: 'POST',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          })
+          .then(response => {
+            if (response.ok) {
+              alert('Producto agregado correctamente')
+              
+              addToFavoriteButton.disabled = true
+              addToFavoriteButton.textContent = 'En Favoritos'
+            } else {
+              alert('Hubo un error al agregar el producto a favoritos')
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error)
+            alert('Hubo un error al procesar la solicitud')
+          })
         })
       }
     })

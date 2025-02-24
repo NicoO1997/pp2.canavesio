@@ -10,7 +10,6 @@
     --shadow-color: rgba(0, 0, 0, 0.1);
 }
 
-/* Estilos generales y animaciones del fondo - mejorado el gradiente */
 body {
     background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
     background-size: 400% 400%;
@@ -30,7 +29,30 @@ body {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
 }
-/* Estilos para la página de detalle del producto */
+
+.btn-volver {
+    background-color: #4a5568;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 20px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .btn-volver:hover {
+    background-color: #2d3748;
+  }
+  
+  .btn-container {
+    margin-top: 30px;
+    text-align: center;
+  }
+
 .producto-detalle-container {
     max-width: 1200px;
     margin: 3rem auto;

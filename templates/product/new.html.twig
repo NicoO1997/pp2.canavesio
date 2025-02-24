@@ -1,8 +1,8 @@
 {% extends 'base.html.twig' %}
 
 {% block stylesheets %}
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <link href="{{ asset('styles/new_product.css') }}" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 {% endblock %}
 
 {% block title %}
@@ -40,6 +40,16 @@
                         {{ form_errors(form.price, {'attr': {'class': 'form-error'}}) }}
                     </div>
                 </div>
+                
+                {% if is_granted('ROLE_GESTORSTOCK') %}
+                    <div class="form-group">
+                        <div class="input-wrapper">
+                            {{ form_label(form.minStock, 'Stock Mínimo', {'label_attr': {'class': 'form-label required'}}) }}
+                            {{ form_widget(form.minStock, {'attr': {'class': 'form-control', 'placeholder': 'Ingrese el stock mínimo'}}) }}
+                            {{ form_errors(form.minStock, {'attr': {'class': 'form-error'}}) }}
+                        </div>
+                    </div>
+                {% endif %}
             </div>
             
             <div class="form-column">
@@ -87,6 +97,7 @@
             <button type="submit" class="btn-submit">
                 <span class="btn-text">Guardar Producto</span>
             </button>
+            <a href="{{ path('app_home_page') }}" class="btn-cancel">Cancelar</a>
         </div>
 
         {{ form_end(form) }}
@@ -128,8 +139,17 @@
                 });
 
                 input.addEventListener('blur', function() {
+                    if (this.value.trim() !== '') {
+                        this.closest('.input-wrapper').classList.add('has-value');
+                    } else {
+                        this.closest('.input-wrapper').classList.remove('has-value');
+                    }
                     this.closest('.input-wrapper').classList.remove('focused');
                 });
+                
+                if (input.value.trim() !== '') {
+                    input.closest('.input-wrapper').classList.add('has-value');
+                }
             });
         });
     </script>

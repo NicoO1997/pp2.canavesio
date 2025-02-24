@@ -14,9 +14,18 @@ use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Validator\Constraints\GreaterThanOrEqual;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Type;
+use Symfony\Bundle\SecurityBundle\Security;
 
 class ProductType extends AbstractType
 {
+    private $security;
+
+    public function __construct(Security $security)
+    {
+        $this->security = $security;
+    }
+
+
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
@@ -83,6 +92,25 @@ class ProductType extends AbstractType
                 ]
             ])
         ;
+
+        // Solo agregar minStock si el usuario tiene el rol ROLE_GESTORSTOCK
+        if ($this->security->isGranted('ROLE_GESTORSTOCK')) {
+            $builder->add('minStock', NumberType::class, [
+                'required' => true,
+                'html5' => true,
+                'constraints' => [
+                    new NotBlank(['message' => 'El stock mínimo es obligatorio']),
+                    new GreaterThanOrEqual([
+                        'value' => 0,
+                        'message' => 'El stock mínimo no puede ser inferior a cero'
+                    ]),
+                    new Type([
+                        'type' => 'numeric',
+                        'message' => 'El stock mínimo debe ser un número'
+                    ])
+                ]
+            ]);
+        }
     }
 
     public function configureOptions(OptionsResolver $resolver): void

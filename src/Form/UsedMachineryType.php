@@ -13,6 +13,8 @@ use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Range;
 use Symfony\Component\Validator\Constraints\GreaterThan;
+use Symfony\Component\Validator\Constraints\GreaterThanOrEqual;
+use Symfony\Component\Validator\Constraints\LessThanOrEqual;
 
 class UsedMachineryType extends AbstractType
 {
@@ -57,14 +59,16 @@ class UsedMachineryType extends AbstractType
                 ]
             ])
             ->add('hoursOfUse', NumberType::class, [
-                'required' => false,
+                'required' => true,
                 'constraints' => [
-                    new GreaterThan(['value' => 0, 'message' => 'Las horas de uso deben ser mayores a 0'])
+                    new NotBlank(['message' => 'Las horas de uso no pueden estar vacías']),
+                    new GreaterThanOrEqual(['value' => 0, 'message' => 'Las horas de uso deben ser 0 o mayores'])
                 ]
             ])
             ->add('months', NumberType::class, [
-                'required' => false,
+                'required' => true,
                 'constraints' => [
+                    new NotBlank(['message' => 'Los meses no pueden estar vacíos']),
                     new Range([
                         'min' => 1,
                         'max' => 11,
@@ -73,14 +77,19 @@ class UsedMachineryType extends AbstractType
                 ]
             ])
             ->add('yearsOld', NumberType::class, [
-                'required' => false,
+                'required' => true,
                 'constraints' => [
+                    new NotBlank(['message' => 'Los años no pueden estar vacíos']),
                     new GreaterThan(['value' => 0, 'message' => 'Los años deben ser mayores a 0'])
                 ]
             ])
             ->add('lastService', DateType::class, [
-                'required' => false,
-                'widget' => 'single_text'
+                'required' => true,
+                'widget' => 'single_text',
+                'constraints' => [
+                    new NotBlank(['message' => 'La fecha de último servicio no puede estar vacía']),
+                    new LessThanOrEqual(['value' => 'today', 'message' => 'La fecha de último servicio no puede ser posterior al día de hoy'])
+                ]
             ])
             ->add('imageFilename', FileType::class, [
                 'constraints' => [

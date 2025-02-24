@@ -1,5 +1,3 @@
-{# templates/home_page/index.html.twig #}
-
 {% extends 'base.html.twig' %}
 
 {% block stylesheets %}
@@ -13,22 +11,25 @@
   <header class="header-scroll">
     <img src="{{ asset('images/66cf4982a8246.png') }}" alt="Logo Canavesio" class="logo" />
     <nav class="nav-links">
-     {% if is_granted('ROLE_ADMIN') %}
+     {% if is_granted('ROLE_USER') or is_granted('ROLE_VENDEDOR') %}
       <a href="{{ path('product_list') }}">Ir al Catálogo</a>
-      
+      {% endif %}
+      {% if is_granted('ROLE_USER') %}
       <a href="{{ path('cart_view') }}">Ir al Carrito</a>
       <a href="{{ path('favorite_list') }}">Ir a Favoritos</a>
       {% endif %}
       
-      {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_VENDEDOR') %}
-        <a href="{{ path('app_add_used_machinery_page') }}" class="btn">Agregar Maquinaria Usada</a>
+      {% if is_granted('ROLE_VENDEDOR') %}
+        <a href="{{ path('app_add_used_machinery_page') }}">Agregar Maquinaria</a>
       {% endif %}
-      <a href="{{ path('app_view_used_machinery') }}">Ver Maquinarias Usadas</a>
-      {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') %}
-      <a href="{{ path('new_product') }}" class="btn">Agregar Repuesto</a>
+      {% if is_granted('ROLE_USER') or is_granted('ROLE_VENDEDOR') %}
+      <a href="{{ path('app_view_used_machinery') }}">Ver Maquinarias</a>
       {% endif %}
-      {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') or is_granted('ROLE_VENDEDOR') %}
-      <a href="{{ path('view_stock') }}" class="btn">Ver Stock</a>
+      {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_VENDEDOR') %}
+      <a href="{{ path('new_product') }}">Agregar Repuesto</a>
+      {% endif %}
+      {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_VENDEDOR') %}
+      <a href="{{ path('view_stock') }}">Ver Stock</a>
       {% endif %}
     </nav>
   </header>
@@ -38,21 +39,25 @@
   </div>
   <div class="section-buttons">
     <nav class="navegacion">
-    {% if is_granted('ROLE_ADMIN') %}
-      <a href="{{ path('product_list') }}" class="btn">Ir al Catálogo</a>
+    {% if is_granted('ROLE_USER') or is_granted('ROLE_VENDEDOR') %}
+      <a href="{{ path('product_list') }}">Ir al Catálogo</a>
+      {% endif %}
+      {% if is_granted('ROLE_USER') %}
+      <a href="{{ path('cart_view') }}">Ir al Carrito</a>
+      <a href="{{ path('favorite_list') }}">Ir a Favoritos</a>
+      {% endif %}
       
-      <a href="{{ path('cart_view') }}" class="btn">Ir al Carrito</a>
-      <a href="{{ path('favorite_list') }}" class="btn">Ir a Favoritos</a>
+      {% if is_granted('ROLE_VENDEDOR') %}
+        <a href="{{ path('app_add_used_machinery_page') }}">Agregar Maquinaria</a>
       {% endif %}
-      {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_VENDEDOR') %}
-        <a href="{{ path('app_add_used_machinery_page') }}" class="btn">Agregar Maquinaria Usada</a>
+      {% if is_granted('ROLE_USER') or is_granted('ROLE_VENDEDOR') %}
+      <a href="{{ path('app_view_used_machinery') }}">Ver Maquinarias</a>
       {% endif %}
-      <a href="{{ path('app_view_used_machinery') }}" class="btn">Ver Maquinarias Usadas</a>
-      {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') %}
-      <a href="{{ path('new_product') }}" class="btn">Agregar Repuesto</a>
+      {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_VENDEDOR') %}
+      <a href="{{ path('new_product') }}">Agregar Repuesto</a>
       {% endif %}
-      {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') or is_granted('ROLE_VENDEDOR') %}
-      <a href="{{ path('view_stock') }}" class="btn">Ver Stock</a>
+      {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_VENDEDOR') %}
+      <a href="{{ path('view_stock') }}">Ver Stock</a>
       {% endif %}
     </nav>
   </div>
@@ -145,9 +150,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
   <script>
     AOS.init({
-      duration: 1000, // Duración de la animación en milisegundos
-      easing: 'ease-out-cubic', // Tipo de transición
-      once: true // Si es true, la animación solo se ejecuta una vez
+      duration: 1000,
+      easing: 'ease-out-cubic',
+      once: true
     })
   </script>
 
@@ -159,7 +164,6 @@
       var scrollPosition = window.scrollY
     
       if (scrollPosition > 100) {
-        // Ajusta este valor según necesites
         header.classList.add('visible')
         sectionButtons.classList.add('hidden')
         logoContainer.classList.add('hidden')

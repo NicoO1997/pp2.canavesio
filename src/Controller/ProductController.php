@@ -24,8 +24,11 @@ class ProductController extends AbstractController
         $product = new Product();
         $product->setIsEnabled(false);
         
+        if (!$this->isGranted('ROLE_GESTORSTOCK')) {
+            $product->setMinStock(0);
+        }
+        
         $form = $this->createForm(ProductType::class, $product);
-
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {

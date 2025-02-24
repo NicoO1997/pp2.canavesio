@@ -5,8 +5,6 @@ body {
     color: #fff;
 
 }
-    margin: 0;
-}
 
 .container {
     min-height: 100vh;
@@ -40,10 +38,6 @@ body {
     top: 50%;
     transform: translateY(-50%);
     color: #aaa;
-}
-    max-width: 400px;
-    width: 100%;
-    text-align: center;
 }
 
 .form-wrapper h1 {

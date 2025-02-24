@@ -9,34 +9,13 @@ Agregar Maquinaria
 <link href="{{ asset('styles/add_machinery.css') }}" rel="stylesheet" />
 {% endblock %}
 
-{% block javascripts %}
-{{ parent() }}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const isNewRadios = document.querySelectorAll('input[name="used_machinery[isNew]"]');
-    const usedFieldsContainer = document.querySelector('.used-fields-container');
-    
-    function toggleFields() {
-        const selectedRadio = document.querySelector('input[name="used_machinery[isNew]"]:checked');
-        if (selectedRadio) {
-            const isNew = selectedRadio.value === '1';
-            usedFieldsContainer.style.display = isNew ? 'none' : 'block';
-        }
-    }
-    
-    isNewRadios.forEach(radio => {
-        radio.addEventListener('change', toggleFields);
-    });
-    
-    // Ejecutar al cargar la página
-    toggleFields();
-});
-</script>
-{% endblock %}
-
 {% block body %}
 <div class="form-container">
     <h1>Agregar Maquinaria</h1>
+    
+    <div id="success-message" class="success-message">
+        Maquinaria agregada con éxito
+    </div>
 
     {{ form_start(form) }}
     <div class="form-group-container">
@@ -46,7 +25,6 @@ document.addEventListener('DOMContentLoaded', function() {
             {{ form_errors(form.isNew, {'attr': {'class': 'form-error'}}) }}
         </div>
 
-        {# Campos comunes para ambos tipos #}
         <div class="form-group">
             {{ form_label(form.category) }}
             {{ form_widget(form.category) }}
@@ -77,7 +55,6 @@ document.addEventListener('DOMContentLoaded', function() {
             {{ form_errors(form.imageFilename, {'attr': {'class': 'form-error'}}) }}
         </div>
 
-        {# Campos solo para maquinaria usada #}
         <div class="used-fields-container">
             <div class="form-group">
                 {{ form_label(form.yearsOld) }}

@@ -6,6 +6,16 @@
     --border-color: #e0e4e8;
 }
 
+.success-message {
+    background-color: #4CAF50;
+    color: white;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    display: none;
+    text-align: center;
+    font-weight: bold;
+}
 
 .used-only {
     transition: all 0.3s ease;
@@ -241,21 +251,6 @@ select:focus {
     position: relative;
     overflow: hidden;
     cursor: pointer
-}
-
-.imagen-input::after {
-    content: 'Seleccionar archivo';
-    display: inline-block;
-    background: var(--primary-color);
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    transition: background 0.3s ease;
 }
 
 .imagen-input:hover::after {

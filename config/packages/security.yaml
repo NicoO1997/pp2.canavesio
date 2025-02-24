@@ -34,10 +34,14 @@ security:
     access_control:
         - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/register, roles: PUBLIC_ACCESS }
-        - { path: ^/home/page, roles: [ROLE_USER, ROLE_ADMIN, ROLE_GESTORSTOCK, ROLE_VENDEDOR] }
-        - { path: ^/product, roles: [ROLE_USER, ROLE_ADMIN] }
-        - { path: ^/add-used-machinery, roles: [ROLE_ADMIN, ROLE_GESTORSTOCK] }
-        # Aquí puedes agregar más rutas específicas para cada rol
+        - { path: ^/home/page, roles: [ROLE_USER, ROLE_GESTORSTOCK, ROLE_VENDEDOR] }
+        - { path: ^/product, roles: [ROLE_USER, ROLE_VENDEDOR] }
+        - { path: ^/add-used-machinery, roles: [ROLE_VENDEDOR] }
+        - { path: ^/view-used-machinery, roles: [ROLE_VENDEDOR, ROLE_USER] }
+        - { path: ^/product/new, roles: [ROLE_VENDEDOR, ROLE_GESTORSTOCK] }
+        - { path: ^/cart, roles: [ROLE_USER] }
+        - { path: ^/favorite, roles: [ROLE_USER] }
+        - { path: ^/stock/view, roles: [ROLE_VENDEDOR, ROLE_GESTORSTOCK] }
 
 when@test:
     security:
