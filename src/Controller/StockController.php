@@ -23,11 +23,11 @@ class StockController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'product_edit', methods: ['POST'])]
+    #[Route('/product/{id}/edit', name: 'product_edit', methods: ['POST'])]
     public function edit(Request $request, Product $product, EntityManagerInterface $entityManager): JsonResponse
     {
         if (!$this->isCsrfTokenValid('edit'.$product->getId(), $request->request->get('_token'))) {
-            return new JsonResponse(['message' => 'Token CSRF inválido'], 400);
+            return new JsonResponse(['message' => 'Token CSRF invÃ¡lido'], 400);
         }
 
         $originalData = [
@@ -71,7 +71,7 @@ class StockController extends AbstractController
         }
     }
 
-    #[Route('/{id}', name: 'product_delete', methods: ['POST', 'DELETE'])]
+    #[Route('/product/{id}', name: 'product_delete', methods: ['POST', 'DELETE'])]
     public function delete(Request $request, Product $product, EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete'.$product->getId(), $request->request->get('_token'))) {

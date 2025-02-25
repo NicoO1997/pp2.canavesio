@@ -6,17 +6,6 @@
     --border-color: #e0e4e8;
 }
 
-.success-message {
-    background-color: #4CAF50;
-    color: white;
-    padding: 15px;
-    margin-bottom: 20px;
-    border-radius: 4px;
-    display: none;
-    text-align: center;
-    font-weight: bold;
-}
-
 .used-only {
     transition: all 0.3s ease;
 }

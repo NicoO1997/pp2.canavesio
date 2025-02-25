@@ -6,6 +6,7 @@ use App\Repository\UsedMachineryRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\DBAL\Types\Types;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ORM\Entity(repositoryClass: UsedMachineryRepository::class)]
 class UsedMachinery
@@ -24,30 +25,18 @@ class UsedMachinery
     private ?string $brand = null;
 
     #[ORM\Column]
-    #[Assert\NotBlank(message: "Los años no pueden estar vacíos")]
-    #[Assert\GreaterThan(0, message: "Los años deben ser mayores a 0")]
-    private ?int $yearsOld = null;
+    private ?int $yearsOld = 0;
 
     #[ORM\Column]
-    #[Assert\NotBlank(message: "Los meses no pueden estar vacíos")]
-    #[Assert\Range(
-        min: 1,
-        max: 11,
-        notInRangeMessage: "Los meses deben estar entre {{ min }} y {{ max }}"
-    )]
-    private ?int $months = null;
+    private ?int $months = 0;
 
     #[ORM\Column]
-    #[Assert\NotBlank(message: "Las horas de uso no pueden estar vacías")]
-    #[Assert\GreaterThanOrEqual(0, message: "Las horas de uso deben ser 0 o mayores")]
-    private ?int $hoursOfUse = null;
+    private ?int $hoursOfUse = 0;
 
     #[ORM\Column(type: 'date')]
-    #[Assert\NotBlank(message: "La fecha de último servicio no puede estar vacía")]
-    #[Assert\LessThanOrEqual("today", message: "La fecha de último servicio no puede ser posterior al día de hoy")]
     private ?\DateTimeInterface $lastService = null;
 
-    #[ORM\Column(nullable: true)]
+    #[ORM\Column]
     #[Assert\GreaterThan(0, message: "El precio debe ser mayor a 0")]
     private ?float $price = null;
 
@@ -55,7 +44,7 @@ class UsedMachinery
     #[Assert\NotBlank(message: "La categoría es obligatoria")]
     private ?string $category = null;
 
-    #[ORM\Column(nullable: true)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $imageFilename = null;
 
     #[ORM\Column(type: 'boolean')]
@@ -137,7 +126,7 @@ class UsedMachinery
         return $this->lastService;
     }
 
-    public function setLastService(\DateTimeInterface $lastService): self
+    public function setLastService(?\DateTimeInterface $lastService): self
     {
         $this->lastService = $lastService;
         return $this;
@@ -170,9 +159,45 @@ class UsedMachinery
         return $this->imageFilename;
     }
 
-    public function setImageFilename(string $imageFilename): self
+    public function setImageFilename(?string $imageFilename): self
     {
         $this->imageFilename = $imageFilename;
         return $this;
+    }
+
+    #[Assert\Callback]
+    public function validate(ExecutionContextInterface $context, $payload)
+    {
+        if ($this->isNew) {
+            return;
+        }
+        
+        if (null === $this->yearsOld || ($this->yearsOld == 0 && $this->months == 0)) {
+            $context->buildViolation('La maquinaria usada debe tener al menos 1 mes de antigüedad')
+                ->atPath('yearsOld')
+                ->addViolation();
+        }
+        
+        if (null === $this->months || $this->months < 0 || $this->months > 11) {
+            $context->buildViolation('Los meses deben estar entre 0 y 11')
+                ->atPath('months')
+                ->addViolation();
+        }
+        
+        if (null === $this->hoursOfUse || $this->hoursOfUse < 0) {
+            $context->buildViolation('Las horas de uso deben ser 0 o mayores')
+                ->atPath('hoursOfUse')
+                ->addViolation();
+        }
+        
+        if (null === $this->lastService) {
+            $context->buildViolation('La fecha de último servicio no puede estar vacía')
+                ->atPath('lastService')
+                ->addViolation();
+        } elseif ($this->lastService > new \DateTime()) {
+            $context->buildViolation('La fecha de último servicio no puede ser posterior al día de hoy')
+                ->atPath('lastService')
+                ->addViolation();
+        }
     }
 }

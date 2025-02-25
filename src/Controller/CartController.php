@@ -8,6 +8,7 @@ use App\Repository\CartRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\ProductRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -26,24 +27,23 @@ class CartController extends AbstractController
         CartRepository $cartRepository,
         EntityManagerInterface $entityManager,
         Security $security
-    ): Response {
+    ): JsonResponse {
         $user = $security->getUser();
         if (!$user) {
-            return $this->redirectToRoute('app_login');
+            return new JsonResponse(['success' => false, 'message' => 'Debes iniciar sesión.'], 403);
         }
     
         $product = $productRepository->find($productId);
         if (!$product) {
-            return $this->redirectToRoute('product_list');
+            return new JsonResponse(['success' => false, 'message' => 'Producto no encontrado.'], 404);
         }
     
         $quantity = (int) $request->request->get('quantity');
         if ($quantity < 1 || $quantity > $product->getQuantity()) {
-            // Handle invalid quantity (optional: add an error message or redirect)
-            return $this->redirectToRoute('product_list');
+            return new JsonResponse(['success' => false, 'message' => 'Cantidad inválida.'], 400);
         }
     
-        // Find or create a cart for the user
+        // Buscar o crear carrito
         $cart = $cartRepository->findOneBy(['user' => $user]);
         if (!$cart) {
             $cart = new Cart();
@@ -52,16 +52,12 @@ class CartController extends AbstractController
             $entityManager->flush();
         }
     
-        // Check if product is already in the cart
-        $cartProductOrder = $cart->getCartProductOrders()->filter(function ($cartProductOrder) use ($product) {
-            return $cartProductOrder->getProduct() === $product;
-        })->first();
+        // Verificar si el producto ya está en el carrito
+        $cartProductOrder = $cart->getCartProductOrders()->filter(fn($cpo) => $cpo->getProduct() === $product)->first();
     
         if ($cartProductOrder) {
-            // Increment quantity if product is already in the cart
             $cartProductOrder->setQuantity($cartProductOrder->getQuantity() + $quantity);
         } else {
-            // Add new product to the cart
             $cartProductOrder = new CartProductOrder();
             $cartProductOrder->setProduct($product);
             $cartProductOrder->setCart($cart);
@@ -72,15 +68,14 @@ class CartController extends AbstractController
             $entityManager->persist($cartProductOrder);
         }
     
-        // Update the stock quantity
+        // Actualizar stock
         $product->setQuantity($product->getQuantity() - $quantity);
         $entityManager->persist($product);
     
         $entityManager->flush();
     
-        return $this->redirectToRoute('cart_view');
+        return new JsonResponse(['success' => true, 'message' => 'Producto agregado al carrito.']);
     }
-
     #[Route('/cart', name: 'cart_view')]
     public function viewCart(CartRepository $cartRepository, Security $security): Response {
         $user = $security->getUser();

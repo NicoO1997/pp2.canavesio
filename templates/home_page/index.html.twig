@@ -22,7 +22,7 @@
       {% if is_granted('ROLE_VENDEDOR') %}
         <a href="{{ path('app_add_used_machinery_page') }}">Agregar Maquinaria</a>
       {% endif %}
-      {% if is_granted('ROLE_USER') or is_granted('ROLE_VENDEDOR') %}
+      {% if is_granted('ROLE_VENDEDOR') %}
       <a href="{{ path('app_view_used_machinery') }}">Ver Maquinarias</a>
       {% endif %}
       {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_VENDEDOR') %}
@@ -50,7 +50,7 @@
       {% if is_granted('ROLE_VENDEDOR') %}
         <a href="{{ path('app_add_used_machinery_page') }}">Agregar Maquinaria</a>
       {% endif %}
-      {% if is_granted('ROLE_USER') or is_granted('ROLE_VENDEDOR') %}
+      {% if is_granted('ROLE_VENDEDOR') %}
       <a href="{{ path('app_view_used_machinery') }}">Ver Maquinarias</a>
       {% endif %}
       {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_VENDEDOR') %}

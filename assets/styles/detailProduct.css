@@ -30,6 +30,18 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
+.alerta {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    padding: 10px 20px;
+    color: white;
+    font-weight: bold;
+    border-radius: 5px;
+    display: none;
+    z-index: 1000;
+  }
+  
 .btn-volver {
     background-color: #4a5568;
     color: white;

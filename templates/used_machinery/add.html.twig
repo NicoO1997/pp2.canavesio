@@ -13,9 +13,7 @@ Agregar Maquinaria
 <div class="form-container">
     <h1>Agregar Maquinaria</h1>
     
-    <div id="success-message" class="success-message">
-        Maquinaria agregada con éxito
-    </div>
+    
 
     {{ form_start(form) }}
     <div class="form-group-container">
@@ -88,4 +86,58 @@ Agregar Maquinaria
     </div>
     {{ form_end(form) }}
 </div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const isNewRadios = document.querySelectorAll('input[name="used_machinery[isNew]"]');
+    const usedFieldsContainer = document.querySelector('.used-fields-container');
+    
+    function toggleFields() {
+        const selectedRadio = document.querySelector('input[name="used_machinery[isNew]"]:checked');
+        if (selectedRadio) {
+            const isNew = selectedRadio.value === '1';
+            
+            usedFieldsContainer.style.display = isNew ? 'none' : 'block';
+            
+            const usedFields = usedFieldsContainer.querySelectorAll('input, select');
+            
+            usedFields.forEach(field => {
+                if (isNew) {
+                    field.removeAttribute('required');
+                    
+                    if (field.id.includes('yearsOld') || 
+                        field.id.includes('months') || 
+                        field.id.includes('hoursOfUse')) {
+                        field.value = '0';
+                    }
+                    
+                    if (field.id.includes('lastService')) {
+                        field.value = new Date().toISOString().split('T')[0];
+                    }
+                } else {
+                    if (field.hasAttribute('data-required')) {
+                        field.setAttribute('required', 'required');
+                    }
+                }
+            });
+        }
+    }
+    
+    const usedFields = usedFieldsContainer.querySelectorAll('input, select');
+    usedFields.forEach(field => {
+        if (field.hasAttribute('required')) {
+            field.setAttribute('data-required', 'true');
+        }
+    });
+    
+    isNewRadios.forEach(radio => {
+        radio.addEventListener('change', toggleFields);
+    });
+    
+    toggleFields();
+});
+</script>
 {% endblock %}
