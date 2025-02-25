@@ -13,12 +13,22 @@ Agregar Maquinaria
 <div class="form-container">
     <h1>Agregar Maquinaria</h1>
     
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">
+            {{ message }}
+        </div>
+    {% endfor %}
     
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger">
+            {{ message }}
+        </div>
+    {% endfor %}
 
     {{ form_start(form) }}
     <div class="form-group-container">
         <div class="form-group machinery-type-selector">
-            {{ form_label(form.isNew) }}
+            <h3>Tipo de Maquinaria</h3>
             {{ form_widget(form.isNew) }}
             {{ form_errors(form.isNew, {'attr': {'class': 'form-error'}}) }}
         </div>
@@ -54,6 +64,8 @@ Agregar Maquinaria
         </div>
 
         <div class="used-fields-container">
+            <h3 class="full-width">Detalles de Maquinaria Usada</h3>
+            
             <div class="form-group">
                 {{ form_label(form.yearsOld) }}
                 {{ form_widget(form.yearsOld) }}
@@ -80,8 +92,10 @@ Agregar Maquinaria
         </div>
 
         <div class="form-group full-width">
-            <button type="submit" class="btn btn-primary">Agregar</button>
-            <a href="{{ path('app_home_page') }}" class="button btn btn-secondary">Volver</a>
+            <div class="buttons-container">
+                <button type="submit" class="btn btn-primary">Agregar</button>
+                <a href="{{ path('app_home_page') }}" class="btn btn-secondary">Volver</a>
+            </div>
         </div>
     </div>
     {{ form_end(form) }}
@@ -100,7 +114,15 @@ document.addEventListener('DOMContentLoaded', function() {
         if (selectedRadio) {
             const isNew = selectedRadio.value === '1';
             
-            usedFieldsContainer.style.display = isNew ? 'none' : 'block';
+            if (isNew) {
+                usedFieldsContainer.style.display = 'none';
+                usedFieldsContainer.style.opacity = '0';
+            } else {
+                usedFieldsContainer.style.display = 'grid';
+                setTimeout(() => {
+                    usedFieldsContainer.style.opacity = '1';
+                }, 10);
+            }
             
             const usedFields = usedFieldsContainer.querySelectorAll('input, select');
             
@@ -138,6 +160,26 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     toggleFields();
+    
+    const fileInput = document.querySelector('input[type="file"]');
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            const fileName = this.value.split('\\').pop();
+            if (fileName) {
+                const parent = this.parentElement;
+                if (parent.querySelector('.file-name')) {
+                    parent.querySelector('.file-name').textContent = fileName;
+                } else {
+                    const fileNameSpan = document.createElement('span');
+                    fileNameSpan.className = 'file-name';
+                    fileNameSpan.style.fontSize = '0.8rem';
+                    fileNameSpan.style.marginTop = '0.3rem';
+                    fileNameSpan.textContent = fileName;
+                    parent.appendChild(fileNameSpan);
+                }
+            }
+        });
+    }
 });
 </script>
 {% endblock %}

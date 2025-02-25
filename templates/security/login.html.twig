@@ -1,7 +1,9 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Log in!{% endblock %}
+{% block title %}Iniciar Sesión{% endblock %}
 {% block stylesheets %}
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="{{ asset('styles/login.css') }}" rel="stylesheet">
 {% endblock %}
 
@@ -9,22 +11,27 @@
 <div class="container">
     <div class="form-wrapper">
         <h1>Iniciar Sesión</h1>
+        
         {% for label, messages in app.session.flashbag.all() %}
-        {% for message in messages %}
-            <div class="alert alert-{{ label }}">{{ message }}</div>
-        {% endfor %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }}">{{ message }}</div>
+            {% endfor %}
         {% endfor %}
 
         <form method="post">
             {% if error %}
-                <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle"></i> 
+                    {{ error.messageKey|trans(error.messageData, 'security') }}
+                </div>
             {% endif %}
 
             <div class="input-icon">
                 <i class="fas fa-envelope"></i>
                 <input type="email" value="{{ last_username }}" name="_username" id="username" 
-                    class="form-control" placeholder="Email" autocomplete="email" required autofocus>
+                    class="form-control" placeholder="Correo electrónico" autocomplete="email" required autofocus>
             </div>
+            
             <div class="input-icon">
                 <i class="fas fa-lock"></i>
                 <input type="password" name="_password" id="password" 
@@ -34,17 +41,19 @@
             <div class="remember-forgot">
                 <div>
                     <input type="checkbox" name="_remember_me" id="_remember_me">
-                    <label for="_remember_me">Recordar</label>
+                    <label for="_remember_me">Recordarme</label>
                 </div>
-                <a href="{{ path('app_forgot_password') }}">Olvidé la contraseña</a>
+                <a href="{{ path('app_forgot_password') }}">¿Olvidaste tu contraseña?</a>
             </div>
 
             <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
-            <button class="btn btn-lg btn-primary" type="submit">Acceder</button>
+            <button class="btn" type="submit">
+                <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+            </button>
 
             <div class="register-link">
-                <a href="{{ path('app_register') }}">No tengo cuenta. Crear una</a>
+                ¿No tienes una cuenta? <a href="{{ path('app_register') }}">Regístrate aquí</a>
             </div>
         </form>
     </div>

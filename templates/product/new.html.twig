@@ -13,7 +13,7 @@
     <div class="form-container">
         <h1 class="form-title">Agregar Repuesto</h1>
 
-        {{ form_start(form, {'attr': {'class': 'product-form'}}) }}
+        {{ form_start(form, {'attr': {'class': 'product-form'}, 'action': path('view_stock')}) }}
             
         <div class="form-flex-container">
             <div class="form-column">
@@ -104,53 +104,224 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const toggleSwitch = document.querySelector('input[type="checkbox"]');
-            const statusText = document.getElementById('statusText');
-
-            toggleSwitch.checked = false;
-            statusText.textContent = 'Deshabilitado';
-            statusText.className = 'status-text status-disabled';
-
-            toggleSwitch.addEventListener('change', function() {
-                statusText.textContent = this.checked ? 'Habilitado' : 'Deshabilitado';
-                statusText.className = 'status-text ' + (this.checked ? 'status-enabled' : 'status-disabled');
-            });
-
-            const fileInput = document.querySelector('.form-control-file');
-            const fileInfo = document.querySelector('.file-upload-info');
-
-            fileInput.addEventListener('change', function() {
-                if (this.files && this.files[0]) {
-                    fileInfo.textContent = `Archivo seleccionado: ${this.files[0].name}`;
-                    fileInfo.classList.add('file-selected');
-                } else {
-                    fileInfo.textContent = 'Formatos permitidos: JPG, PNG, GIF';
-                    fileInfo.classList.remove('file-selected');
-                }
-            });
-
-            const form = document.querySelector('.product-form');
-            const inputs = form.querySelectorAll('.form-control, .form-control-file');
-
-            inputs.forEach(input => {
-                input.addEventListener('focus', function() {
-                    this.closest('.input-wrapper').classList.add('focused');
-                });
-
-                input.addEventListener('blur', function() {
-                    if (this.value.trim() !== '') {
-                        this.closest('.input-wrapper').classList.add('has-value');
-                    } else {
-                        this.closest('.input-wrapper').classList.remove('has-value');
-                    }
-                    this.closest('.input-wrapper').classList.remove('focused');
-                });
-                
-                if (input.value.trim() !== '') {
-                    input.closest('.input-wrapper').classList.add('has-value');
-                }
-            });
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('.product-form');
+        const inputs = form.querySelectorAll('.form-control, .form-control-file, textarea');
+        const toggleSwitch = document.querySelector('input[type="checkbox"]');
+        const statusText = document.getElementById('statusText');
+        const fileInput = document.querySelector('.form-control-file');
+        const fileInfo = document.querySelector('.file-upload-info');
+        const submitButton = document.querySelector('.btn-submit');
+        
+        toggleSwitch.checked = false;
+        updateStatusText();
+        
+        animateFormElements();
+        
+        toggleSwitch.addEventListener('change', updateStatusText);
+        fileInput.addEventListener('change', handleFileSelection);
+        
+        inputs.forEach(input => {
+            input.addEventListener('focus', handleInputFocus);
+            input.addEventListener('blur', handleInputBlur);
+            
+            checkInputValue(input);
         });
+        
+        form.addEventListener('submit', handleFormSubmit);
+                
+        function updateStatusText() {
+            statusText.textContent = toggleSwitch.checked ? 'Habilitado' : 'Deshabilitado';
+            statusText.className = 'status-text ' + (toggleSwitch.checked ? 'status-enabled' : 'status-disabled');
+            
+            statusText.style.animation = 'none';
+            setTimeout(() => {
+                statusText.style.animation = 'pulse 0.5s ease-in-out';
+            }, 10);
+        }
+        
+        function handleFileSelection() {
+            if (this.files && this.files[0]) {
+                const fileName = this.files[0].name;
+                const fileSize = (this.files[0].size / 1024).toFixed(2) + ' KB';
+                fileInfo.innerHTML = `Archivo seleccionado: <strong>${fileName}</strong> (${fileSize})`;
+                fileInfo.classList.add('file-selected');
+                
+                const fileType = this.files[0].type;
+                const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+                
+                if (!validTypes.includes(fileType)) {
+                    addValidationMessage(this, 'El tipo de archivo no es válido. Usa JPG, PNG o GIF.', false);
+                } else {
+                    addValidationMessage(this, 'Archivo válido', true);
+                }
+            } else {
+                fileInfo.textContent = 'Formatos permitidos: JPG, PNG, GIF';
+                fileInfo.classList.remove('file-selected');
+                removeValidationMessage(this);
+            }
+        }
+        
+        function handleInputFocus() {
+            const wrapper = this.closest('.input-wrapper');
+            wrapper.classList.add('focused');
+            
+            this.style.transform = 'translateX(5px)';
+            setTimeout(() => {
+                this.style.transform = 'translateX(0)';
+            }, 200);
+            
+            removeValidationMessage(this);
+        }
+        
+        function handleInputBlur() {
+            const wrapper = this.closest('.input-wrapper');
+            wrapper.classList.remove('focused');
+            checkInputValue(this);
+            
+            validateInput.call(this);
+        }
+        
+        function checkInputValue(input) {
+            const wrapper = input.closest('.input-wrapper');
+            if (input.value.trim() !== '') {
+                wrapper.classList.add('has-value');
+            } else {
+                wrapper.classList.remove('has-value');
+            }
+        }
+        
+        function validateInput() {
+            const field = this;
+            const value = field.value.trim();
+            
+            removeValidationMessage(field);
+            
+            if (value === '') {
+                return;
+            }
+            
+            if (field.id.includes('name')) {
+                if (value.length < 3) {
+                    addValidationMessage(field, 'El nombre debe tener al menos 3 caracteres', false);
+                } else {
+                    addValidationMessage(field, 'Nombre válido', true);
+                }
+            } else if (field.id.includes('quantity') || field.id.includes('minStock')) {
+                if (parseInt(value) <= 0) {
+                    addValidationMessage(field, 'El valor debe ser mayor que cero', false);
+                } else {
+                    addValidationMessage(field, 'Cantidad válida', true);
+                }
+            } else if (field.id.includes('price')) {
+                if (parseFloat(value) <= 0) {
+                    addValidationMessage(field, 'El precio debe ser mayor que cero', false);
+                } else {
+                    addValidationMessage(field, 'Precio válido', true);
+                }
+            } else if (field.id.includes('description')) {
+                if (value.length < 10) {
+                    addValidationMessage(field, 'La descripción debe tener al menos 10 caracteres', false);
+                } else {
+                    addValidationMessage(field, 'Descripción válida', true);
+                }
+            }
+        }
+        
+        function addValidationMessage(field, message, isValid) {
+            removeValidationMessage(field);
+            
+            const validationMsg = document.createElement('div');
+            validationMsg.className = `field-validation ${isValid ? 'valid' : 'invalid'}`;
+            validationMsg.innerHTML = `
+                <span>${isValid ? '✓' : '✗'}</span>
+                <span>${message}</span>
+            `;
+            
+            const wrapper = field.closest('.input-wrapper');
+            wrapper.appendChild(validationMsg);
+            
+            setTimeout(() => {
+                validationMsg.classList.add('show');
+            }, 10);
+        }
+        
+        function removeValidationMessage(field) {
+            const wrapper = field.closest('.input-wrapper');
+            const existingMsg = wrapper.querySelector('.field-validation');
+            if (existingMsg) {
+                existingMsg.classList.remove('show');
+                setTimeout(() => {
+                    existingMsg.remove();
+                }, 300);
+            }
+        }
+        
+        function handleFormSubmit(event) {
+            let hasErrors = false;
+            inputs.forEach(input => {
+                if (input.required && input.value.trim() === '') {
+                    const wrapper = input.closest('.input-wrapper');
+                    wrapper.classList.add('shake-error');
+                    hasErrors = true;
+                    
+                    setTimeout(() => {
+                        wrapper.classList.remove('shake-error');
+                    }, 500);
+                }
+            });
+            
+            if (hasErrors) {
+                event.preventDefault();
+                return;
+            }
+            
+            submitButton.innerHTML = '<span class="btn-text">Guardando...</span>';
+            submitButton.classList.add('submitting');
+        }
+        
+        function animateFormElements() {
+            const groups = document.querySelectorAll('.form-group, .status-container, .form-actions');
+            groups.forEach((group, index) => {
+                group.style.opacity = '0';
+                group.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    group.style.transition = 'all 0.5s ease-out';
+                    group.style.opacity = '1';
+                    group.style.transform = 'translateY(0)';
+                }, 100 + (index * 80));
+            });
+        }
+        
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes shake-error {
+                0%, 100% { transform: translateX(0); }
+                10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+                20%, 40%, 60%, 80% { transform: translateX(5px); }
+            }
+            
+            .shake-error {
+                animation: shake-error 0.5s ease-in-out;
+                border-color: var(--error-color) !important;
+            }
+            
+            .submitting {
+                position: relative;
+                pointer-events: none;
+                background: linear-gradient(90deg, var(--secondary-color), var(--accent-color), var(--secondary-color)) !important;
+                background-size: 200% 100% !important;
+                animation: gradient-animation 1.5s infinite !important;
+            }
+            
+            @keyframes gradient-animation {
+                0% { background-position: 0% 50%; }
+                50% { background-position: 100% 50%; }
+                100% { background-position: 0% 50%; }
+            }
+        `;
+        document.head.appendChild(style);
+    });
     </script>
 {% endblock %}

@@ -38,8 +38,12 @@
                         <th>Nombre</th>
                         <th>Marca</th>
                         <th>Cantidad</th>
-                        <th>Stock Mínimo</th>
-                        <th>Precio</th>
+                        {% if is_granted('ROLE_GESTORSTOCK') %}
+                            <th>Stock Mínimo</th>
+                        {% endif %}
+                        {% if not is_granted('ROLE_GESTORSTOCK') %}
+                            <th>Precio</th>
+                        {% endif %}
                         <th>Descripción</th>
                         <th>Estado</th>
                         <th>Acciones</th>
@@ -60,8 +64,12 @@
                                 <td class="editable-cell" data-field="brand">{{ product.brand }}</td>
                                 <td class="editable-cell {% if product.needsRestock %}bajo-stock{% endif %}" 
                                     data-field="quantity">{{ product.quantity }}</td>
-                                <td class="editable-cell" data-field="minStock">{{ product.minStock }}</td>
-                                <td class="editable-cell" data-field="price">${{ product.price }}</td>
+                                {% if is_granted('ROLE_GESTORSTOCK') %}
+                                    <td class="editable-cell" data-field="minStock">{{ product.minStock }}</td>
+                                {% endif %}
+                                {% if not is_granted('ROLE_GESTORSTOCK') %}
+                                    <td class="editable-cell" data-field="price">${{ product.price }}</td>
+                                {% endif %}
                                 <td class="editable-cell" data-field="description">{{ product.description }}</td>
                                 <td>
                                     {% if is_granted('ROLE_GESTORSTOCK') %}
@@ -108,7 +116,7 @@
                         {% endfor %}
                     {% else %}
                         <tr>
-                            <td colspan="9" class="no-products">No hay productos en stock</td>
+                            <td colspan="8" class="no-products">No hay productos en stock</td>
                         </tr>
                     {% endif %}
                 </tbody>
@@ -127,9 +135,11 @@
     
     cells.forEach(cell => {
         const field = cell.dataset.field;
-        if (mode === 'all' ||
-            (mode === 'stock' && (field === 'quantity' || field === 'minStock')) ||
-            (mode === 'price' && field === 'price')) {
+        const isGestorStock = mode === 'stock';
+        const isVendedor = mode === 'all';
+        
+        if ((isGestorStock && field !== 'price' && (field === 'quantity' || field === 'minStock')) ||
+            (isVendedor && field !== 'minStock')) {
 
             const currentValue = cell.textContent.trim();
             

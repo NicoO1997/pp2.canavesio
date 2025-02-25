@@ -805,3 +805,87 @@ body {
     padding-left: 3rem;
     padding-right: 3rem;
 }
+
+.payment-section {
+    padding: 3rem 0;
+    background-color: #f9f9f9;
+    border-radius: 1rem;
+    margin: 3rem 0;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.payment-section:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+.payment-container {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.payment-title {
+    font-size: 2.4rem;
+    color: #333;
+    margin-bottom: 1.5rem;
+}
+
+.payment-description {
+    font-size: 1.6rem;
+    line-height: 1.6;
+    color: #555;
+    margin-bottom: 2rem;
+}
+
+.payment-logos {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 2rem;
+}
+
+.payment-logo {
+    max-width: 200px;
+    height: auto;
+    transition: all 0.3s ease;
+}
+
+.payment-logo:hover {
+    transform: scale(1.05);
+}
+
+.payment-benefits {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+    gap: 2rem;
+}
+
+.payment-benefit {
+    display: flex;
+    align-items: center;
+    background-color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.payment-benefit:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.payment-benefit i {
+    font-size: 2rem;
+    color: rgb(214, 113, 19);
+    margin-right: 1rem;
+}
+
+.payment-benefit span {
+    font-size: 1.4rem;
+    font-weight: bold;
+}
