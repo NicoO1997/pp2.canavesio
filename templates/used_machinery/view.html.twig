@@ -1,75 +1,192 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}View Used Machineries
-{% endblock %}
+{% block title %}Maquinaria disponible{% endblock %}
 
 {% block stylesheets %}
-	<link rel="stylesheet" href="{{ asset('styles/viewUsedMachinery.css') }}">
+    <link rel="stylesheet" href="{{ asset('styles/viewUsedMachinery.css') }}">
 {% endblock %}
 
 {% block body %}
-	<div id="success-message" class="success-message">
-		Maquinaria agregada con Ã©xito
-	</div>
-	<div class="machinery-container">
-		<h1 class="machinery-title">Used Machineries</h1>
+    <div id="success-message" class="success-message">
+        Maquinaria agregada con Exito!.
+    </div>
+    
+    <div class="machinery-container">
+        <h1 class="machinery-title">Maquinaria Disponible.</h1>
 
-		{% if usedMachineries is empty %}
-			<div class="no-machineries">
-				<p>No used machineries found.</p>
-			</div>
-		{% endif %}
+        {% if usedMachineries is empty %}
+            <div class="no-machineries">
+                <p>No hay maquinaria disponible.</p>
+            </div>
+        {% else %}
+            <div class="machinery-section new-machinery-section">
+                <h2 class="machinery-section-title">Maquinaria Nueva</h2>
+                {% set hasNewMachinery = false %}
+                {% for machinery in usedMachineries %}
+                    {% if machinery.isNew %}
+                        {% set hasNewMachinery = true %}
+                    {% endif %}
+                {% endfor %}
+                
+                {% if not hasNewMachinery %}
+                    <div class="no-machineries">
+                        <p>No hay maquinaria nueva disponible.</p>
+                    </div>
+                {% else %}
+                    <div class="table-container">
+                        <table class="machinery-table new-machinery-table">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Marca</th>
+                                    <th>Precio</th>
+                                    <th>Categoría</th>
+                                    <th>Imagen</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for machinery in usedMachineries %}
+                                    {% if machinery.isNew %}
+                                        <tr>
+                                            <td>{{ machinery.machineryName }}</td>
+                                            <td>{{ machinery.brand }}</td>
+                                            <td>{{ machinery.price ? '$' ~ machinery.price|number_format(2, '.', ',') : 'N/A' }}</td>
+                                            <td>{{ machinery.category|capitalize }}</td>
+                                            <td class="image-cell">
+                                                {% if machinery.imageFilename %}
+                                                    <img src="{{ asset('imagenes/' ~ machinery.imageFilename) }}" alt="{{ machinery.machineryName }}" class="machinery-image">
+                                                {% else %}
+                                                    <span class="no-image">Sin imagen</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <a href="{{ path('used_machinery_detail', {'id': machinery.id}) }}" class="detail-button">Ver detalles</a>
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
 
-		{% if usedMachineries is not empty %}
-			<table class="machinery-table">
-				<thead>
-					<tr>
-						<th>Machinery Name</th>
-						<th>Brand</th>
-						<th>Age</th>
-						<th>Months</th>
-						<th>Hours of Use</th>
-						<th>Last Service</th>
-						<th>Price</th>
-						<th>Image</th>
-					</tr>
-				</thead>
-				<tbody>
-					{% for machinery in usedMachineries %}
-						<tr>
-							<td>{{ machinery.machineryName }}</td>
-							<td>{{ machinery.brand }}</td>
-							<td>
-								<span class="machinery-age {% if machinery.yearsOld < 2 %}machinery-age-new{% elseif machinery.yearsOld < 5 %}machinery-age-medium{% else %}machinery-age-old{% endif %}">
-									{{ machinery.yearsOld }}
-									year
-									{% if machinery.yearsOld != 1 %}s
-									{% endif %}
-								</span>
-							</td>
-							<td>
-								{% if machinery.months > 0 %}
-									{{ machinery.months }}
-									month
-									{% if machinery.months != 1 %}s
-									{% endif %}
-								{% else %}
-									0 months
-								{% endif %}
-							</td>
-							<td>{{ machinery.hoursOfUse }}</td>
-							<td>{{ machinery.lastService|date('Y-m-d') }}</td>
-							<td>{{ machinery.price ? machinery.price|number_format(2, '.', ',') : 'N/A' }}</td>
-							<td>
-								{% if machinery.imageFilename %}
-									<img src="{{ asset('images/' ~ machinery.imageFilename) }}" alt="{{ machinery.machineryName }}" class="machinery-image">
-								{% else %}
-									No image
-								{% endif %}
-							</td>
-						</tr>
-					{% endfor %}
-				</tbody>
-			</table>
-		{% endif %}
-	{% endblock %}
+            <div class="machinery-section used-machinery-section">
+                <h2 class="machinery-section-title">Maquinaria Usada</h2>
+                {% set hasUsedMachinery = false %}
+                {% for machinery in usedMachineries %}
+                    {% if not machinery.isNew %}
+                        {% set hasUsedMachinery = true %}
+                    {% endif %}
+                {% endfor %}
+                
+                {% if not hasUsedMachinery %}
+                    <div class="no-machineries">
+                        <p>No hay maquinaria usada disponible.</p>
+                    </div>
+                {% else %}
+                    <div class="table-container">
+                        <table class="machinery-table used-machinery-table">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Marca</th>
+                                    <th>Antigüedad</th>
+                                    <th>Horas de Uso</th>
+                                    <th>Precio</th>
+                                    <th>Categoría</th>
+                                    <th>Imagen</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for machinery in usedMachineries %}
+                                    {% if not machinery.isNew %}
+                                        <tr>
+                                            <td>{{ machinery.machineryName }}</td>
+                                            <td>{{ machinery.brand }}</td>
+                                            <td>
+                                                <span class="machinery-age {% if machinery.yearsOld < 2 %}machinery-age-new{% elseif machinery.yearsOld < 5 %}machinery-age-medium{% else %}machinery-age-old{% endif %}">
+                                                    {% if machinery.yearsOld > 0 %}
+                                                        {{ machinery.yearsOld }} año{% if machinery.yearsOld != 1 %}s{% endif %}
+                                                    {% endif %}
+                                                    {% if machinery.months > 0 %}
+                                                        {% if machinery.yearsOld > 0 %} y {% endif %}
+                                                        {{ machinery.months }} mes{% if machinery.months != 1 %}es{% endif %}
+                                                    {% endif %}
+                                                </span>
+                                            </td>
+                                            <td>{{ machinery.hoursOfUse }} horas</td>
+                                            <td>{{ machinery.price ? '$' ~ machinery.price|number_format(2, '.', ',') : 'N/A' }}</td>
+                                            <td>{{ machinery.category|capitalize }}</td>
+                                            <td class="image-cell">
+                                                {% if machinery.imageFilename %}
+                                                    <img src="{{ asset('imagenes/' ~ machinery.imageFilename) }}" alt="{{ machinery.machineryName }}" class="machinery-image">
+                                                {% else %}
+                                                    <span class="no-image">Sin imagen</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <a href="{{ path('used_machinery_detail', {'id': machinery.id}) }}" class="detail-button">Ver detalles</a>
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get('success');
+    const successMessage = document.getElementById('success-message');
+    
+    if (success === 'true' && successMessage) {
+        successMessage.classList.add('show');
+        
+        setTimeout(function() {
+            successMessage.classList.remove('show');
+        }, 5000);
+    }
+    
+    const sectionCards = document.querySelectorAll('.machinery-section');
+    sectionCards.forEach(function(card, index) {
+        setTimeout(function() {
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+    
+    const machineryImages = document.querySelectorAll('.machinery-image');
+    machineryImages.forEach(function(img) {
+        img.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.1)';
+        });
+        
+        img.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+        });
+    });
+    
+    const backButton = document.querySelector('.back-button');
+    if (backButton) {
+        backButton.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateX(-5px)';
+        });
+        
+        backButton.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateX(0)';
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,27 +1,84 @@
 {% extends 'base.html.twig' %}
 
-{% block stylesheets %}
-    <link href="{{ asset('styles/detailM.css') }}" rel="stylesheet" />
-{% endblock %}
+{% block title %}Detalle de Maquinaria - {{ usedMachinery.machineryName }}{% endblock %}
 
-{% block title %}
-  {{ usedMachinery.machineryName }}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('styles/viewUsedMachinery.css') }}">
 {% endblock %}
 
 {% block body %}
-  <div class="detalle-maquinaria">
-    <h1>{{ usedMachinery.machineryName }}</h1>
-    <div class="maquinaria-info">
-      {% if usedMachinery.imageFilename %}
-        <img src="{{ asset('images/' ~ usedMachinery.imageFilename) }}" alt="{{ usedMachinery.machineryName }}" />
-      {% endif %}
-      <p><strong>Marca:</strong> {{ usedMachinery.brand }}</p>
-      <p><strong>Años de uso:</strong> {{ usedMachinery.yearsOld }}</p>
-      <p><strong>Meses:</strong> {{ usedMachinery.months }}</p>
-      <p><strong>Horas de uso:</strong> {{ usedMachinery.hoursOfUse }}</p>
-      <p><strong>Último servicio:</strong> {{ usedMachinery.lastService|date('d/m/Y') }}</p>
-      <p><strong>Precio:</strong> ${{ usedMachinery.price }}</p>
-      <p><strong>Categoría:</strong> {{ usedMachinery.category }}</p>
+    <div class="machinery-container">
+        <div class="machinery-detail-card">
+            <div class="back-button-container">
+                <a href="{{ path('app_view_used_machinery') }}" class="back-button">
+                    <i class="fas fa-arrow-left"></i> Volver al listado
+                </a>
+            </div>
+            
+            <h1 class="machinery-title">{{ usedMachinery.machineryName }}</h1>
+            
+            <div class="machinery-detail-content">
+                <div class="machinery-detail-image">
+                    {% if usedMachinery.imageFilename %}
+                        <img src="{{ asset('imagenes/' ~ usedMachinery.imageFilename) }}" alt="{{ usedMachinery.machineryName }}" class="detail-image">
+                    {% else %}
+                        <div class="no-detail-image">Sin imagen disponible</div>
+                    {% endif %}
+                    
+                    <div class="machinery-status {% if usedMachinery.isNew %}new-status{% else %}used-status{% endif %}">
+                        {{ usedMachinery.isNew ? 'Nueva' : 'Usada' }}
+                    </div>
+                </div>
+                
+                <div class="machinery-detail-info">
+                    <table class="detail-info-table">
+                        <tr>
+                            <th>Marca:</th>
+                            <td>{{ usedMachinery.brand }}</td>
+                        </tr>
+                        <tr>
+                            <th>Categoría:</th>
+                            <td>{{ usedMachinery.category|capitalize }}</td>
+                        </tr>
+                        <tr>
+                            <th>Precio:</th>
+                            <td class="price-value">${{ usedMachinery.price|number_format(2, '.', ',') }}</td>
+                        </tr>
+                        
+                        {% if not usedMachinery.isNew %}
+                            <tr>
+                                <th>Antigüedad:</th>
+                                <td>
+                                    <span class="machinery-age {% if usedMachinery.yearsOld < 2 %}machinery-age-new{% elseif usedMachinery.yearsOld < 5 %}machinery-age-medium{% else %}machinery-age-old{% endif %}">
+                                        {% if usedMachinery.yearsOld > 0 %}
+                                            {{ usedMachinery.yearsOld }} año{% if usedMachinery.yearsOld != 1 %}s{% endif %}
+                                        {% endif %}
+                                        {% if usedMachinery.months > 0 %}
+                                            {% if usedMachinery.yearsOld > 0 %} y {% endif %}
+                                            {{ usedMachinery.months }} mes{% if usedMachinery.months != 1 %}es{% endif %}
+                                        {% endif %}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Horas de uso:</th>
+                                <td>{{ usedMachinery.hoursOfUse }} horas</td>
+                            </tr>
+                            <tr>
+                                <th>Último servicio:</th>
+                                <td>{{ usedMachinery.lastService|date('d/m/Y') }}</td>
+                            </tr>
+                        {% endif %}
+                    </table>
+                    
+                    <div class="contact-section">
+                        <h3>¿Interesado en esta maquinaria?</h3>
+                        <a href="https://wa.me/543436438263?text=Hola,%20estoy%20interesado%20en%20la%20maquinaria%20{{ usedMachinery.machineryName }}" class="contact-button" target="_blank">
+                            <i class="fab fa-whatsapp"></i> Contactar vendedor
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
 {% endblock %}
