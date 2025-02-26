@@ -1,65 +1,177 @@
-{# templates/cart/view.html.twig #}
 {% extends 'base.html.twig' %}
-
-{% block title %}Carrito de Compras{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
     <link rel="stylesheet" href="{{ asset('styles/cart.css') }}">
 {% endblock %}
 
+{% block title %}Carrito de Compras{% endblock %}
+
 {% block body %}
 <div class="container mt-4">
     <h2 class="mb-4">Carrito de compras</h2>
+    
+    <div id="alert-container"></div>
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
 
     {% if cart and cart.cartProductOrders|length > 0 %}
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>Producto</th>
-                    <th>Precio</th>
-                    <th>Cantidad</th>
-                    <th>Sub total</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                {% set total = 0 %}
-                {% for cartProductOrder in cart.cartProductOrders %}
-                    {% set subtotal = cartProductOrder.product.price * cartProductOrder.quantity %}
-                    {% set total = total + subtotal %}
+        <div id="cart-content">
+            <table class="table table-bordered">
+                <thead>
                     <tr>
-                        <td>{{ cartProductOrder.product.name }}</td>
-                        <td>{{ cartProductOrder.product.price }} USD</td>
-                        <td>
-                            <input type="number" class="form-control" id="quantity_{{ cartProductOrder.id }}" name="quantity" value="{{ cartProductOrder.quantity }}" min="1">
-                        </td>
-                        <td>{{ subtotal }} USD</td>
-                        <td>
-                            <form action="{{ path('cart_remove_product', { 'id': cartProductOrder.id }) }}" method="post" class="d-inline">
-                                <button type="submit" class="btn btn-danger">
-                                    <i class="fa fa-trash"></i>
-                                </button>
-                            </form>
-                        </td>
+                        <th>Producto</th>
+                        <th>Precio</th>
+                        <th>Cantidad</th>
+                        <th>Sub total</th>
+                        <th></th>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    {% set total = 0 %}
+                    {% for cartProductOrder in cart.cartProductOrders %}
+                        {% set subtotal = cartProductOrder.product.price * cartProductOrder.quantity %}
+                        {% set total = total + subtotal %}
+                        <tr id="row-{{ cartProductOrder.id }}">
+                            <td>{{ cartProductOrder.product.name }}</td>
+                            <td>{{ cartProductOrder.product.price }} $</td>
+                            <td>
+                                <input type="number" class="form-control quantity-input" 
+                                       data-id="{{ cartProductOrder.id }}" 
+                                       data-price="{{ cartProductOrder.product.price }}"
+                                       id="quantity_{{ cartProductOrder.id }}" 
+                                       name="quantity" 
+                                       value="{{ cartProductOrder.quantity }}" 
+                                       min="1">
+                            </td>
+                            <td id="subtotal-{{ cartProductOrder.id }}">{{ subtotal }} $</td>
+                            <td>
+                                <form action="{{ path('cart_remove_product', { 'id': cartProductOrder.id }) }}" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
 
-        <div class="d-flex justify-content-between">
-            <a href="{{ path('product_list') }}" class="btn btn-warning">
-                <i class="fa fa-arrow-left"></i> Continue Comprando
-            </a>
-            <div>
-                <span class="me-3">Total: <strong>{{ total }} USD</strong></span>
-                <a href="{{ path('create-preference') }}" class="btn btn-success">
-                    Pagos <i class="fa fa-credit-card"></i>
+            <div class="d-flex justify-content-between">
+                <a href="{{ path('product_list') }}" class="btn btn-warning">
+                    <i class="fa fa-arrow-left"></i> Continue Comprando
                 </a>
+                <div>
+                    <span class="me-3">Total: <strong id="cart-total">{{ total }} $</strong></span>
+                    <a href="{{ path('create-preference') }}" class="btn btn-success">
+                        Pagos <i class="fa fa-credit-card"></i>
+                    </a>
+                </div>
             </div>
         </div>
     {% else %}
         <p class="text-center">Tu carrito está vacío.</p>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const quantityInputs = document.querySelectorAll('.quantity-input');
+            
+            quantityInputs.forEach(input => {
+                let originalValue = input.value;
+                
+                input.addEventListener('change', function() {
+                    const id = this.getAttribute('data-id');
+                    const quantity = parseInt(this.value);
+                    
+                    if (quantity < 1) {
+                        this.value = 1;
+                        return;
+                    }
+                    
+                    this.disabled = true;
+                    
+                    const formData = new FormData();
+                    formData.append('id', id);
+                    formData.append('quantity', quantity);
+                    
+                    fetch('{{ path('cart_update_quantity') }}', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Error en la respuesta del servidor: ' + response.status);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        this.disabled = false;
+                        
+                        if (data.success) {
+                            originalValue = this.value;
+                            
+                            const subtotalElement = document.getElementById(`subtotal-${id}`);
+                            if (subtotalElement) {
+                                subtotalElement.textContent = `${data.subtotal} $`;
+                            }
+                            
+                            const totalElement = document.getElementById('cart-total');
+                            if (totalElement) {
+                                totalElement.textContent = `${data.total} $`;
+                            }
+                            
+                            showAlert('success', data.message);
+                        } else {
+                            this.value = originalValue;
+                            showAlert('danger', data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        this.disabled = false;
+                        this.value = originalValue;
+                        showAlert('danger', 'Error al actualizar el carrito: ' + error.message);
+                    });
+                });
+            });
+            
+            function showAlert(type, message) {
+                const alertContainer = document.getElementById('alert-container');
+                
+                alertContainer.innerHTML = '';
+                
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+                alertDiv.innerHTML = `
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                
+                alertContainer.appendChild(alertDiv);
+                
+                setTimeout(() => {
+                    if (alertDiv.parentNode) {
+                        alertDiv.remove();
+                    }
+                }, 3000);
+            }
+        });
+    </script>
 {% endblock %}

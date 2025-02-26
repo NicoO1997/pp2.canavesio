@@ -230,7 +230,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    // Getters y setters
     public function getUsername(): ?string
     {
         return $this->username;
