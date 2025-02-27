@@ -232,3 +232,25 @@ h2::after {
         gap: 15px;
     }
 }
+
+.btn-back {
+    background-color: var(--text-color);
+    color: white;
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 8px;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s ease-in-out;
+}
+
+.btn-back:hover {
+    background-color: var(--primary-color);
+    transform: translateY(-3px);
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+.btn-back i {
+    margin-right: 5px;
+}

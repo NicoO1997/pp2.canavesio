@@ -41,30 +41,34 @@
 				{% endif %}
 
 				<div class="producto-acciones">
-					<form id="cartForm" action="{{ path('cart_add_product', { productId: product.id }) }}" method="post" class="form-carrito">
+					<div class="columna-izquierda">
 						<div class="cantidad-container">
 							<label for="quantity">Cantidad:</label>
 							<input type="number" id="quantity" name="quantity" min="1" max="{{ product.quantity }}" value="1" required/>
 						</div>
-						<button type="submit" class="btn-accion btn-carrito">Agregar al carrito</button>
-					</form>
-					<form action="{{ path('create-preference') }}" method="get" class="form-pago">
-						<button type="submit" class="btn-accion btn-pago">Pagar</button>
-					</form>
+						
+						<div class="producto-favorito">
+							{% if product.id not in favoriteProductIds %}
+								<form action="{{ path('add_favorite', { id: product.id }) }}" method="post" class="form-favorito">
+									<button type="submit" class="btn-accion btn-favorito">Agregar a Favoritos</button>
+								</form>
+							{% else %}
+								<button class="btn-accion btn-favorito" disabled>En Favoritos</button>
+							{% endif %}
+						</div>
+					</div>
+					
+					<div class="columna-derecha">
+						<form action="{{ path('create-preference') }}" method="get" class="form-pago">
+							<button type="submit" class="btn-accion btn-pago">Pagar</button>
+						</form>
+						
+						<form id="cartForm" action="{{ path('cart_add_product', { productId: product.id }) }}" method="post" class="form-carrito">
+							<button type="submit" class="btn-accion btn-carrito">Agregar al carrito</button>
+						</form>
+					</div>
 
 					<div id="alertaCarrito" class="alerta" style="display: none;"></div>
-				</div>
-
-				<div class="producto-favorito">
-					{% if product.id not in favoriteProductIds %}
-						{% dump (favoriteProductIds) %}
-						{% dump (product.id) %}
-						<form action="{{ path('add_favorite', { id: product.id }) }}" method="post" class="form-favorito">
-							<button type="submit" class="btn-accion btn-favorito">Agregar a Favoritos</button>
-						</form>
-					{% else %}
-						<button class="btn-accion btn-favorito" disabled>En Favoritos</button>
-					{% endif %}
 				</div>
 			</div>
 		</div>
@@ -80,11 +84,13 @@
     document.addEventListener('DOMContentLoaded', function () {
     const cartForm = document.getElementById('cartForm');
     const alertaCarrito = document.getElementById('alertaCarrito');
+    const quantityInput = document.getElementById('quantity');
 
-    cartForm.addEventListener('submit', function (event) {
-        event.preventDefault(); // Evita que la página se recargue
-
-        const formData = new FormData(cartForm);
+    cartForm.addEventListener('submit', function (event) { 
+        event.preventDefault();
+        
+        const formData = new FormData();
+        formData.append('quantity', quantityInput.value);
 
         fetch(cartForm.action, {
             method: 'POST',
@@ -95,11 +101,11 @@
             if (!response.ok) {
                 throw new Error('Error en la respuesta del servidor');
             }
-            return response.json(); // Extrae los datos JSON de la respuesta
+            return response.json();
         })
         .then(data => {
-            console.log(data); // Verifica los datos en la consola
-            alertaCarrito.textContent = data.message; // Muestra el mensaje en la alerta
+            console.log(data);
+            alertaCarrito.textContent = data.message;
             alertaCarrito.style.display = 'block';
             alertaCarrito.style.backgroundColor = data.success ? 'green' : 'red';
 
@@ -116,43 +122,43 @@
         });
     });
 });
-					    </script>
-	 <script>
-      document.addEventListener('DOMContentLoaded', function () {
-        const addToCartButton = document.querySelector('.btn-carrito')
-        const addToFavoriteButton = document.querySelector('.btn-favorito')
-        const favoriteForm = document.querySelector('.form-favorito')
-        
-        addToCartButton.addEventListener('click', function () {
-          console.log('Producto agregado al carrito')
-        })
-        
-        if (addToFavoriteButton && !addToFavoriteButton.disabled && favoriteForm) {
-          favoriteForm.addEventListener('submit', function (event) {
-            event.preventDefault()
-            
-            fetch(this.action, {
-              method: 'POST',
-              headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-              }
-            })
-            .then(response => {
-              if (response.ok) {
-                alert('Producto agregado correctamente')
-                
-                addToFavoriteButton.disabled = true
-                addToFavoriteButton.textContent = 'En Favoritos'
-              } else {
-                alert('Hubo un error al agregar el producto a favoritos')
-              }
-            })
-            .catch(error => {
-              console.error('Error:', error)
-              alert('Hubo un error al procesar la solicitud')
-            })
-          })
-        }
+  </script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const addToCartButton = document.querySelector('.btn-carrito')
+      const addToFavoriteButton = document.querySelector('.btn-favorito')
+      const favoriteForm = document.querySelector('.form-favorito')
+      
+      addToCartButton.addEventListener('click', function () {
+        console.log('Producto agregado al carrito')
       })
-    </script>
+      
+      if (addToFavoriteButton && !addToFavoriteButton.disabled && favoriteForm) {
+        favoriteForm.addEventListener('submit', function (event) {
+          event.preventDefault()
+          
+          fetch(this.action, {
+            method: 'POST',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          })
+          .then(response => {
+            if (response.ok) {
+              alert('Producto agregado correctamente')
+              
+              addToFavoriteButton.disabled = true
+              addToFavoriteButton.textContent = 'En Favoritos'
+            } else {
+              alert('Hubo un error al agregar el producto a favoritos')
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error)
+            alert('Hubo un error al procesar la solicitud')
+          })
+        })
+      }
+    })
+  </script>
 {% endblock %}

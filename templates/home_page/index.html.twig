@@ -13,7 +13,7 @@
   <header class="header-scroll">
     <img src="{{ asset('images/66cf4982a8246.png') }}" alt="Logo Canavesio" class="logo" />
     <nav class="nav-links">
-      {% if is_granted('ROLE_USER') or is_granted('ROLE_VENDEDOR') %}
+      {% if is_granted('ROLE_USUARIO') or is_granted('ROLE_VENDEDOR') %}
         <a href="{{ path('product_list') }}">Catálogo</a>
       {% endif %}
       {% if is_granted('ROLE_USUARIO') %}
@@ -45,7 +45,7 @@
   
   <div class="section-buttons">
     <nav class="navegacion">
-      {% if is_granted('ROLE_USER') or is_granted('ROLE_VENDEDOR') %}
+      {% if is_granted('ROLE_USUARIO') or is_granted('ROLE_VENDEDOR') %}
         <a href="{{ path('product_list') }}">Catálogo</a>
       {% endif %}
       {% if is_granted('ROLE_USUARIO') %}

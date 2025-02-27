@@ -12,6 +12,18 @@
     </div>
     
     <div class="machinery-container">
+        <div class="back-button-container">
+            {% if is_granted('ROLE_USUARIO') %}
+                <a href="{{ path('product_list') }}" class="back-button">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+            {% else %}
+                <a href="{{ path('app_home_page') }}" class="back-button">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+            {% endif %}
+        </div>
+        
         <h1 class="machinery-title">Maquinaria Disponible.</h1>
 
         {% if usedMachineries is empty %}

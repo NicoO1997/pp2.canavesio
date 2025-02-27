@@ -1,10 +1,11 @@
 .page-stock {
-    padding: 30px;
+    padding: 20px;
     font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     background-color: #f9fafb;
     color: #374151;
-    max-width: 1600px;
+    max-width: 100%;
     margin: 0 auto;
+    overflow-x: hidden;
 }
 
 .page-stock h1 {
@@ -89,7 +90,8 @@
     border-radius: 12px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.1);
     margin-bottom: 30px;
-    overflow: hidden;
+    overflow-x: auto;
+    max-width: 100%;
     transition: all 0.3s ease;
 }
 
@@ -101,7 +103,7 @@
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    white-space: nowrap;
+    table-layout: auto;
 }
 
 .stock-table thead {
@@ -131,6 +133,7 @@
     border-bottom: 1px solid #e5e7eb;
     vertical-align: middle;
     transition: background-color 0.2s;
+    word-wrap: break-word;
 }
 
 .stock-table tbody tr {
@@ -151,7 +154,8 @@
 }
 
 .product-image:hover {
-    transform: scale(1.8);
+    transform: scale(1.5);
+    position: relative;
     z-index: 100;
     box-shadow: 0 8px 16px rgba(0,0,0,0.1);
 }
@@ -200,6 +204,7 @@ tr.low-stock:hover {
     position: relative;
     cursor: pointer;
     padding: 14px 16px;
+    min-width: 80px;
 }
 
 .editable-cell:hover:not(.editing)::after {
@@ -211,8 +216,9 @@ tr.low-stock:hover {
 }
 
 .editable-cell.editing {
-    padding: 0;
+    padding: 5px;
     background-color: #f8fafc;
+    min-width: 120px;
 }
 
 .editable-cell.editing .form-control {
@@ -220,6 +226,7 @@ tr.low-stock:hover {
     border: 2px solid #3b82f6;
     border-radius: 4px;
     width: 100%;
+    min-width: 100px;
     height: 100%;
     padding: 12px;
     outline: none;
@@ -232,7 +239,7 @@ tr.low-stock:hover {
 
 .status-toggle button {
     transition: all 0.3s ease;
-    width: 120px;
+    width: 130px;
     border-radius: 6px;
     border: none;
     padding: 8px 12px;
@@ -278,24 +285,16 @@ tr.low-stock:hover {
 }
 
 .actions {
-    white-space: nowrap;
-    text-align: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    min-width: 200px;
 }
 
-.actions button {
-    margin: 0 4px;
-    padding: 8px 12px;
-    border-radius: 6px;
-    border: none;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.actions button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+.actions button, .actions form {
+    margin: 4px;
+    flex-shrink: 0;
 }
 
 .edit-btn, .save-btn {
@@ -319,6 +318,37 @@ tr.low-stock:hover {
     animation: spin 1s infinite linear;
 }
 
+.btn-primary.mb-3 {
+    background-color: #4a6da7;
+    border-color: #3a5a8a;
+    color: #ffffff;
+    padding: 10px 20px;
+    font-weight: 600;
+    border-radius: 8px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.btn-primary.mb-3:before {
+    content: "←";
+    margin-right: 8px;
+    font-size: 1.1em;
+}
+
+.btn-primary.mb-3:hover {
+    background-color: #3a5a8a;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.btn-primary.mb-3:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
@@ -335,6 +365,7 @@ tr.low-stock:hover {
     .stock-container {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+        max-width: 100%;
     }
     
     .stock-table {
@@ -362,11 +393,12 @@ tr.low-stock:hover {
     
     .stock-table {
         min-width: 800px;
+        font-size: 14px;
     }
     
     .stock-table th, 
     .stock-table td {
-        padding: 12px;
+        padding: 8px 6px;
     }
     
     .product-image {
@@ -374,9 +406,14 @@ tr.low-stock:hover {
         max-height: 50px;
     }
     
-    .actions button {
-        padding: 6px 10px;
-        font-size: 0.85rem;
+    .actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .actions button, .actions form {
+        width: 100%;
+        margin: 2px 0;
     }
 }
 
@@ -389,7 +426,39 @@ tr.low-stock:hover {
     outline-offset: 2px;
 }
 
+.actions .btn {
+    margin-bottom: 5px;
+    width: 100%;
+    max-width: 120px;
+}
+
+.actions form {
+    width: auto;
+    display: inline-block;
+}
+
+.actions form button {
+    margin-bottom: 5px;
+    width: 100%;
+    max-width: 120px;
+}
+
 .alert, .stock-warning, .stock-container, .stock-table, 
 .status-badge, .editable-cell, .actions button {
     transition: all 0.3s ease;
+}
+
+.editable-cell.editing input.form-control {
+    font-size: 14px;
+}
+
+.editable-cell[data-field="description"] {
+    max-width: 250px;
+    white-space: normal;
+    word-break: break-word;
+}
+
+.status-toggle {
+    display: flex;
+    justify-content: center;
 }

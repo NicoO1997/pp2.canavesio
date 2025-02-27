@@ -10,14 +10,8 @@
 {% block body %}
     <div class="page-stock">
         <h1>Stock de Productos</h1>
-
-        {% for label, messages in app.flashes %}
-            {% for message in messages %}
-                <div class="alert alert-{{ label }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endfor %}    
+        
+        <a href="{{ path('app_home_page') }}" class="btn btn-primary mb-3">Volver</a>
 
         {% if (is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN')) and products is defined and products|filter(p => p.needsRestock)|length > 0 %}
             <div class="stock-warning">
@@ -149,18 +143,29 @@
 {% block javascripts %}
     {{ parent() }}
     <script>
-        function toggleEditing(row, mode) {
+    function toggleEditing(row, mode) {
     const cells = row.querySelectorAll('.editable-cell');
     const editBtn = row.querySelector('.edit-btn');
     const saveBtn = row.querySelector('.save-btn');
     
     cells.forEach(cell => {
         const field = cell.dataset.field;
-        const isVendedor = mode === 'all';
+        const isStockMode = mode === 'stock';
         const isAdmin = {{ is_granted('ROLE_ADMIN') ? 'true' : 'false' }};
         const isGestorStock = {{ is_granted('ROLE_GESTORSTOCK') ? 'true' : 'false' }};
+        const isVendedor = {{ is_granted('ROLE_VENDEDOR') ? 'true' : 'false' }};
         
-        if ((isVendedor && field !== 'minStock') || isAdmin || (isGestorStock && (field === 'quantity' || field === 'minStock'))) {
+        let isEditable = false;
+        
+        if (isAdmin) {
+            isEditable = true;
+        } else if (isGestorStock && (field === 'quantity' || field === 'minStock')) {
+            isEditable = true;
+        } else if (isVendedor && field !== 'minStock' && !isStockMode) {
+            isEditable = true;
+        }
+        
+        if (isEditable) {
             const currentValue = cell.textContent.trim();
             
             if (!cell.classList.contains('editing')) {
@@ -202,38 +207,46 @@
     saveBtn.style.display = saveBtn.style.display === 'none' ? '' : 'none';
 }
 
-    function toggleStatus(button) {
-        const currentStatus = button.dataset.status === '1';
-        const newStatus = currentStatus ? '0' : '1';
-        
-        const row = button.closest('tr');
-        const id = row.dataset.id;
-        const formData = new FormData();
-        const csrfToken = row.querySelector('.csrf-token').value;
-        
-        formData.append('isEnabled', newStatus);
-        formData.append('_token', csrfToken);
-        
-        fetch('{{ path('product_toggle_status', {'id': '__id__'}) }}'.replace('__id__', id), {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                button.dataset.status = newStatus;
-                button.textContent = newStatus === '0' ? 'Deshabilitado' : 'Habilitado';
-                button.className = `btn ${newStatus === '0' ? 'btn-danger' : 'btn-success'} toggle-status`;
-                window.location.reload();
-            } else {
-                throw new Error(data.message || 'Error al actualizar el estado');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error al actualizar el estado del producto');
-        });
-    }
+function toggleStatus(button) {
+    const currentStatus = button.dataset.status === '1';
+    const newStatus = currentStatus ? '0' : '1';
+    
+    const row = button.closest('tr');
+    const id = row.dataset.id;
+    const formData = new FormData();
+    const csrfToken = row.querySelector('.csrf-token').value;
+    
+    formData.append('isEnabled', newStatus);
+    formData.append('_token', csrfToken);
+    
+    fetch('{{ path('product_toggle_status', {'id': '__id__'}) }}'.replace('__id__', id), {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.text().then(text => {
+                console.error('Respuesta no-JSON:', text);
+                throw new Error('Error en la respuesta del servidor');
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            button.dataset.status = newStatus;
+            button.textContent = newStatus === '0' ? 'Deshabilitado' : 'Habilitado';
+            button.className = `btn ${newStatus === '0' ? 'btn-danger' : 'btn-success'} toggle-status`;
+            window.location.reload();
+        } else {
+            throw new Error(data.message || 'Error al actualizar el estado');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al actualizar el estado del producto: ' + error.message);
+    });
+}
 
 function validateAndSave(row) {
     const errors = [];
@@ -360,7 +373,6 @@ function saveChanges(row) {
     if (statusBtn) {
         const status = statusBtn.dataset.status;
         formData.append('isEnabled', status);
-        console.log('Estado enviado:', status);
     }
     
     row.querySelectorAll('.editable-cell input').forEach(input => {
@@ -369,28 +381,34 @@ function saveChanges(row) {
 
     formData.append('_token', csrfToken);
 
-    for (let pair of formData.entries()) {
-        console.log(pair[0] + ': ' + pair[1]);
-    }
-
     fetch('{{ path('product_edit', {'id': '__id__'}) }}'.replace('__id__', id), {
         method: 'POST',
         body: formData
     })
     .then(response => {
         if (!response.ok) {
-            return response.json().then(errorData => {
-                throw new Error(errorData.message || 'Error en la actualización');
+            return response.text().then(text => {
+                console.error('Respuesta de error completa:', text);
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    throw new Error('Error del servidor: ' + text.substring(0, 100) + '...');
+                }
             });
         }
         return response.json();
     })
     .then(data => {
-        console.log('Respuesta exitosa:', data);
-        window.location.reload();
+        if (data.success) {
+            console.log('Producto actualizado correctamente');
+            window.location.reload();
+        } else {
+            if (saveBtn) saveBtn.classList.remove('loading');
+            throw new Error(data.message || 'Error en la actualización');
+        }
     })
     .catch(error => {
-        console.error('Error:', error);
+        console.error('Error detallado:', error);
         if (saveBtn) saveBtn.classList.remove('loading');
         
         const errorMessage = document.createElement('div');
@@ -400,7 +418,7 @@ function saveChanges(row) {
         
         setTimeout(() => {
             errorMessage.remove();
-        }, 2000);
+        }, 5000);
     });
 }
 

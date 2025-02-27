@@ -13,12 +13,6 @@ Agregar Maquinaria
 <div class="form-container">
     <h1>Agregar Maquinaria</h1>
     
-    {% for message in app.flashes('success') %}
-        <div class="alert alert-success">
-            {{ message }}
-        </div>
-    {% endfor %}
-    
     {% for message in app.flashes('error') %}
         <div class="alert alert-danger">
             {{ message }}

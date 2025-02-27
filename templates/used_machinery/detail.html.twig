@@ -10,9 +10,15 @@
     <div class="machinery-container">
         <div class="machinery-detail-card">
             <div class="back-button-container">
-                <a href="{{ path('app_view_used_machinery') }}" class="back-button">
-                    <i class="fas fa-arrow-left"></i> Volver al listado
-                </a>
+                {% if is_granted('ROLE_USUARIO') %}
+                    <a href="{{ path('product_list') }}" class="back-button">
+                        <i class="fas fa-arrow-left"></i> Volver al listado
+                    </a>
+                {% else %}
+                    <a href="{{ path('app_view_used_machinery') }}" class="back-button">
+                        <i class="fas fa-arrow-left"></i> Volver al listado
+                    </a>
+                {% endif %}
             </div>
             
             <h1 class="machinery-title">{{ usedMachinery.machineryName }}</h1>
