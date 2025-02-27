@@ -10,6 +10,10 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Csrf\CsrfToken;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+
 
 class FavoriteController extends AbstractController
 {
@@ -67,44 +71,50 @@ class FavoriteController extends AbstractController
 
         $favorites = $userFavoriteProductRepository->findBy(['user' => $user]);
 
-        // Obtener los IDs de los productos que ya están en favoritos
         $favoriteProductIds = array_map(function($favorite) {
             return $favorite->getProduct()->getId();
         }, $favorites);
 
         return $this->render('favorite/list.html.twig', [
             'favorites' => $favorites,
-            'favoriteProductIds' => $favoriteProductIds, // Pasar los IDs a la plantilla
+            'favoriteProductIds' => $favoriteProductIds,
         ]);
     }
 
     #[Route('/favorite/remove/{id}', name: 'remove_favorite', methods: ['POST'])]
     public function removeFavorite(
         int $id,
+        Request $request,
         UserFavoriteProductRepository $userFavoriteProductRepository,
         EntityManagerInterface $entityManager,
-        Security $security
+        Security $security,
+        CsrfTokenManagerInterface $csrfTokenManager
     ): Response {
         $user = $security->getUser();
         if (!$user) {
             return $this->redirectToRoute('app_login');
         }
-
+    
+        // Verificar CSRF Token
+        $submittedToken = $request->request->get('_token');
+        if (!$csrfTokenManager->isTokenValid(new CsrfToken('remove_favorite_' . $id, $submittedToken))) {
+            throw $this->createAccessDeniedException('Token CSRF inválido.');
+        }
+    
         $userFavoriteProduct = $userFavoriteProductRepository->find($id);
         if (!$userFavoriteProduct || $userFavoriteProduct->getUser() !== $user) {
-            throw $this->createNotFoundException('Favorite not found or you do not have access to this favorite.');
+            throw $this->createNotFoundException('Favorito no encontrado o no tienes acceso.');
         }
-
+    
         $favorite = $userFavoriteProduct->getFavorite();
         $entityManager->remove($userFavoriteProduct);
         $entityManager->flush();
-
-        // Check if the favorite entity has no more associated UserFavoriteProduct
+    
         if ($favorite->getUserFavoriteProduct()->isEmpty()) {
             $entityManager->remove($favorite);
             $entityManager->flush();
         }
-
+    
         return $this->redirectToRoute('favorite_list');
     }
 }

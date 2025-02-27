@@ -194,39 +194,6 @@ class ProductController extends AbstractController
         return $this->redirectToRoute('product_list');
     }
 
-    #[Route('/product/{id}/favorite/remove', name: 'remove_favorite', methods: ['POST'])]
-    public function removeFromFavorites(
-        int $id,
-        EntityManagerInterface $entityManager,
-        UserFavoriteProductRepository $userFavoriteProductRepository
-    ): Response {
-        $user = $this->getUser();
-
-        if (!$user) {
-            return $this->redirectToRoute('app_login');
-        }
-
-        $product = $entityManager->getRepository(Product::class)->find($id);
-
-        if (!$product) {
-            throw $this->createNotFoundException('El producto no existe');
-        }
-
-        $favorite = $userFavoriteProductRepository->findOneBy([
-            'user' => $user,
-            'product' => $product
-        ]);
-
-        if ($favorite) {
-            $entityManager->remove($favorite);
-            $entityManager->flush();
-
-            $this->addFlash('success', 'Producto eliminado de favoritos');
-        }
-
-        return $this->redirectToRoute('product_detail', ['id' => $id]);
-    }
-
     #[Route('/product/edit/{id}', name: 'product_edit', methods: ['POST'])]
     public function editProduct(Request $request, EntityManagerInterface $entityManager, Product $product): JsonResponse
     {

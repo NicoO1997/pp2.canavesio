@@ -50,6 +50,7 @@
                             </td>
                             <td>
                                 <form action="{{ path('remove_favorite', {id: favorite.id}) }}" method="post">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('remove_favorite_' ~ favorite.id) }}">
                                     <button type="submit" class="btn btn-danger">Eliminar</button>
                                 </form>
                             </td>

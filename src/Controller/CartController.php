@@ -13,8 +13,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\SecurityBundle\Security;
-use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
-use Symfony\Component\Security\Csrf\CsrfToken;
 
 class CartController extends AbstractController
 {
@@ -31,17 +29,17 @@ class CartController extends AbstractController
         if (!$user) {
             return new JsonResponse(['success' => false, 'message' => 'Debes iniciar sesión.'], 403);
         }
-    
+
         $product = $productRepository->find($productId);
         if (!$product) {
             return new JsonResponse(['success' => false, 'message' => 'Producto no encontrado.'], 404);
         }
-    
+
         $quantity = (int) $request->request->get('quantity');
         if ($quantity < 1 || $quantity > $product->getQuantity()) {
             return new JsonResponse(['success' => false, 'message' => 'Cantidad inválida.'], 400);
         }
-    
+
         $cart = $cartRepository->findOneBy(['user' => $user]);
         if (!$cart) {
             $cart = new Cart();
@@ -49,9 +47,9 @@ class CartController extends AbstractController
             $entityManager->persist($cart);
             $entityManager->flush();
         }
-    
+
         $cartProductOrder = $cart->getCartProductOrders()->filter(fn($cpo) => $cpo->getProduct() === $product)->first();
-    
+
         if ($cartProductOrder) {
             $cartProductOrder->setQuantity($cartProductOrder->getQuantity() + $quantity);
         } else {
@@ -61,15 +59,15 @@ class CartController extends AbstractController
             $cartProductOrder->setQuantity($quantity);
             $cartProductOrder->setDate(new \DateTime());
             $cartProductOrder->setTime(new \DateTime());
-    
+
             $entityManager->persist($cartProductOrder);
         }
-    
+
         $product->setQuantity($product->getQuantity() - $quantity);
         $entityManager->persist($product);
-    
+
         $entityManager->flush();
-    
+
         return new JsonResponse(['success' => true, 'message' => 'Producto agregado al carrito.']);
     }
 
@@ -97,35 +95,36 @@ class CartController extends AbstractController
         if (!$user) {
             return $this->redirectToRoute('app_login');
         }
-    
+
         $cartProductOrder = $entityManager->getRepository(CartProductOrder::class)->find($id);
-    
+
         if (!$cartProductOrder) {
             throw $this->createNotFoundException('Cart product order not found');
         }
-    
+
         $cart = $cartProductOrder->getCart();
         if ($cart->getUser() !== $user) {
             throw $this->createAccessDeniedException('You do not have permission to remove this item from the cart.');
         }
-    
+
         $cart->removeCartProductOrder($cartProductOrder);
         $entityManager->remove($cartProductOrder);
-    
+
         $product = $cartProductOrder->getProduct();
         if ($product) {
             $product->setQuantity($product->getQuantity() + $cartProductOrder->getQuantity());
             $entityManager->persist($product);
         }
-    
+
         $entityManager->flush();
-    
+
         $this->addFlash('success', 'Producto eliminado del carrito');
-    
+
         return $this->redirectToRoute('cart_view');
     }
 
     #[Route('/cart/update-quantity', name: 'cart_update_quantity', methods: ['POST'])]
+
     public function updateQuantity(
         Request $request,
         EntityManagerInterface $entityManager,
@@ -155,9 +154,9 @@ class CartController extends AbstractController
         }
 
         $product = $cartProductOrder->getProduct();
-        
+
         $quantityDiff = $quantity - $cartProductOrder->getQuantity();
-        
+
         if ($quantityDiff > 0 && $product->getQuantity() < $quantityDiff) {
             return new JsonResponse([
                 'success' => false, 
@@ -166,15 +165,15 @@ class CartController extends AbstractController
         }
 
         $cartProductOrder->setQuantity($quantity);
-        
+
         $product->setQuantity($product->getQuantity() - $quantityDiff);
-        
+
         $entityManager->persist($cartProductOrder);
         $entityManager->persist($product);
         $entityManager->flush();
-        
+
         $subtotal = $product->getPrice() * $quantity;
-        
+
         $total = 0;
         foreach ($cart->getCartProductOrders() as $item) {
             $total += $item->getProduct()->getPrice() * $item->getQuantity();
