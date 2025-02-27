@@ -41,11 +41,32 @@ class ProductController extends AbstractController
             $entityManager->persist($product);
             $entityManager->flush();
 
-            return $this->redirectToRoute('product_list');
+            return $this->redirectToRoute('view_stock');
         }
 
         return $this->render('product/new.html.twig', [
             'form' => $form->createView(),
+        ]);
+    }
+
+    #[Route('/stock', name: 'view_stock')]
+    public function viewStock(
+        EntityManagerInterface $entityManager,
+        UserFavoriteProductRepository $userFavoriteProductRepository
+    ): Response {
+        $user = $this->getUser();
+        
+        $products = $entityManager->getRepository(Product::class)->findAll();
+
+        $favoriteProductIds = [];
+        if ($user) {
+            $favorites = $userFavoriteProductRepository->findBy(['user' => $user]);
+            $favoriteProductIds = array_map(fn($favorite) => $favorite->getProduct()->getId(), $favorites);
+        }
+
+        return $this->render('product/view_stock.html.twig', [
+            'products' => $products,
+            'favoriteProductIds' => $favoriteProductIds,
         ]);
     }
 
@@ -222,13 +243,37 @@ class ProductController extends AbstractController
             dump('⚠ No llegó isEnabled');
         }
 
+        if ($request->request->has('name')) {
+            $product->setName($request->request->get('name'));
+        }
+        
+        if ($request->request->has('brand')) {
+            $product->setBrand($request->request->get('brand'));
+        }
+        
+        if ($request->request->has('quantity')) {
+            $product->setQuantity((int)$request->request->get('quantity'));
+        }
+        
+        if ($request->request->has('minStock')) {
+            $product->setMinStock((int)$request->request->get('minStock'));
+        }
+        
+        if ($request->request->has('price')) {
+            $product->setPrice((float)$request->request->get('price'));
+        }
+        
+        if ($request->request->has('description')) {
+            $product->setDescription($request->request->get('description'));
+        }
+
         $entityManager->persist($product);
         $entityManager->flush();
 
         return new JsonResponse(['success' => true, 'message' => 'Producto actualizado correctamente.']);
     }
 
-    #[Route('/product/{id}/delete', name: 'product_delete', methods: ['DELETE'])]
+    #[Route('/product/{id}/delete', name: 'product_delete', methods: ['POST'])]
     public function delete(
         Request $request,
         Product $product,
@@ -239,8 +284,10 @@ class ProductController extends AbstractController
             $entityManager->flush();
 
             $this->addFlash('success', 'Producto eliminado correctamente');
+        } else {
+            $this->addFlash('error', 'Token CSRF inválido');
         }
 
-        return $this->redirectToRoute('product_list');
+        return $this->redirectToRoute('view_stock');
     }
 }

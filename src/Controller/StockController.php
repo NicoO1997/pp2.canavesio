@@ -71,19 +71,22 @@ class StockController extends AbstractController
         }
     }
 
-    #[Route('/product/{id}', name: 'product_delete', methods: ['POST', 'DELETE'])]
+    #[Route('/product/{id}/delete', name: 'product_delete', methods: ['POST', 'DELETE'])]
     public function delete(Request $request, Product $product, EntityManagerInterface $entityManager): Response
     {
+        
         if ($this->isCsrfTokenValid('delete'.$product->getId(), $request->request->get('_token'))) {
             try {
                 $entityManager->remove($product);
                 $entityManager->flush();
                 $this->addFlash('success', 'Producto eliminado correctamente.');
             } catch (\Exception $e) {
-                $this->addFlash('error', 'Error al eliminar el producto.');
+                $this->addFlash('error', 'Error al eliminar el producto: ' . $e->getMessage());
+                error_log('Error en eliminación de producto: ' . $e->getMessage());
             }
+        } else {
+            $this->addFlash('error', 'Token CSRF inválido: ' . $request->request->get('_token'));
         }
-
-        return $this->redirectToRoute('view_stock');
+        return $this->redirect($this->generateUrl('view_stock'));
     }
 }

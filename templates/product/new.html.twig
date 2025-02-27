@@ -13,7 +13,7 @@
     <div class="form-container">
         <h1 class="form-title">Agregar Repuesto</h1>
 
-        {{ form_start(form, {'attr': {'class': 'product-form'}, 'action': path('view_stock')}) }}
+        {{ form_start(form, {'attr': {'class': 'product-form'}}) }}
             
         <div class="form-flex-container">
             <div class="form-column">
@@ -33,6 +33,7 @@
                     </div>
                 </div>
 
+                {% if is_granted('ROLE_VENDEDOR') %}
                 <div class="form-group">
                     <div class="input-wrapper">
                         {{ form_label(form.price, 'Precio', {'label_attr': {'class': 'form-label required'}}) }}
@@ -40,8 +41,11 @@
                         {{ form_errors(form.price, {'attr': {'class': 'form-error'}}) }}
                     </div>
                 </div>
+                {% else %}
+                    {{ form_widget(form.price, {'attr': {'class': 'd-none', 'value': 0}}) }}
+                {% endif %}
                 
-                {% if is_granted('ROLE_GESTORSTOCK') %}
+                {% if is_granted('ROLE_GESTORSTOCK') and form.minStock is defined %}
                     <div class="form-group">
                         <div class="input-wrapper">
                             {{ form_label(form.minStock, 'Stock Mínimo', {'label_attr': {'class': 'form-label required'}}) }}
@@ -49,6 +53,8 @@
                             {{ form_errors(form.minStock, {'attr': {'class': 'form-error'}}) }}
                         </div>
                     </div>
+                {% elseif form.minStock is defined %}
+                    {{ form_widget(form.minStock, {'attr': {'class': 'd-none', 'value': 0}}) }}
                 {% endif %}
             </div>
             
@@ -80,11 +86,16 @@
                     </div>
                 </div>
 
-                <div class="status-container">
+                <div class="status-container" {% if is_granted('ROLE_GESTORSTOCK') %}style="display: none;"{% endif %}>
                     <label class="switch-label required">Estado del Producto</label>
                     <div class="status-toggle">
                         <label class="switch">
-                            {{ form_widget(form.isEnabled, {'attr': {'checked': false}}) }}
+                            {{ form_widget(form.isEnabled, {
+                                'attr': {
+                                    'checked': false,
+                                    'disabled': is_granted('ROLE_GESTORSTOCK') ? true : false
+                                }
+                            }) }}
                             <span class="slider"></span>
                         </label>
                         <span class="status-text" id="statusText">Deshabilitado</span>
@@ -100,18 +111,42 @@
             <a href="{{ path('app_home_page') }}" class="btn-cancel">Cancelar</a>
         </div>
 
+        <input type="hidden" name="redirect_to" value="view_stock">
+
         {{ form_end(form) }}
     </div>
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         const form = document.querySelector('.product-form');
-        const inputs = form.querySelectorAll('.form-control, .form-control-file, textarea');
+        const inputs = form.querySelectorAll('.form-control:not(.d-none), .form-control-file, textarea');
         const toggleSwitch = document.querySelector('input[type="checkbox"]');
         const statusText = document.getElementById('statusText');
         const fileInput = document.querySelector('.form-control-file');
         const fileInfo = document.querySelector('.file-upload-info');
         const submitButton = document.querySelector('.btn-submit');
+        const userRole = "{{ app.user.roles[0] }}";
+        
+        if (userRole === "ROLE_GESTORSTOCK") {
+            const statusContainer = document.querySelector('.status-container');
+            statusContainer.style.display = 'none';
+            const statusToggle = document.querySelector('input[name="{{ form.isEnabled.vars.full_name }}"]');
+            statusToggle.disabled = true;
+        }
+        
+        {% if is_granted('ROLE_GESTORSTOCK') %}
+        const priceInput = form.querySelector('input[name$="[price]"]');
+        if (priceInput) {
+            priceInput.value = '0';
+        }
+        {% endif %}
+        
+        {% if not is_granted('ROLE_GESTORSTOCK') and form.minStock is defined %}
+        const minStockInput = form.querySelector('input[name$="[minStock]"]');
+        if (minStockInput) {
+            minStockInput.value = '0';
+        }
+        {% endif %}
         
         toggleSwitch.checked = false;
         updateStatusText();
@@ -296,6 +331,10 @@
         
         const style = document.createElement('style');
         style.textContent = `
+            .d-none {
+                display: none !important;
+            }
+            
             @keyframes shake-error {
                 0%, 100% { transform: translateX(0); }
                 10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }

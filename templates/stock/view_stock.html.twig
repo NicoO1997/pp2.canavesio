@@ -17,9 +17,9 @@
                     {{ message }}
                 </div>
             {% endfor %}
-        {% endfor %}
+        {% endfor %}    
 
-        {% if is_granted('ROLE_GESTORSTOCK') and products is defined and products|filter(p => p.needsRestock)|length > 0 %}
+        {% if (is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN')) and products is defined and products|filter(p => p.needsRestock)|length > 0 %}
             <div class="stock-warning">
                 <strong>¡Atención!</strong> Los siguientes productos están por debajo o igual a su stock mínimo:
                 <ul>
@@ -38,10 +38,10 @@
                         <th>Nombre</th>
                         <th>Marca</th>
                         <th>Cantidad</th>
-                        {% if is_granted('ROLE_GESTORSTOCK') %}
+                        {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') %}
                             <th>Stock Mínimo</th>
                         {% endif %}
-                        {% if not is_granted('ROLE_GESTORSTOCK') %}
+                        {% if is_granted('ROLE_VENDEDOR') or is_granted('ROLE_ADMIN') %}
                             <th>Precio</th>
                         {% endif %}
                         <th>Descripción</th>
@@ -64,15 +64,15 @@
                                 <td class="editable-cell" data-field="brand">{{ product.brand }}</td>
                                 <td class="editable-cell {% if product.needsRestock %}bajo-stock{% endif %}" 
                                     data-field="quantity">{{ product.quantity }}</td>
-                                {% if is_granted('ROLE_GESTORSTOCK') %}
+                                {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') %}
                                     <td class="editable-cell" data-field="minStock">{{ product.minStock }}</td>
                                 {% endif %}
-                                {% if not is_granted('ROLE_GESTORSTOCK') %}
+                                {% if is_granted('ROLE_VENDEDOR') or is_granted('ROLE_ADMIN') %}
                                     <td class="editable-cell" data-field="price">${{ product.price }}</td>
                                 {% endif %}
                                 <td class="editable-cell" data-field="description">{{ product.description }}</td>
                                 <td>
-                                    {% if is_granted('ROLE_GESTORSTOCK') %}
+                                    {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') %}
                                         {% if not product.hasEnoughStock %}
                                             <span class="status-badge out-of-stock">Sin Stock</span>
                                         {% elseif product.needsRestock %}
@@ -80,7 +80,9 @@
                                         {% else %}
                                             <span class="status-badge in-stock">En Stock</span>
                                         {% endif %}
-                                    {% elseif is_granted('ROLE_VENDEDOR') %}
+                                    {% endif %}
+                                    
+                                    {% if is_granted('ROLE_VENDEDOR') or is_granted('ROLE_ADMIN') %}
                                         <div class="status-toggle" data-field="isEnabled">
                                             <button data-field="isEnabled" type="button" 
                                                     class="btn {{ product.isEnabled ? 'btn-success' : 'btn-danger' }} toggle-status"
@@ -92,22 +94,22 @@
                                     {% endif %}
                                 </td>
                                 <td class="actions">
-                                    {% if is_granted('ROLE_GESTORSTOCK') %}
+                                     {% if is_granted('ROLE_GESTORSTOCK') %}
                                         <button type="button" class="btn btn-secondary edit-btn" 
                                                 onclick="toggleEditing(this.closest('tr'), 'stock')">Editar Stock</button>
-                                    {% elseif is_granted('ROLE_VENDEDOR') %}
+                                    {% endif %}
+                                    {% if is_granted('ROLE_VENDEDOR') or is_granted('ROLE_ADMIN') %}
                                         <button type="button" class="btn btn-secondary edit-btn" 
                                                 onclick="toggleEditing(this.closest('tr'), 'all')">Editar</button>
                                     {% endif %}
                                     <button type="button" class="btn btn-primary save-btn" style="display:none;" 
-                                            onclick="saveChanges(this.closest('tr'))">Guardar</button>
-                                    {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_VENDEDOR') %}
+                                            onclick="validateAndSave(this.closest('tr'))">Guardar</button>
+                                    {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_VENDEDOR') or is_granted('ROLE_GESTORSTOCK') %}
                                         <form method="post" action="{{ path('product_delete', {id: product.id}) }}" 
                                             onsubmit="return confirm('¿Estás seguro de que quieres eliminar este producto?');" 
                                             style="display:inline;">
-                                            <input type="hidden" name="_method" value="DELETE">
                                             <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ product.id) }}">
-                                            <button class="btn btn-danger">Eliminar</button>
+                                            <button type="submit" class="btn btn-danger">Eliminar</button>
                                         </form>
                                     {% endif %}
                                     <input type="hidden" class="csrf-token" value="{{ csrf_token('edit' ~ product.id) }}">
@@ -123,6 +125,25 @@
             </table>
         </div>
     </div>
+    
+    <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Error de Validación</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <ul id="errorList"></ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 {% block javascripts %}
@@ -135,12 +156,11 @@
     
     cells.forEach(cell => {
         const field = cell.dataset.field;
-        const isGestorStock = mode === 'stock';
         const isVendedor = mode === 'all';
+        const isAdmin = {{ is_granted('ROLE_ADMIN') ? 'true' : 'false' }};
+        const isGestorStock = {{ is_granted('ROLE_GESTORSTOCK') ? 'true' : 'false' }};
         
-        if ((isGestorStock && field !== 'price' && (field === 'quantity' || field === 'minStock')) ||
-            (isVendedor && field !== 'minStock')) {
-
+        if ((isVendedor && field !== 'minStock') || isAdmin || (isGestorStock && (field === 'quantity' || field === 'minStock'))) {
             const currentValue = cell.textContent.trim();
             
             if (!cell.classList.contains('editing')) {
@@ -152,6 +172,18 @@
                 input.value = field === 'price' ? currentValue.replace('$', '') : currentValue;
                 input.name = field;
                 input.className = 'form-control editable';
+                
+                if (field === 'quantity') {
+                    input.min = "1";
+                    input.step = "1";
+                } else if (field === 'minStock') {
+                    input.min = "0";
+                    input.step = "1";
+                } else if (field === 'price') {
+                    input.min = "0.01";
+                    input.step = "0.01";
+                }
+                
                 cell.textContent = '';
                 cell.appendChild(input);
                 
@@ -202,6 +234,119 @@
             alert('Error al actualizar el estado del producto');
         });
     }
+
+function validateAndSave(row) {
+    const errors = [];
+    let nameValue = '';
+    let brandValue = '';
+    let quantityValue = '';
+    let minStockValue = '';
+    let priceValue = '';
+    let descriptionValue = '';
+    
+    row.querySelectorAll('.editable-cell input').forEach(input => {
+        const fieldName = input.name;
+        const value = input.value.trim();
+        
+        if (fieldName === 'name') {
+            nameValue = value;
+            if (value === '') {
+                errors.push('El Nombre no puede estar vacío');
+                markFieldAsInvalid(input);
+            } else {
+                markFieldAsValid(input);
+            }
+        }
+        
+        if (fieldName === 'brand') {
+            brandValue = value;
+            if (value === '') {
+                errors.push('La Marca no puede estar vacía');
+                markFieldAsInvalid(input);
+            } else {
+                markFieldAsValid(input);
+            }
+        }
+        
+        if (fieldName === 'quantity') {
+            quantityValue = value;
+            if (value === '' || parseInt(value) <= 0) {
+                errors.push('La Cantidad debe ser mayor que cero');
+                markFieldAsInvalid(input);
+            } else {
+                markFieldAsValid(input);
+            }
+        }
+        
+        if (fieldName === 'minStock') {
+            minStockValue = value;
+            if (value === '') {
+                errors.push('El Stock Mínimo no puede estar vacío');
+                markFieldAsInvalid(input);
+            } else {
+                markFieldAsValid(input);
+            }
+        }
+        
+        if (fieldName === 'price') {
+            priceValue = value;
+            if (value === '' || parseFloat(value) <= 0) {
+                errors.push('El Precio debe ser mayor que cero');
+                markFieldAsInvalid(input);
+            } else {
+                markFieldAsValid(input);
+            }
+        }
+        
+        if (fieldName === 'description') {
+            descriptionValue = value;
+            if (value === '') {
+                errors.push('La Descripción no puede estar vacía');
+                markFieldAsInvalid(input);
+            } else if (value.length < 10) {
+                errors.push('La Descripción debe tener al menos 10 caracteres');
+                markFieldAsInvalid(input);
+            } else {
+                markFieldAsValid(input);
+            }
+        }
+    });
+    
+    if (errors.length > 0) {
+        showErrors(errors);
+        return false;
+    }
+    
+    saveChanges(row);
+    return true;
+}
+
+function markFieldAsInvalid(input) {
+    input.classList.add('is-invalid');
+    input.classList.remove('is-valid');
+}
+
+function markFieldAsValid(input) {
+    input.classList.add('is-valid');
+    input.classList.remove('is-invalid');
+}
+
+function showErrors(errors) {
+    if (typeof $('#errorModal').modal === 'function') {
+        const errorList = document.getElementById('errorList');
+        errorList.innerHTML = '';
+        
+        errors.forEach(error => {
+            const li = document.createElement('li');
+            li.textContent = error;
+            errorList.appendChild(li);
+        });
+        
+        $('#errorModal').modal('show');
+    } else {
+        alert('Errores de validación:\n- ' + errors.join('\n- '));
+    }
+}
 
 function saveChanges(row) {
     const id = row.dataset.id;
@@ -257,6 +402,29 @@ function saveChanges(row) {
             errorMessage.remove();
         }, 2000);
     });
+}
+
+function deleteProduct(productId, csrfToken) {
+    if (confirm('¿Estás seguro de que quieres eliminar este producto?')) {
+        const formData = new FormData();
+        formData.append('_token', csrfToken);
+        
+        fetch('/product/' + productId, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.href = '/stock/view';
+            } else {
+                throw new Error('Error al eliminar el producto');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al eliminar el producto: ' + error.message);
+        });
+    }
 }
     </script>
 {% endblock %}

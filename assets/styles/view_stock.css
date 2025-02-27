@@ -3,7 +3,7 @@
     font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     background-color: #f9fafb;
     color: #374151;
-    max-width: 1400px;
+    max-width: 1600px;
     margin: 0 auto;
 }
 
@@ -171,18 +171,21 @@
     background-color: #d1fae5;
     color: #065f46;
     border: 1px solid #a7f3d0;
+    margin-bottom: .5rem;
 }
 
 .status-badge.low-stock {
     background-color: #fffbeb;
     color: #92400e;
     border: 1px solid #fcd34d;
+    margin-bottom: .5rem;
 }
 
 .status-badge.out-of-stock {
     background-color: #fee2e2;
     color: #b91c1c;
     border: 1px solid #fca5a5;
+    margin-bottom: .5rem;
 }
 
 tr.low-stock {

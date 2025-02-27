@@ -95,6 +95,7 @@ class RegistrationFormType extends AbstractType
                 'attr' => ['placeholder' => 'Escriba su respuesta'],
             ])
             ->add('agreeTerms', CheckboxType::class, [
+                'label' => 'Acepto los términos y condiciones',
                 'mapped' => false,
                 'constraints' => [
                     new IsTrue([

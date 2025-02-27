@@ -16,7 +16,7 @@
       {% if is_granted('ROLE_USER') or is_granted('ROLE_VENDEDOR') %}
         <a href="{{ path('product_list') }}">Catálogo</a>
       {% endif %}
-      {% if is_granted('ROLE_USER') %}
+      {% if is_granted('ROLE_USUARIO') %}
         <a href="{{ path('cart_view') }}">Carrito</a>
         <a href="{{ path('favorite_list') }}">Favoritos</a>
       {% endif %}
@@ -33,6 +33,9 @@
       {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_VENDEDOR') %}
         <a href="{{ path('view_stock') }}">Gestionar Stock</a>
       {% endif %}
+
+       <a href="{{ path('app_logout') }}">Cerrar Sesión</a>
+
     </nav>
   </header>
 
@@ -45,7 +48,7 @@
       {% if is_granted('ROLE_USER') or is_granted('ROLE_VENDEDOR') %}
         <a href="{{ path('product_list') }}">Catálogo</a>
       {% endif %}
-      {% if is_granted('ROLE_USER') %}
+      {% if is_granted('ROLE_USUARIO') %}
         <a href="{{ path('cart_view') }}">Carrito</a>
         <a href="{{ path('favorite_list') }}">Favoritos</a>
       {% endif %}
@@ -62,6 +65,8 @@
       {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_VENDEDOR') %}
         <a href="{{ path('view_stock') }}">Gestionar Stock</a>
       {% endif %}
+
+      <a href="{{ path('app_logout') }}">Cerrar Sesión</a>
     </nav>
   </div>
 
@@ -80,7 +85,7 @@
         <p>Laprida 1112 (3024) Sarmiento - Santa Fe</p>
       </div>
       <div class="hero-buttons">
-        <a class="boton" href="https://wa.me/5403497497233" target="_blank">
+        <a class="boton" href="https://wa.me/543424212842?text=Hola,%20estoy%20interesado%20en%20un%20producto%20de%20su%20catálogo" target="_blank">
           <i class="fab fa-whatsapp"></i> Contactar por WhatsApp
         </a>
         <a class="boton boton-secundario" href="{{ path('product_list') }}">

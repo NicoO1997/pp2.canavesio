@@ -1,177 +1,290 @@
 {% extends 'base.html.twig' %}
 
 {% block stylesheets %}
-    {{ parent() }}
-    <link rel="stylesheet" href="{{ asset('styles/cart.css') }}">
+	{{ parent() }}
+	<link rel="stylesheet" href="{{ asset('styles/cart.css') }}">
 {% endblock %}
 
-{% block title %}Carrito de Compras{% endblock %}
+{% block title %}Carrito de Compras
+{% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-    <h2 class="mb-4">Carrito de compras</h2>
-    
-    <div id="alert-container"></div>
+	<div class="container mt-4">
+		<h2 class="mb-4">Carrito de compras</h2>
 
-    {% for message in app.flashes('success') %}
-        <div class="alert alert-success alert-dismissible fade show">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    {% endfor %}
+		<div id="alert-container"></div>
 
-    {% for message in app.flashes('error') %}
-        <div class="alert alert-danger alert-dismissible fade show">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    {% endfor %}
+		{% for message in app.flashes('error') %}
+			<div class="alert alert-danger alert-dismissible fade show">
+				{{ message }}
+				<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+			</div>
+		{% endfor %}
 
-    {% if cart and cart.cartProductOrders|length > 0 %}
-        <div id="cart-content">
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Producto</th>
-                        <th>Precio</th>
-                        <th>Cantidad</th>
-                        <th>Sub total</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% set total = 0 %}
-                    {% for cartProductOrder in cart.cartProductOrders %}
-                        {% set subtotal = cartProductOrder.product.price * cartProductOrder.quantity %}
-                        {% set total = total + subtotal %}
-                        <tr id="row-{{ cartProductOrder.id }}">
-                            <td>{{ cartProductOrder.product.name }}</td>
-                            <td>{{ cartProductOrder.product.price }} $</td>
-                            <td>
-                                <input type="number" class="form-control quantity-input" 
-                                       data-id="{{ cartProductOrder.id }}" 
-                                       data-price="{{ cartProductOrder.product.price }}"
-                                       id="quantity_{{ cartProductOrder.id }}" 
-                                       name="quantity" 
-                                       value="{{ cartProductOrder.quantity }}" 
-                                       min="1">
-                            </td>
-                            <td id="subtotal-{{ cartProductOrder.id }}">{{ subtotal }} $</td>
-                            <td>
-                                <form action="{{ path('cart_remove_product', { 'id': cartProductOrder.id }) }}" method="post" class="d-inline">
-                                    <button type="submit" class="btn btn-danger">
-                                        <i class="fa fa-trash"></i>
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+		{% if cart and cart.cartProductOrders|length > 0 %}
+			<div id="cart-content">
+				<table class="table table-bordered">
+					<thead>
+						<tr>
+							<th>Producto</th>
+							<th>Precio</th>
+							<th>Cantidad</th>
+							<th>Sub total</th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody>
+						{% set total = 0 %}
+						{% for cartProductOrder in cart.cartProductOrders %}
+							{% set subtotal = cartProductOrder.product.price * cartProductOrder.quantity %}
+							{% set total = total + subtotal %}
+							<tr id="row-{{ cartProductOrder.id }}">
+								<td>{{ cartProductOrder.product.name }}</td>
+								<td>{{ cartProductOrder.product.price }}
+									$</td>
+								<td>
+									<input type="number" class="form-control quantity-input" data-id="{{ cartProductOrder.id }}" data-price="{{ cartProductOrder.product.price }}" id="quantity_{{ cartProductOrder.id }}" name="quantity" value="{{ cartProductOrder.quantity }}" min="1">
+								</td>
+								<td id="subtotal-{{ cartProductOrder.id }}">{{ subtotal }}
+									$</td>
+								<td>
+									<form action="{{ path('cart_remove_product', { 'id': cartProductOrder.id }) }}" method="post" class="d-inline">
+										<button type="submit" class="btn btn-danger">
+											<i class="fa fa-trash"></i>
+										</button>
+									</form>
+								</td>
+							</tr>
+						{% endfor %}
+					</tbody>
+				</table>
 
-            <div class="d-flex justify-content-between">
-                <a href="{{ path('product_list') }}" class="btn btn-warning">
-                    <i class="fa fa-arrow-left"></i> Continue Comprando
-                </a>
-                <div>
-                    <span class="me-3">Total: <strong id="cart-total">{{ total }} $</strong></span>
-                    <a href="{{ path('create-preference') }}" class="btn btn-success">
-                        Pagos <i class="fa fa-credit-card"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-    {% else %}
-        <p class="text-center">Tu carrito está vacío.</p>
-    {% endif %}
-</div>
+				<div class="d-flex justify-content-between">
+					<a href="{{ path('product_list') }}" class="btn btn-warning">
+						<i class="fa fa-arrow-left"></i>
+						Continue Comprando
+					</a>
+					<div>
+						<span class="me-3">Total:
+							<strong id="cart-total">{{ total }}
+								$</strong>
+						</span>
+						<a href="{{ path('create-preference') }}" class="btn btn-success">
+							Pagos
+							<i class="fa fa-credit-card"></i>
+						</a>
+					</div>
+				</div>
+			</div>
+		{% else %}
+			<p class="text-center">Tu carrito está vacío.</p>
+		{% endif %}
+	</div>
 {% endblock %}
 
 {% block javascripts %}
-    {{ parent() }}
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const quantityInputs = document.querySelectorAll('.quantity-input');
-            
-            quantityInputs.forEach(input => {
-                let originalValue = input.value;
-                
-                input.addEventListener('change', function() {
-                    const id = this.getAttribute('data-id');
-                    const quantity = parseInt(this.value);
-                    
-                    if (quantity < 1) {
-                        this.value = 1;
-                        return;
-                    }
-                    
-                    this.disabled = true;
-                    
-                    const formData = new FormData();
-                    formData.append('id', id);
-                    formData.append('quantity', quantity);
-                    
-                    fetch('{{ path('cart_update_quantity') }}', {
-                        method: 'POST',
-                        body: formData
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Error en la respuesta del servidor: ' + response.status);
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        this.disabled = false;
-                        
-                        if (data.success) {
-                            originalValue = this.value;
-                            
-                            const subtotalElement = document.getElementById(`subtotal-${id}`);
-                            if (subtotalElement) {
-                                subtotalElement.textContent = `${data.subtotal} $`;
-                            }
-                            
-                            const totalElement = document.getElementById('cart-total');
-                            if (totalElement) {
-                                totalElement.textContent = `${data.total} $`;
-                            }
-                            
-                            showAlert('success', data.message);
-                        } else {
-                            this.value = originalValue;
-                            showAlert('danger', data.message);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        this.disabled = false;
-                        this.value = originalValue;
-                        showAlert('danger', 'Error al actualizar el carrito: ' + error.message);
-                    });
-                });
-            });
-            
-            function showAlert(type, message) {
-                const alertContainer = document.getElementById('alert-container');
-                
-                alertContainer.innerHTML = '';
-                
-                const alertDiv = document.createElement('div');
-                alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
-                alertDiv.innerHTML = `
-                    ${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                `;
-                
-                alertContainer.appendChild(alertDiv);
-                
-                setTimeout(() => {
-                    if (alertDiv.parentNode) {
-                        alertDiv.remove();
-                    }
-                }, 3000);
-            }
-        });
-    </script>
+	{{ parent() }}
+	 <script>
+	        document.addEventListener('DOMContentLoaded', function() {
+	    const quantityInputs = document.querySelectorAll('.quantity-input');
+	    
+	    quantityInputs.forEach(input => {
+	        let originalValue = input.value;
+	        
+	        input.addEventListener('change', function() {
+	            const id = this.getAttribute('data-id');
+	            const quantity = parseInt(this.value);
+	            
+	            if (quantity < 1) {
+	                this.value = 1;
+	                return;
+	            }
+	            
+	            this.disabled = true;
+	            
+	            const formData = new FormData();
+	            formData.append('id', id);
+	            formData.append('quantity', quantity);
+	            
+	            fetch(document.querySelector('meta[name="cart-update-url"]')?.content || '/cart/update-quantity', {
+	                method: 'POST',
+	                body: formData
+	            })
+	            .then(response => {
+	                if (!response.ok) {
+	                    throw new Error('Error en la respuesta del servidor: ' + response.status);
+	                }
+	                return response.json();
+	            })
+	            .then(data => {
+	                this.disabled = false;
+	                
+	                if (data.success) {
+	                    originalValue = this.value;
+	                    
+	                    const subtotalElement = document.getElementById(`subtotal-${id}`);
+	                    if (subtotalElement) {
+	                        subtotalElement.textContent = `${data.subtotal} $`;
+	                        updatePrice(subtotalElement);
+	                    }
+	                    
+	                    const totalElement = document.getElementById('cart-total');
+	                    if (totalElement) {
+	                        totalElement.textContent = `${data.total} $`;
+	                        updatePrice(totalElement);
+	                    }
+	                    
+	                    showAlert('success', data.message);
+	                    
+	                    const row = document.getElementById(`row-${id}`);
+	                    if (row) {
+	                        row.classList.add('row-updated');
+	                        setTimeout(() => {
+	                            row.classList.remove('row-updated');
+	                        }, 1000);
+	                    }
+	                } else {
+	                    this.value = originalValue;
+	                    showAlert('danger', data.message);
+	                }
+	            })
+	            .catch(error => {
+	                console.error('Error:', error);
+	                this.disabled = false;
+	                this.value = originalValue;
+	                showAlert('danger', 'Error al actualizar el carrito: ' + error.message);
+	            });
+	        });
+	        
+	        input.addEventListener('focus', function() {
+	            this.dataset.originalValue = this.value;
+	        });
+	        
+	        input.addEventListener('blur', function() {
+	            if (this.value === this.dataset.originalValue) {
+	                return;
+	            }
+	            this.classList.add('value-saved');
+	            setTimeout(() => {
+	                this.classList.remove('value-saved');
+	            }, 1000);
+	        });
+	    });
+	    
+	    function updatePrice(element) {
+	        element.classList.add('updated');
+	        setTimeout(() => {
+	            element.classList.remove('updated');
+	        }, 1000);
+	    }
+	    
+	    function showAlert(type, message) {
+	        const alertContainer = document.getElementById('alert-container');
+	        
+	        alertContainer.innerHTML = '';
+	        
+	        const alertDiv = document.createElement('div');
+	        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+	        
+	        let icon = '';
+	        if (type === 'success') {
+	            icon = '<i class="fa fa-check-circle"></i> ';
+	        } else if (type === 'danger') {
+	            icon = '<i class="fa fa-exclamation-circle"></i> ';
+	        }
+	        
+	        alertDiv.innerHTML = `
+	            ${icon}${message}
+	            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+	        `;
+	        
+	        alertContainer.appendChild(alertDiv);
+	        
+	        alertDiv.addEventListener('click', function() {
+	            this.classList.remove('show');
+	            setTimeout(() => {
+	                if (this.parentNode) {
+	                    this.remove();
+	                }
+	            }, 300);
+	        });
+	        
+	        setTimeout(() => {
+	            if (alertDiv.parentNode) {
+	                alertDiv.classList.remove('show');
+	                setTimeout(() => {
+	                    if (alertDiv.parentNode) {
+	                        alertDiv.remove();
+	                    }
+	                }, 300);
+	            }
+	        }, 3000);
+	    }
+	    
+	    const buttons = document.querySelectorAll('.btn');
+	    buttons.forEach(button => {
+	        button.addEventListener('click', function() {
+	            this.classList.add('btn-clicked');
+	            setTimeout(() => {
+	                this.classList.remove('btn-clicked');
+	            }, 200);
+	        });
+	    });
+	    
+	    const tableRows = document.querySelectorAll('tbody tr');
+	    tableRows.forEach(row => {
+	        row.addEventListener('mouseenter', function() {
+	            this.style.transition = 'all 0.3s ease';
+	            this.style.backgroundColor = 'rgba(52, 152, 219, 0.05)';
+	        });
+	        
+	        row.addEventListener('mouseleave', function() {
+	            this.style.backgroundColor = '';
+	        });
+	    });
+	    
+	    const cartContent = document.getElementById('cart-content');
+	    if (cartContent) {
+	        cartContent.classList.add('fade-in');
+	    }
+	    
+	    const continueButton = document.querySelector('.btn-warning');
+	    if (continueButton) {
+	        continueButton.addEventListener('mouseenter', function() {
+	            this.innerHTML = '<i class="fa fa-arrow-left"></i> ¡Seguir comprando!';
+	        });
+	        
+	        continueButton.addEventListener('mouseleave', function() {
+	            this.innerHTML = '<i class="fa fa-arrow-left"></i> Continue Comprando';
+	        });
+	    }
+	});
+	
+	const style = document.createElement('style');
+	style.textContent = `
+	    .row-updated {
+	        background-color: rgba(46, 204, 113, 0.1) !important;
+	        transition: background-color 1s ease;
+	    }
+	    
+	    .fade-in {
+	        animation: fadeIn 0.5s ease-in-out;
+	    }
+	    
+	    .btn-clicked {
+	        transform: scale(0.95);
+	    }
+	    
+	    .value-saved {
+	        background-color: rgba(46, 204, 113, 0.1);
+	        transition: background-color 1s ease;
+	    }
+	    
+	    @keyframes fadeIn {
+	        from { opacity: 0; transform: translateY(10px); }
+	        to { opacity: 1; transform: translateY(0); }
+	    }
+	`;
+	document.head.appendChild(style);
+	    </script>
 {% endblock %}
