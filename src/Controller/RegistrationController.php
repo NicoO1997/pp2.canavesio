@@ -51,8 +51,8 @@ class RegistrationController extends AbstractController
                         $roles = ['ROLE_GESTORSTOCK'];              
                     } elseif (strpos($email, 'ventas@prueba.com') !== false) {
                         $roles = ['ROLE_VENDEDOR'];
-                    } elseif (strpos($email, 'user@prueba.com') !== false){
-                        $roles = ['ROLE_USER'];
+                    } else {
+                        $roles = ['ROLE_USUARIO'];
                     }
             
                     // Asignar los roles al usuario

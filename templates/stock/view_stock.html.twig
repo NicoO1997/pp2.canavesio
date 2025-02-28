@@ -88,7 +88,7 @@
                                     {% endif %}
                                 </td>
                                 <td class="actions">
-                                     {% if is_granted('ROLE_GESTORSTOCK') %}
+                                     {% if is_granted('ROLE_GESTORSTOCK') and not is_granted('ROLE_ADMIN') %}
                                         <button type="button" class="btn btn-secondary edit-btn" 
                                                 onclick="toggleEditing(this.closest('tr'), 'stock')">Editar Stock</button>
                                     {% endif %}

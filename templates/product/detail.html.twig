@@ -40,13 +40,15 @@
 					</div>
 				{% endif %}
 
+{% if is_granted('ROLE_USUARIO') %}
 				<div class="producto-acciones">
 					<div class="columna-izquierda">
 						<div class="cantidad-container">
 							<label for="quantity">Cantidad:</label>
 							<input type="number" id="quantity" name="quantity" min="1" max="{{ product.quantity }}" value="1" required/>
 						</div>
-						
+{% endif %}
+						{% if is_granted('ROLE_USUARIO') %}
 						<div class="producto-favorito">
 							{% if product.id not in favoriteProductIds %}
 								<form action="{{ path('add_favorite', { id: product.id }) }}" method="post" class="form-favorito">
@@ -55,9 +57,10 @@
 							{% else %}
 								<button class="btn-accion btn-favorito" disabled>En Favoritos</button>
 							{% endif %}
+              {% endif %}
 						</div>
 					</div>
-					
+					{% if is_granted('ROLE_USUARIO') %}
 					<div class="columna-derecha">
 						<form action="{{ path('create-preference') }}" method="get" class="form-pago">
 							<button type="submit" class="btn-accion btn-pago">Pagar</button>
@@ -67,9 +70,9 @@
 							<button type="submit" class="btn-accion btn-carrito">Agregar al carrito</button>
 						</form>
 					</div>
-
 					<div id="alertaCarrito" class="alerta" style="display: none;"></div>
-				</div>
+				{% endif %}
+        </div>
 			</div>
 		</div>
 
