@@ -17,63 +17,76 @@ class UsedMachinery
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Assert\NotBlank(message: "El nombre no puede estar vacío")]
-    private ?string $machineryName = null;
+    #[Assert\NotBlank(message: "El modelo no puede estar vacío")]
+    private ?string $model = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: "La marca no puede estar vacía")]
     private ?string $brand = null;
 
-    #[ORM\Column]
-    private ?int $yearsOld = 0;
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $manufacturingDate = null;
 
-    #[ORM\Column]
-    private ?int $months = 0;
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
+    #[Assert\NotBlank(message: "La capacidad del tanque no puede estar vacía")]
+    #[Assert\GreaterThan(0, message: "La capacidad del tanque debe ser mayor a 0")]
+    private ?float $fuelTankCapacity = null;
 
-    #[ORM\Column]
-    private ?int $hoursOfUse = 0;
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $technology = null;
 
-    #[ORM\Column(type: 'date')]
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true)]
+    private ?float $loadCapacity = null;
+
+    #[ORM\Column(length: 20)]
+    private ?string $transmissionSystem = null;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $lastService = null;
 
-    #[ORM\Column]
-    #[Assert\GreaterThan(0, message: "El precio debe ser mayor a 0")]
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $hoursOfUse = null;
+
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true)]
     private ?float $price = null;
+
+    #[ORM\Column(type: 'boolean')]
+    private bool $isPriceOnRequest = false;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: "La categoría es obligatoria")]
     private ?string $category = null;
+    
+    #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "La ubicación es obligatoria")]
+    #[Assert\Regex(
+        pattern: "/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/",
+        message: "La ubicación solo puede contener letras"
+    )]
+    private ?string $location = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $imageFilename = null;
+    #[ORM\Column(type: 'json')]
+    private array $imageFilenames = [];
 
     #[ORM\Column(type: 'boolean')]
     private bool $isNew = false;
 
-    public function getIsNew(): bool
-    {
-        return $this->isNew;
-    }
-
-    public function setIsNew(bool $isNew): self
-    {
-        $this->isNew = $isNew;
-        return $this;
-    }
+    #[ORM\Column(type: 'boolean')]
+    private bool $isEnabled = false;
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getMachineryName(): ?string
+    public function getModel(): ?string
     {
-        return $this->machineryName;
+        return $this->model;
     }
 
-    public function setMachineryName(string $machineryName): self
+    public function setModel(string $model): self
     {
-        $this->machineryName = $machineryName;
+        $this->model = $model;
         return $this;
     }
 
@@ -88,36 +101,58 @@ class UsedMachinery
         return $this;
     }
 
-    public function getYearsOld(): ?int
+    public function getManufacturingDate(): ?\DateTimeInterface
     {
-        return $this->yearsOld;
+        return $this->manufacturingDate;
     }
 
-    public function setYearsOld(int $yearsOld): self
+    public function setManufacturingDate(?\DateTimeInterface $manufacturingDate): self
     {
-        $this->yearsOld = $yearsOld;
+        $this->manufacturingDate = $manufacturingDate;
         return $this;
     }
 
-    public function getMonths(): ?int
+    public function getFuelTankCapacity(): ?float
     {
-        return $this->months;
+        return $this->fuelTankCapacity;
     }
 
-    public function setMonths(int $months): self
+    public function setFuelTankCapacity(float $fuelTankCapacity): self
     {
-        $this->months = $months;
+        $this->fuelTankCapacity = $fuelTankCapacity;
         return $this;
     }
 
-    public function getHoursOfUse(): ?int
+    public function getTechnology(): ?string
     {
-        return $this->hoursOfUse;
+        return $this->technology;
     }
 
-    public function setHoursOfUse(int $hoursOfUse): self
+    public function setTechnology(?string $technology): self
     {
-        $this->hoursOfUse = $hoursOfUse;
+        $this->technology = $technology;
+        return $this;
+    }
+
+    public function getLoadCapacity(): ?float
+    {
+        return $this->loadCapacity;
+    }
+
+    public function setLoadCapacity(?float $loadCapacity): self
+    {
+        $this->loadCapacity = $loadCapacity;
+        return $this;
+    }
+
+    public function getTransmissionSystem(): ?string
+    {
+        return $this->transmissionSystem;
+    }
+
+    public function setTransmissionSystem(string $transmissionSystem): self
+    {
+        $this->transmissionSystem = $transmissionSystem;
         return $this;
     }
 
@@ -132,6 +167,17 @@ class UsedMachinery
         return $this;
     }
 
+    public function getHoursOfUse(): ?int
+    {
+        return $this->hoursOfUse;
+    }
+
+    public function setHoursOfUse(?int $hoursOfUse): self
+    {
+        $this->hoursOfUse = $hoursOfUse;
+        return $this;
+    }
+
     public function getPrice(): ?float
     {
         return $this->price;
@@ -140,6 +186,17 @@ class UsedMachinery
     public function setPrice(?float $price): self
     {
         $this->price = $price;
+        return $this;
+    }
+
+    public function getIsPriceOnRequest(): bool
+    {
+        return $this->isPriceOnRequest;
+    }
+
+    public function setIsPriceOnRequest(bool $isPriceOnRequest): self
+    {
+        $this->isPriceOnRequest = $isPriceOnRequest;
         return $this;
     }
 
@@ -153,15 +210,62 @@ class UsedMachinery
         $this->category = $category;
         return $this;
     }
-
-    public function getImageFilename(): ?string
+    
+    public function getLocation(): ?string
     {
-        return $this->imageFilename;
+        return $this->location;
     }
 
-    public function setImageFilename(?string $imageFilename): self
+    public function setLocation(string $location): self
     {
-        $this->imageFilename = $imageFilename;
+        $this->location = $location;
+        return $this;
+    }
+    
+    public function getImageFilenames(): array
+    {
+        return is_array($this->imageFilenames) ? $this->imageFilenames : [];
+    }
+    
+    public function setImageFilenames(array $imageFilenames): self
+    {
+        $this->imageFilenames = $imageFilenames;
+        return $this;
+    }
+    
+    public function addImageFilename(string $filename): self
+    {
+        if (!in_array($filename, $this->imageFilenames)) {
+            $this->imageFilenames[] = $filename;
+        }
+        
+        return $this;
+    }
+    
+    public function getFirstImageFilename(): ?string
+    {
+        return !empty($this->imageFilenames) ? $this->imageFilenames[0] : 'default.jpg';
+    }
+
+    public function getIsNew(): bool
+    {
+        return $this->isNew;
+    }
+
+    public function setIsNew(bool $isNew): self
+    {
+        $this->isNew = $isNew;
+        return $this;
+    }
+
+    public function getIsEnabled(): bool
+    {
+        return $this->isEnabled;
+    }
+
+    public function setIsEnabled(bool $isEnabled): self
+    {
+        $this->isEnabled = $isEnabled;
         return $this;
     }
 
@@ -172,31 +276,36 @@ class UsedMachinery
             return;
         }
         
-        if (null === $this->yearsOld || ($this->yearsOld == 0 && $this->months == 0)) {
-            $context->buildViolation('La maquinaria usada debe tener al menos 1 mes de antigüedad')
-                ->atPath('yearsOld')
-                ->addViolation();
-        }
-        
-        if (null === $this->months || $this->months < 0 || $this->months > 11) {
-            $context->buildViolation('Los meses deben estar entre 0 y 11')
-                ->atPath('months')
-                ->addViolation();
-        }
-        
-        if (null === $this->hoursOfUse || $this->hoursOfUse < 0) {
-            $context->buildViolation('Las horas de uso deben ser 0 o mayores')
+        if (null === $this->hoursOfUse || $this->hoursOfUse <= 0) {
+            $context->buildViolation('Las horas de uso deben ser mayores a 0 para maquinaria usada')
                 ->atPath('hoursOfUse')
                 ->addViolation();
         }
         
         if (null === $this->lastService) {
-            $context->buildViolation('La fecha de último servicio no puede estar vacía')
+            $context->buildViolation('La fecha de último servicio no puede estar vacía para maquinaria usada')
                 ->atPath('lastService')
                 ->addViolation();
         } elseif ($this->lastService > new \DateTime()) {
             $context->buildViolation('La fecha de último servicio no puede ser posterior al día de hoy')
                 ->atPath('lastService')
+                ->addViolation();
+        }
+
+        if (null === $this->manufacturingDate) {
+            $context->buildViolation('La fecha de fabricación no puede estar vacía para maquinaria usada')
+                ->atPath('manufacturingDate')
+                ->addViolation();
+        } elseif ($this->manufacturingDate > new \DateTime()) {
+            $context->buildViolation('La fecha de fabricación no puede ser posterior al día de hoy')
+                ->atPath('manufacturingDate')
+                ->addViolation();
+        }
+
+        if (in_array($this->category, ['sembradora', 'pulverizadora', 'tolva']) && 
+            (null === $this->loadCapacity || $this->loadCapacity <= 0)) {
+            $context->buildViolation('La capacidad de carga debe ser mayor a 0 para esta categoría')
+                ->atPath('loadCapacity')
                 ->addViolation();
         }
     }

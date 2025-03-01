@@ -8,7 +8,7 @@
 
 {% block body %}
     <div id="success-message" class="success-message">
-        Maquinaria agregada con Exito!.
+        Maquinaria agregada con Éxito!
     </div>
     
     <div class="machinery-container">
@@ -24,7 +24,7 @@
             {% endif %}
         </div>
         
-        <h1 class="machinery-title">Maquinaria Disponible.</h1>
+        <h1 class="machinery-title">Maquinaria Disponible</h1>
 
         {% if usedMachineries is empty %}
             <div class="no-machineries">
@@ -49,10 +49,11 @@
                         <table class="machinery-table new-machinery-table">
                             <thead>
                                 <tr>
-                                    <th>Nombre</th>
+                                    <th>Modelo</th>
                                     <th>Marca</th>
                                     <th>Precio</th>
                                     <th>Categoría</th>
+                                    <th>Ubicación</th>
                                     <th>Imagen</th>
                                     <th>Acciones</th>
                                 </tr>
@@ -61,13 +62,23 @@
                                 {% for machinery in usedMachineries %}
                                     {% if machinery.isNew %}
                                         <tr>
-                                            <td>{{ machinery.machineryName }}</td>
+                                            <td>{{ machinery.model }}</td>
                                             <td>{{ machinery.brand }}</td>
-                                            <td>{{ machinery.price ? '$' ~ machinery.price|number_format(2, '.', ',') : 'N/A' }}</td>
+                                            <td>
+                                                {% if machinery.isPriceOnRequest %}
+                                                    Precio a consultar
+                                                {% else %}
+                                                    {{ machinery.price ? '$' ~ machinery.price|number_format(2, '.', ',') : 'N/A' }}
+                                                {% endif %}
+                                            </td>
                                             <td>{{ machinery.category|capitalize }}</td>
+                                            <td>{{ machinery.location }}</td>
                                             <td class="image-cell">
-                                                {% if machinery.imageFilename %}
-                                                    <img src="{{ asset('imagenes/' ~ machinery.imageFilename) }}" alt="{{ machinery.machineryName }}" class="machinery-image">
+                                                {% if machinery.imageFilenames|length > 0 %}
+                                                    <img src="{{ asset('imagenes/' ~ machinery.imageFilenames[0]) }}" 
+                                                         alt="{{ machinery.brand }} {{ machinery.model }}" 
+                                                         class="machinery-image"
+                                                         title="{% if machinery.imageFilenames|length > 1 %}+{{ machinery.imageFilenames|length - 1 }} imágenes más{% endif %}">
                                                 {% else %}
                                                     <span class="no-image">Sin imagen</span>
                                                 {% endif %}
@@ -102,12 +113,14 @@
                         <table class="machinery-table used-machinery-table">
                             <thead>
                                 <tr>
-                                    <th>Nombre</th>
+                                    <th>Modelo</th>
                                     <th>Marca</th>
-                                    <th>Antigüedad</th>
+                                    <th>Fecha Fabricación</th>
                                     <th>Horas de Uso</th>
+                                    <th>Último Servicio</th>
                                     <th>Precio</th>
                                     <th>Categoría</th>
+                                    <th>Ubicación</th>
                                     <th>Imagen</th>
                                     <th>Acciones</th>
                                 </tr>
@@ -116,25 +129,26 @@
                                 {% for machinery in usedMachineries %}
                                     {% if not machinery.isNew %}
                                         <tr>
-                                            <td>{{ machinery.machineryName }}</td>
+                                            <td>{{ machinery.model }}</td>
                                             <td>{{ machinery.brand }}</td>
-                                            <td>
-                                                <span class="machinery-age {% if machinery.yearsOld < 2 %}machinery-age-new{% elseif machinery.yearsOld < 5 %}machinery-age-medium{% else %}machinery-age-old{% endif %}">
-                                                    {% if machinery.yearsOld > 0 %}
-                                                        {{ machinery.yearsOld }} año{% if machinery.yearsOld != 1 %}s{% endif %}
-                                                    {% endif %}
-                                                    {% if machinery.months > 0 %}
-                                                        {% if machinery.yearsOld > 0 %} y {% endif %}
-                                                        {{ machinery.months }} mes{% if machinery.months != 1 %}es{% endif %}
-                                                    {% endif %}
-                                                </span>
-                                            </td>
+                                            <td>{{ machinery.manufacturingDate ? machinery.manufacturingDate|date('d/m/Y') : 'N/A' }}</td>
                                             <td>{{ machinery.hoursOfUse }} horas</td>
-                                            <td>{{ machinery.price ? '$' ~ machinery.price|number_format(2, '.', ',') : 'N/A' }}</td>
+                                            <td>{{ machinery.lastService ? machinery.lastService|date('d/m/Y') : 'N/A' }}</td>
+                                            <td>
+                                                {% if machinery.isPriceOnRequest %}
+                                                    Precio a consultar
+                                                {% else %}
+                                                    {{ machinery.price ? '$' ~ machinery.price|number_format(2, '.', ',') : 'N/A' }}
+                                                {% endif %}
+                                            </td>
                                             <td>{{ machinery.category|capitalize }}</td>
+                                            <td>{{ machinery.location }}</td>
                                             <td class="image-cell">
-                                                {% if machinery.imageFilename %}
-                                                    <img src="{{ asset('imagenes/' ~ machinery.imageFilename) }}" alt="{{ machinery.machineryName }}" class="machinery-image">
+                                                {% if machinery.imageFilenames|length > 0 %}
+                                                    <img src="{{ asset('imagenes/' ~ machinery.imageFilenames[0]) }}" 
+                                                         alt="{{ machinery.brand }} {{ machinery.model }}" 
+                                                         class="machinery-image"
+                                                         title="{% if machinery.imageFilenames|length > 1 %}+{{ machinery.imageFilenames|length - 1 }} imágenes más{% endif %}">
                                                 {% else %}
                                                     <span class="no-image">Sin imagen</span>
                                                 {% endif %}
@@ -198,7 +212,6 @@ document.addEventListener('DOMContentLoaded', function() {
         backButton.addEventListener('mouseleave', function() {
             this.style.transform = 'translateX(0)';
         });
-    }
-});
+    });
 </script>
 {% endblock %}

@@ -4,20 +4,21 @@ namespace App\Form;
 
 use App\Entity\UsedMachinery;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
+use Symfony\Component\Form\Extension\Core\Type\MoneyType;
+use Symfony\Component\Form\Extension\Core\Type\NumberType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\File;
 use Symfony\Component\Validator\Constraints\NotBlank;
-use Symfony\Component\Validator\Constraints\Range;
-use Symfony\Component\Validator\Constraints\GreaterThan;
-use Symfony\Component\Validator\Constraints\GreaterThanOrEqual;
-use Symfony\Component\Validator\Constraints\LessThanOrEqual;
-use Symfony\Component\Form\FormEvent;
-use Symfony\Component\Form\FormEvents;
+use Symfony\Component\Validator\Constraints\Positive;
+use Symfony\Component\Validator\Constraints\All;
 
 class UsedMachineryType extends AbstractType
 {
@@ -25,121 +26,147 @@ class UsedMachineryType extends AbstractType
     {
         $builder
             ->add('isNew', ChoiceType::class, [
+                'label' => 'Estado',
                 'choices' => [
                     'Nueva' => true,
                     'Usada' => false
                 ],
-                'label' => 'Estado de la maquinaria',
-                'required' => true,
                 'expanded' => true,
                 'multiple' => false,
-                'data' => false
+                'required' => true,
+                'attr' => ['class' => 'isNew-radio-group']
             ])
             ->add('category', ChoiceType::class, [
-                'choices' => [
-                    'Tractores' => 'tractor',
-                    'Embutidoras' => 'embutidora',
-                    'Sembradoras' => 'sembradora',
-                    'Equipos de Forraje' => 'equipo de forraje',
-                ],
                 'label' => 'Categoría',
-                'constraints' => [
-                    new NotBlank(['message' => 'Debe seleccionar una categoría'])
-                ]
+                'choices' => [
+                    'Tractor' => 'tractor',
+                    'Cosechadora' => 'cosechadora',
+                    'Sembradora' => 'sembradora',
+                    'Pulverizadora' => 'pulverizadora',
+                    'Tolva' => 'tolva',
+                    'Otro' => 'otro'
+                ],
+                'placeholder' => 'Seleccione una categoría',
+                'required' => true,
+                'attr' => ['class' => 'form-control']
             ])
-            ->add('machineryName', TextType::class, [
-                'label' => 'Nombre de la maquinaria',
-                'constraints' => [
-                    new NotBlank(['message' => 'El nombre no puede estar vacío'])
-                ]
+            ->add('model', TextType::class, [
+                'label' => 'Modelo',
+                'required' => true,
+                'attr' => ['class' => 'form-control']
             ])
             ->add('brand', TextType::class, [
                 'label' => 'Marca',
+                'required' => true,
+                'attr' => ['class' => 'form-control']
+            ])
+            ->add('fuelTankCapacity', NumberType::class, [
+                'label' => 'Capacidad del tanque de combustible (litros)',
+                'required' => true,
+                'scale' => 2,
+                'attr' => ['class' => 'form-control'],
                 'constraints' => [
-                    new NotBlank(['message' => 'La marca no puede estar vacía'])
+                    new Positive(['message' => 'El valor debe ser positivo']),
+                    new NotBlank(['message' => 'Este campo no puede estar vacío'])
                 ]
             ])
-            ->add('price', NumberType::class, [
-                'label' => 'Precio',
+            ->add('technology', TextareaType::class, [
+                'label' => 'Tecnología',
+                'required' => false,
+                'attr' => ['class' => 'form-control']
+            ])
+            ->add('transmissionSystem', ChoiceType::class, [
+                'label' => 'Sistema de transmisión',
+                'choices' => [
+                    'Manual' => 'manual',
+                    'Automática' => 'automatica',
+                    'Hidrostática' => 'hidrostatica',
+                    'Mecánica' => 'mecanica',
+                    'CVT' => 'cvt',
+                    'Otra' => 'otra'
+                ],
+                'placeholder' => 'Seleccione un sistema',
+                'required' => true,
+                'attr' => ['class' => 'form-control']
+            ])
+            ->add('location', TextType::class, [
+                'label' => 'Ubicación',
+                'required' => true,
+                'attr' => ['class' => 'form-control']
+            ])
+            ->add('isPriceOnRequest', CheckboxType::class, [
+                'label' => 'Precio a consultar',
+                'required' => false,
+                'attr' => ['class' => 'form-check-input']
+            ])
+            ->add('price', MoneyType::class, [
+                'label' => 'Precio (USD)',
+                'currency' => 'USD',
+                'required' => true,
+                'attr' => ['class' => 'form-control'],
                 'constraints' => [
-                    new NotBlank(['message' => 'El precio no puede estar vacío']),
-                    new GreaterThan(['value' => 0, 'message' => 'El precio debe ser mayor a 0'])
+                    new Positive(['message' => 'El precio debe ser positivo'])
                 ]
             ])
-            ->add('imageFilename', FileType::class, [
+            ->add('loadCapacity', NumberType::class, [
+                'label' => 'Capacidad de carga (kg)',
+                'required' => false,
+                'scale' => 2,
+                'attr' => ['class' => 'form-control'],
+                'constraints' => [
+                    new Positive(['message' => 'La capacidad de carga debe ser positiva'])
+                ]
+            ])
+            ->add('manufacturingDate', DateType::class, [
+                'label' => 'Fecha de fabricación',
+                'widget' => 'single_text',
+                'required' => false,
+                'attr' => ['class' => 'form-control', 'max' => (new \DateTime())->format('Y-m-d')]
+            ])
+            ->add('hoursOfUse', IntegerType::class, [
+                'label' => 'Horas de uso',
+                'required' => false,
+                'attr' => ['class' => 'form-control', 'min' => 1]
+            ])
+            ->add('lastService', DateType::class, [
+                'label' => 'Último servicio',
+                'widget' => 'single_text',
+                'required' => false,
+                'attr' => ['class' => 'form-control', 'max' => (new \DateTime())->format('Y-m-d')]
+            ])
+            ->add('imageFilenames', FileType::class, [
+                'label' => 'Imágenes',
                 'mapped' => false,
                 'required' => false,
-                'label' => 'Imagen (opcional)',
+                'multiple' => true,
+                'attr' => ['class' => 'form-control'],
+                'constraints' => [
+                    new All([
+                        'constraints' => [
+                            new File([
+                                'maxSize' => '5M',
+                                'mimeTypes' => [
+                                    'image/jpeg',
+                                    'image/png',
+                                    'image/jpg',
+                                ],
+                                'mimeTypesMessage' => 'Por favor sube un archivo de imagen válido',
+                            ])
+                        ]
+                    ])
+                ],
+            ])
+            ->add('isEnabled', CheckboxType::class, [
+                'label' => 'Habilitar maquinaria',
+                'required' => false,
+                'attr' => ['class' => 'form-check-input']
             ]);
-            
-        $builder->add('yearsOld', NumberType::class, [
-            'label' => 'Años de antigüedad',
-            'required' => true,
-            'constraints' => [
-                new NotBlank(['message' => 'Los años no pueden estar vacíos']),
-                new GreaterThanOrEqual(['value' => 0, 'message' => 'Los años deben ser 0 o mayores'])
-            ]
-        ])
-        ->add('months', NumberType::class, [
-            'label' => 'Meses',
-            'required' => true,
-            'constraints' => [
-                new NotBlank(['message' => 'Los meses no pueden estar vacíos']),
-                new Range([
-                    'min' => 0,
-                    'max' => 11,
-                    'notInRangeMessage' => 'Los meses deben estar entre {{ min }} y {{ max }}'
-                ])
-            ]
-        ])
-        ->add('hoursOfUse', NumberType::class, [
-            'label' => 'Horas de uso',
-            'required' => true,
-            'constraints' => [
-                new NotBlank(['message' => 'Las horas de uso no pueden estar vacías']),
-                new GreaterThanOrEqual(['value' => 0, 'message' => 'Las horas de uso deben ser 0 o mayores'])
-            ]
-        ])
-        ->add('lastService', DateType::class, [
-            'label' => 'Fecha último servicio',
-            'required' => true,
-            'widget' => 'single_text',
-            'data' => new \DateTime(),
-            'constraints' => [
-                new NotBlank(['message' => 'La fecha de último servicio no puede estar vacía']),
-                new LessThanOrEqual(['value' => 'today', 'message' => 'La fecha de último servicio no puede ser posterior al día de hoy'])
-            ]
-        ]);
-
-        $builder->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event) {
-            $data = $event->getData();
-            
-            if (isset($data['isNew']) && ($data['isNew'] === '1' || $data['isNew'] === true)) {
-                $data['yearsOld'] = 0;
-                $data['months'] = 0;
-                $data['hoursOfUse'] = 0;
-                $data['lastService'] = (new \DateTime())->format('Y-m-d');
-                $event->setData($data);
-            }
-        });
-        
-        $builder->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event) {
-            $form = $event->getForm();
-            $data = $event->getData();
-            
-            if ($data->getIsNew()) {
-                $data->setYearsOld(0);
-                $data->setMonths(0);
-                $data->setHoursOfUse(0);
-                $data->setLastService(new \DateTime());
-            }
-        });
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'data_class' => UsedMachinery::class,
+            'data_class' => UsedMachinery::class
         ]);
     }
 }

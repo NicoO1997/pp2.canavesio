@@ -1,87 +1,257 @@
+:root {
+  --primary-color: #2563eb;
+  --secondary-color: #1d4ed8;
+  --text-primary: #1f2937;
+  --text-secondary: #4b5563;
+  --background-light: #f3f4f6;
+  --white: #ffffff;
+  --success: #059669;
+  --warning: #d97706;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+}
+
 @keyframes fadeIn {
-    from {
+  from {
       opacity: 0;
       transform: translateY(20px);
-    }
-    to {
+  }
+  to {
       opacity: 1;
       transform: translateY(0);
-    }
   }
-  
-  .detalle-maquinaria {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 2rem;
-    background-color: #f8f9fa;
-    border-radius: 1rem;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    animation: fadeIn 0.6s ease-out;
-  }
-  
-  .detalle-maquinaria h1 {
-    font-size: 2.5rem;
-    color: #2c3e50;
-    text-align: center;
-    margin-bottom: 2rem;
-    background: linear-gradient(to right, #4a90e2, #50c878);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-weight: bold;
-  }
-  
-  .maquinaria-info {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-    align-items: center;
-  }
-  
-  .maquinaria-info img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 1rem;
-    box-shadow: 0 15px 30px rgba(0,0,0,0.15);
-    transition: transform 0.3s ease;
-  }
-  
-  .maquinaria-info img:hover {
-    transform: scale(1.05);
-  }
-  
-  .maquinaria-info > div {
-    background-color: white;
-    padding: 2rem;
-    border-radius: 1rem;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-  }
-  
-  .maquinaria-info p {
-    margin-bottom: 1rem;
-    color: #333;
-    display: flex;
-    justify-content: space-between;
-    border-bottom: 1px solid #f1f3f5;
-    padding-bottom: 0.5rem;
-  }
-  
-  .maquinaria-info p strong {
-    color: #4a90e2;
-    min-width: 150px;
-  }
-  
-  .maquinaria-info p:last-child {
-    border-bottom: none;
-  }
-  
-  @media (max-width: 768px) {
-    .maquinaria-info {
+}
+
+.machinery-container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  animation: fadeIn 0.6s ease-out;
+}
+
+.machinery-detail-card {
+  background: var(--white);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.machinery-title {
+  font-size: 2rem;
+  color: var(--text-primary);
+  text-align: center;
+  padding: 2rem;
+  margin: 0;
+  border-bottom: 1px solid var(--background-light);
+}
+
+.machinery-detail-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  padding: 2rem;
+}
+
+.machinery-detail-image {
+  position: relative;
+  border-radius: 1rem;
+  overflow: hidden;
+  background: var(--background-light);
+  box-shadow: var(--shadow-md);
+}
+
+.image-gallery {
+  position: relative;
+  width: 100%;
+  height: 500px;
+  overflow: hidden;
+}
+
+.detail-image {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  transform: scale(1.05);
+}
+
+.detail-image.active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.image-controls {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+  display: flex;
+  justify-content: space-between;
+  padding: 0 1rem;
+  pointer-events: none;
+}
+
+.prev-image,
+.next-image {
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(4px);
+  box-shadow: var(--shadow-md);
+  pointer-events: auto;
+  opacity: 0.8;
+}
+
+.prev-image:hover,
+.next-image:hover {
+  opacity: 1;
+  transform: scale(1.1);
+  background: var(--white);
+}
+
+.machinery-status {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  letter-spacing: 0.025em;
+  box-shadow: var(--shadow-sm);
+  z-index: 10;
+}
+
+.new-status {
+  background: var(--success);
+  color: var(--white);
+}
+
+.used-status {
+  background: var(--warning);
+  color: var(--white);
+}
+
+.detail-info-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.detail-info-table th,
+.detail-info-table td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--background-light);
+}
+
+.detail-info-table th {
+  text-align: left;
+  color: var(--text-secondary);
+  font-weight: 600;
+  width: 40%;
+}
+
+.detail-info-table td {
+  color: var(--text-primary);
+}
+
+.contact-section {
+  margin-top: 2rem;
+  text-align: center;
+  padding: 2rem;
+  background: var(--background-light);
+  border-radius: 1rem;
+}
+
+.contact-section h3 {
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.contact-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #25d366;
+  color: var(--white);
+  padding: 1rem 2rem;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-md);
+}
+
+.contact-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.back-button-container {
+  padding: 1rem 2rem;
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.back-button:hover {
+  color: var(--primary-color);
+  transform: translateX(-4px);
+}
+
+@media (max-width: 768px) {
+  .machinery-detail-content {
       grid-template-columns: 1fr;
-    }
   }
-  
-  .precio-destacado {
-    color: #10b981;
-    font-weight: bold;
-    font-size: 1.5rem;
+
+  .image-gallery {
+      height: 400px;
   }
+
+  .machinery-title {
+      font-size: 1.5rem;
+      padding: 1.5rem;
+  }
+
+  .prev-image,
+  .next-image {
+      width: 40px;
+      height: 40px;
+      font-size: 1.25rem;
+  }
+}
+
+@keyframes fadeSlide {
+  from {
+      opacity: 0;
+      transform: scale(1.05);
+  }
+  to {
+      opacity: 1;
+      transform: scale(1);
+  }
+}
+
+.detail-image.active {
+  animation: fadeSlide 0.5s ease forwards;
+}

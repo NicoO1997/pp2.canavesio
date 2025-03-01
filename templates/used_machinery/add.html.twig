@@ -34,9 +34,9 @@ Agregar Maquinaria
         </div>
 
         <div class="form-group">
-            {{ form_label(form.machineryName) }}
-            {{ form_widget(form.machineryName) }}
-            {{ form_errors(form.machineryName, {'attr': {'class': 'form-error'}}) }}
+            {{ form_label(form.model) }}
+            {{ form_widget(form.model) }}
+            {{ form_errors(form.model, {'attr': {'class': 'form-error'}}) }}
         </div>
 
         <div class="form-group">
@@ -46,30 +46,61 @@ Agregar Maquinaria
         </div>
 
         <div class="form-group">
+            {{ form_label(form.fuelTankCapacity) }}
+            {{ form_widget(form.fuelTankCapacity) }}
+            {{ form_errors(form.fuelTankCapacity, {'attr': {'class': 'form-error'}}) }}
+        </div>
+
+        <div class="form-group">
+            {{ form_label(form.technology) }}
+            {{ form_widget(form.technology) }}
+            {{ form_errors(form.technology, {'attr': {'class': 'form-error'}}) }}
+        </div>
+
+        <div class="form-group">
+            {{ form_label(form.transmissionSystem) }}
+            {{ form_widget(form.transmissionSystem) }}
+            {{ form_errors(form.transmissionSystem, {'attr': {'class': 'form-error'}}) }}
+        </div>
+
+        <div class="form-group">
+            {{ form_label(form.location) }}
+            {{ form_widget(form.location) }}
+            {{ form_errors(form.location, {'attr': {'class': 'form-error'}}) }}
+        </div>
+
+        <div class="form-group">
+            {{ form_label(form.isPriceOnRequest) }}
+            {{ form_widget(form.isPriceOnRequest) }}
+            {{ form_errors(form.isPriceOnRequest, {'attr': {'class': 'form-error'}}) }}
+        </div>
+
+        <div class="form-group price-field">
             {{ form_label(form.price) }}
             {{ form_widget(form.price) }}
             {{ form_errors(form.price, {'attr': {'class': 'form-error'}}) }}
         </div>
 
+        <div class="form-group load-capacity-field">
+            {{ form_label(form.loadCapacity) }}
+            {{ form_widget(form.loadCapacity) }}
+            {{ form_errors(form.loadCapacity, {'attr': {'class': 'form-error'}}) }}
+        </div>
+
         <div class="form-group imagen-input">
-            {{ form_label(form.imageFilename) }}
-            {{ form_widget(form.imageFilename) }}
-            {{ form_errors(form.imageFilename, {'attr': {'class': 'form-error'}}) }}
+            {{ form_label(form.imageFilenames) }}
+            {{ form_widget(form.imageFilenames) }}
+            {{ form_errors(form.imageFilenames, {'attr': {'class': 'form-error'}}) }}
+            <small class="form-text text-muted">Puedes seleccionar hasta 5 imágenes</small>
         </div>
 
         <div class="used-fields-container">
             <h3 class="full-width">Detalles de Maquinaria Usada</h3>
             
             <div class="form-group">
-                {{ form_label(form.yearsOld) }}
-                {{ form_widget(form.yearsOld) }}
-                {{ form_errors(form.yearsOld, {'attr': {'class': 'form-error'}}) }}
-            </div>
-
-            <div class="form-group">
-                {{ form_label(form.months) }}
-                {{ form_widget(form.months) }}
-                {{ form_errors(form.months, {'attr': {'class': 'form-error'}}) }}
+                {{ form_label(form.manufacturingDate) }}
+                {{ form_widget(form.manufacturingDate) }}
+                {{ form_errors(form.manufacturingDate, {'attr': {'class': 'form-error'}}) }}
             </div>
 
             <div class="form-group">
@@ -88,7 +119,7 @@ Agregar Maquinaria
         <div class="form-group full-width">
             <div class="buttons-container">
                 <button type="submit" class="btn btn-primary">Agregar</button>
-                <a href="{{ path('app_home_page') }}" class="btn btn-secondary">Volver</a>
+                <a href="{{ path('app_view_used_machinery') }}" class="btn btn-secondary">Volver</a>
             </div>
         </div>
     </div>
@@ -102,6 +133,35 @@ Agregar Maquinaria
 document.addEventListener('DOMContentLoaded', function() {
     const isNewRadios = document.querySelectorAll('input[name="used_machinery[isNew]"]');
     const usedFieldsContainer = document.querySelector('.used-fields-container');
+    const isPriceOnRequestCheckbox = document.querySelector('input[name="used_machinery[isPriceOnRequest]"]');
+    const priceField = document.querySelector('.price-field');
+    const categorySelect = document.querySelector('select[name="used_machinery[category]"]');
+    const loadCapacityField = document.querySelector('.load-capacity-field');
+    
+    function togglePriceField() {
+        if (isPriceOnRequestCheckbox.checked) {
+            priceField.style.display = 'none';
+            priceField.querySelector('input').value = '';
+            priceField.querySelector('input').removeAttribute('required');
+        } else {
+            priceField.style.display = 'block';
+            priceField.querySelector('input').setAttribute('required', 'required');
+        }
+    }
+
+    function toggleLoadCapacityField() {
+        const category = categorySelect.value;
+        if (['sembradora', 'pulverizadora', 'tolva'].includes(category)) {
+            loadCapacityField.style.display = 'block';
+            if (!document.querySelector('input[name="used_machinery[isNew]"]:checked').value === '1') {
+                loadCapacityField.querySelector('input').setAttribute('required', 'required');
+            }
+        } else {
+            loadCapacityField.style.display = 'none';
+            loadCapacityField.querySelector('input').removeAttribute('required');
+            loadCapacityField.querySelector('input').value = '';
+        }
+    }
     
     function toggleFields() {
         const selectedRadio = document.querySelector('input[name="used_machinery[isNew]"]:checked');
@@ -123,15 +183,10 @@ document.addEventListener('DOMContentLoaded', function() {
             usedFields.forEach(field => {
                 if (isNew) {
                     field.removeAttribute('required');
-                    
-                    if (field.id.includes('yearsOld') || 
-                        field.id.includes('months') || 
-                        field.id.includes('hoursOfUse')) {
-                        field.value = '0';
-                    }
-                    
-                    if (field.id.includes('lastService')) {
-                        field.value = new Date().toISOString().split('T')[0];
+                    if (field.type === 'datetime-local' || field.type === 'date') {
+                        field.value = '';
+                    } else if (field.type === 'number') {
+                        field.value = '';
                     }
                 } else {
                     if (field.hasAttribute('data-required')) {
@@ -140,6 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         }
+        toggleLoadCapacityField();
     }
     
     const usedFields = usedFieldsContainer.querySelectorAll('input, select');
@@ -153,27 +209,41 @@ document.addEventListener('DOMContentLoaded', function() {
         radio.addEventListener('change', toggleFields);
     });
     
-    toggleFields();
+    isPriceOnRequestCheckbox.addEventListener('change', togglePriceField);
+    categorySelect.addEventListener('change', toggleLoadCapacityField);
     
+    // Manejo de múltiples archivos
     const fileInput = document.querySelector('input[type="file"]');
     if (fileInput) {
         fileInput.addEventListener('change', function() {
-            const fileName = this.value.split('\\').pop();
-            if (fileName) {
-                const parent = this.parentElement;
-                if (parent.querySelector('.file-name')) {
-                    parent.querySelector('.file-name').textContent = fileName;
-                } else {
-                    const fileNameSpan = document.createElement('span');
-                    fileNameSpan.className = 'file-name';
-                    fileNameSpan.style.fontSize = '0.8rem';
-                    fileNameSpan.style.marginTop = '0.3rem';
-                    fileNameSpan.textContent = fileName;
-                    parent.appendChild(fileNameSpan);
-                }
+            const files = Array.from(this.files);
+            const parent = this.parentElement;
+            const existingFileList = parent.querySelector('.file-list');
+            
+            if (existingFileList) {
+                parent.removeChild(existingFileList);
+            }
+            
+            if (files.length > 0) {
+                const fileList = document.createElement('div');
+                fileList.className = 'file-list';
+                fileList.style.marginTop = '0.5rem';
+                fileList.style.fontSize = '0.8rem';
+                
+                files.forEach(file => {
+                    const fileItem = document.createElement('div');
+                    fileItem.textContent = file.name;
+                    fileList.appendChild(fileItem);
+                });
+                
+                parent.appendChild(fileList);
             }
         });
     }
+    
+    toggleFields();
+    togglePriceField();
+    toggleLoadCapacityField();
 });
 </script>
 {% endblock %}

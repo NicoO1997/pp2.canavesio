@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Detalle de Maquinaria - {{ usedMachinery.machineryName }}{% endblock %}
+{% block title %}Detalle de Maquinaria - {{ machinery.brand }} {{ machinery.model }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('styles/viewUsedMachinery.css') }}">
@@ -10,29 +10,35 @@
     <div class="machinery-container">
         <div class="machinery-detail-card">
             <div class="back-button-container">
-                {% if is_granted('ROLE_USUARIO') %}
-                    <a href="{{ path('product_list') }}" class="back-button">
-                        <i class="fas fa-arrow-left"></i> Volver al listado
-                    </a>
-                {% else %}
-                    <a href="{{ path('app_view_used_machinery') }}" class="back-button">
-                        <i class="fas fa-arrow-left"></i> Volver al listado
-                    </a>
-                {% endif %}
+                <a href="{{ path('app_view_used_machinery') }}" class="back-button">
+                    <i class="fas fa-arrow-left"></i> Volver al listado
+                </a>
             </div>
             
-            <h1 class="machinery-title">{{ usedMachinery.machineryName }}</h1>
+            <h1 class="machinery-title">{{ machinery.brand }} {{ machinery.model }}</h1>
             
             <div class="machinery-detail-content">
                 <div class="machinery-detail-image">
-                    {% if usedMachinery.imageFilename %}
-                        <img src="{{ asset('imagenes/' ~ usedMachinery.imageFilename) }}" alt="{{ usedMachinery.machineryName }}" class="detail-image">
+                    {% if machinery.imageFilenames|length > 0 %}
+                        <div class="image-gallery">
+                            {% for image in machinery.imageFilenames %}
+                                <img src="{{ asset('imagenes/' ~ image) }}" 
+                                     alt="{{ machinery.brand }} {{ machinery.model }}" 
+                                     class="detail-image {% if loop.first %}active{% endif %}">
+                            {% endfor %}
+                            {% if machinery.imageFilenames|length > 1 %}
+                                <div class="image-controls">
+                                    <button class="prev-image">&lt;</button>
+                                    <button class="next-image">&gt;</button>
+                                </div>
+                            {% endif %}
+                        </div>
                     {% else %}
                         <div class="no-detail-image">Sin imagen disponible</div>
                     {% endif %}
                     
-                    <div class="machinery-status {% if usedMachinery.isNew %}new-status{% else %}used-status{% endif %}">
-                        {{ usedMachinery.isNew ? 'Nueva' : 'Usada' }}
+                    <div class="machinery-status {% if machinery.isNew %}new-status{% else %}used-status{% endif %}">
+                        {{ machinery.isNew ? 'Nueva' : 'Usada' }}
                     </div>
                 </div>
                 
@@ -40,46 +46,72 @@
                     <table class="detail-info-table">
                         <tr>
                             <th>Marca:</th>
-                            <td>{{ usedMachinery.brand }}</td>
+                            <td>{{ machinery.brand }}</td>
+                        </tr>
+                        <tr>
+                            <th>Modelo:</th>
+                            <td>{{ machinery.model }}</td>
                         </tr>
                         <tr>
                             <th>Categoría:</th>
-                            <td>{{ usedMachinery.category|capitalize }}</td>
+                            <td>{{ machinery.category|capitalize }}</td>
                         </tr>
                         <tr>
+                            <th>Ubicación:</th>
+                            <td>{{ machinery.location }}</td>
+                        </tr>
+                        <tr>
+                            <th>Capacidad de tanque:</th>
+                            <td>{{ machinery.fuelTankCapacity }} litros</td>
+                        </tr>
+                        <tr>
+                            <th>Sistema de transmisión:</th>
+                            <td>{{ machinery.transmissionSystem }}</td>
+                        </tr>
+                        {% if machinery.technology %}
+                            <tr>
+                                <th>Tecnología:</th>
+                                <td>{{ machinery.technology }}</td>
+                            </tr>
+                        {% endif %}
+                        {% if machinery.loadCapacity %}
+                            <tr>
+                                <th>Capacidad de carga:</th>
+                                <td>{{ machinery.loadCapacity }} kg</td>
+                            </tr>
+                        {% endif %}
+                        <tr>
                             <th>Precio:</th>
-                            <td class="price-value">${{ usedMachinery.price|number_format(2, '.', ',') }}</td>
+                            <td class="price-value">
+                                {% if machinery.isPriceOnRequest %}
+                                    Precio a consultar
+                                {% else %}
+                                    {{ machinery.price ? '$' ~ machinery.price|number_format(2, '.', ',') : 'N/A' }}
+                                {% endif %}
+                            </td>
                         </tr>
                         
-                        {% if not usedMachinery.isNew %}
+                        {% if not machinery.isNew %}
                             <tr>
-                                <th>Antigüedad:</th>
-                                <td>
-                                    <span class="machinery-age {% if usedMachinery.yearsOld < 2 %}machinery-age-new{% elseif usedMachinery.yearsOld < 5 %}machinery-age-medium{% else %}machinery-age-old{% endif %}">
-                                        {% if usedMachinery.yearsOld > 0 %}
-                                            {{ usedMachinery.yearsOld }} año{% if usedMachinery.yearsOld != 1 %}s{% endif %}
-                                        {% endif %}
-                                        {% if usedMachinery.months > 0 %}
-                                            {% if usedMachinery.yearsOld > 0 %} y {% endif %}
-                                            {{ usedMachinery.months }} mes{% if usedMachinery.months != 1 %}es{% endif %}
-                                        {% endif %}
-                                    </span>
-                                </td>
+                                <th>Fecha de fabricación:</th>
+                                <td>{{ machinery.manufacturingDate ? machinery.manufacturingDate|date('d/m/Y') : 'N/A' }}</td>
                             </tr>
                             <tr>
                                 <th>Horas de uso:</th>
-                                <td>{{ usedMachinery.hoursOfUse }} horas</td>
+                                <td>{{ machinery.hoursOfUse }} horas</td>
                             </tr>
                             <tr>
                                 <th>Último servicio:</th>
-                                <td>{{ usedMachinery.lastService|date('d/m/Y') }}</td>
+                                <td>{{ machinery.lastService ? machinery.lastService|date('d/m/Y') : 'N/A' }}</td>
                             </tr>
                         {% endif %}
                     </table>
                     
                     <div class="contact-section">
                         <h3>¿Interesado en esta maquinaria?</h3>
-                        <a href="https://wa.me/543436438263?text=Hola,%20estoy%20interesado%20en%20la%20maquinaria%20{{ usedMachinery.machineryName }}" class="contact-button" target="_blank">
+                        <a href="https://wa.me/543436438263?text=Hola,%20estoy%20interesado%20en%20la%20maquinaria%20{{ machinery.brand }}%20{{ machinery.model }}" 
+                           class="contact-button" 
+                           target="_blank">
                             <i class="fab fa-whatsapp"></i> Contactar vendedor
                         </a>
                     </div>
@@ -87,4 +119,73 @@
             </div>
         </div>
     </div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const imageGallery = document.querySelector('.image-gallery');
+    if (imageGallery) {
+        const images = Array.from(imageGallery.querySelectorAll('.detail-image'));
+        const prevButton = imageGallery.querySelector('.prev-image');
+        const nextButton = imageGallery.querySelector('.next-image');
+        let currentIndex = 0;
+
+        function initializeImages() {
+            images.forEach((img, index) => {
+                img.style.opacity = '0';
+                img.style.display = 'none';
+                img.classList.remove('active');
+            });
+            
+            images[0].style.opacity = '1';
+            images[0].style.display = 'block';
+            images[0].classList.add('active');
+        }
+
+        function showImage(index) {
+            images.forEach(img => {
+                img.style.opacity = '0';
+                setTimeout(() => {
+                    img.style.display = 'none';
+                    img.classList.remove('active');
+                }, 300);
+            });
+
+            setTimeout(() => {
+                images[index].style.display = 'block';
+                images[index].classList.add('active');
+                setTimeout(() => {
+                    images[index].style.opacity = '1';
+                }, 50);
+            }, 300);
+        }
+
+        initializeImages();
+
+        if (prevButton && nextButton && images.length > 1) {
+            prevButton.addEventListener('click', () => {
+                currentIndex = (currentIndex - 1 + images.length) % images.length;
+                showImage(currentIndex);
+            });
+
+            nextButton.addEventListener('click', () => {
+                currentIndex = (currentIndex + 1) % images.length;
+                showImage(currentIndex);
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowLeft') {
+                    currentIndex = (currentIndex - 1 + images.length) % images.length;
+                    showImage(currentIndex);
+                } else if (e.key === 'ArrowRight') {
+                    currentIndex = (currentIndex + 1) % images.length;
+                    showImage(currentIndex);
+                }
+            });
+        }
+    }
+});
+</script>
 {% endblock %}
