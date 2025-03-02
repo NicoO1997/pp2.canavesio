@@ -99,10 +99,6 @@ class UsedMachineryController extends AbstractController
                     $machinery->setManufacturingDate(null);
                 }
 
-                if ($machinery->getIsPriceOnRequest()) {
-                    $machinery->setPrice(null);
-                }
-
                 if (!in_array($machinery->getCategory(), ['sembradora', 'pulverizadora', 'tolva'])) {
                     $machinery->setLoadCapacity(null);
                 }

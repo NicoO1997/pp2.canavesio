@@ -69,16 +69,21 @@ Agregar Maquinaria
             {{ form_errors(form.location, {'attr': {'class': 'form-error'}}) }}
         </div>
 
-        <div class="form-group">
-            {{ form_label(form.isPriceOnRequest) }}
-            {{ form_widget(form.isPriceOnRequest) }}
-            {{ form_errors(form.isPriceOnRequest, {'attr': {'class': 'form-error'}}) }}
-        </div>
-
         <div class="form-group price-field">
             {{ form_label(form.price) }}
             {{ form_widget(form.price) }}
             {{ form_errors(form.price, {'attr': {'class': 'form-error'}}) }}
+        </div>
+
+        <div class="form-group taxpayer-type-field">
+            {{ form_label(form.taxpayerType) }}
+            {{ form_widget(form.taxpayerType) }}
+            {{ form_errors(form.taxpayerType, {'attr': {'class': 'form-error'}}) }}
+            <div id="pricePreview" class="price-preview" style="display: none;">
+                <p>Precio Base: <span id="basePrice">$0.00</span></p>
+                <p>IVA: <span id="ivaAmount">$0.00</span></p>
+                <p>Precio Final: <span id="finalPrice">$0.00</span></p>
+            </div>
         </div>
 
         <div class="form-group load-capacity-field">
@@ -133,19 +138,50 @@ Agregar Maquinaria
 document.addEventListener('DOMContentLoaded', function() {
     const isNewRadios = document.querySelectorAll('input[name="used_machinery[isNew]"]');
     const usedFieldsContainer = document.querySelector('.used-fields-container');
-    const isPriceOnRequestCheckbox = document.querySelector('input[name="used_machinery[isPriceOnRequest]"]');
     const priceField = document.querySelector('.price-field');
     const categorySelect = document.querySelector('select[name="used_machinery[category]"]');
     const loadCapacityField = document.querySelector('.load-capacity-field');
-    
-    function togglePriceField() {
-        if (isPriceOnRequestCheckbox.checked) {
-            priceField.style.display = 'none';
-            priceField.querySelector('input').value = '';
-            priceField.querySelector('input').removeAttribute('required');
+    const taxpayerSelect = document.querySelector('select[name="used_machinery[taxpayerType]"]');
+    const priceInput = document.querySelector('input[name="used_machinery[price]"]');
+    const pricePreview = document.getElementById('pricePreview');
+    const basePriceSpan = document.getElementById('basePrice');
+    const ivaAmountSpan = document.getElementById('ivaAmount');
+    const finalPriceSpan = document.getElementById('finalPrice');
+
+    function calculatePrices() {
+        if (priceInput.value) {
+            const basePrice = parseFloat(priceInput.value);
+            let ivaRate;
+            let ivaText;
+            
+            switch(taxpayerSelect.value) {
+                case 'responsable_inscripto':
+                    ivaRate = 0.21;
+                    ivaText = '21%';
+                    break;
+                case 'consumidor_final':
+                    ivaRate = 0.10;
+                    ivaText = '10%';
+                    break;
+                case 'monotributista':
+                case 'exento':
+                    ivaRate = 0;
+                    ivaText = '0%';
+                    break;
+                default:
+                    ivaRate = 0;
+                    ivaText = '0%';
+            }
+
+            const ivaAmount = basePrice * ivaRate;
+            const finalPrice = basePrice + ivaAmount;
+
+            pricePreview.style.display = 'block';
+            basePriceSpan.textContent = `$${basePrice.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            ivaAmountSpan.textContent = `$${ivaAmount.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} (${ivaText})`;
+            finalPriceSpan.textContent = `$${finalPrice.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
         } else {
-            priceField.style.display = 'block';
-            priceField.querySelector('input').setAttribute('required', 'required');
+            pricePreview.style.display = 'none';
         }
     }
 
@@ -162,7 +198,7 @@ document.addEventListener('DOMContentLoaded', function() {
             loadCapacityField.querySelector('input').value = '';
         }
     }
-    
+
     function toggleFields() {
         const selectedRadio = document.querySelector('input[name="used_machinery[isNew]"]:checked');
         if (selectedRadio) {
@@ -197,22 +233,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         toggleLoadCapacityField();
     }
-    
+
     const usedFields = usedFieldsContainer.querySelectorAll('input, select');
     usedFields.forEach(field => {
         if (field.hasAttribute('required')) {
             field.setAttribute('data-required', 'true');
         }
     });
-    
+
     isNewRadios.forEach(radio => {
         radio.addEventListener('change', toggleFields);
     });
     
-    isPriceOnRequestCheckbox.addEventListener('change', togglePriceField);
     categorySelect.addEventListener('change', toggleLoadCapacityField);
-    
-    // Manejo de múltiples archivos
+    taxpayerSelect.addEventListener('change', calculatePrices);
+    priceInput.addEventListener('input', calculatePrices);
+
     const fileInput = document.querySelector('input[type="file"]');
     if (fileInput) {
         fileInput.addEventListener('change', function() {
@@ -240,10 +276,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
+
     toggleFields();
-    togglePriceField();
     toggleLoadCapacityField();
+    calculatePrices();
 });
 </script>
 {% endblock %}

@@ -50,9 +50,6 @@ class UsedMachinery
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true)]
     private ?float $price = null;
 
-    #[ORM\Column(type: 'boolean')]
-    private bool $isPriceOnRequest = false;
-
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: "La categoría es obligatoria")]
     private ?string $category = null;
@@ -71,8 +68,35 @@ class UsedMachinery
     #[ORM\Column(type: 'boolean')]
     private bool $isNew = false;
 
-    #[ORM\Column(type: 'boolean')]
-    private bool $isEnabled = false;
+    #[ORM\Column(length: 50)]
+    #[Assert\NotBlank(message: "El tipo de contribuyente no puede estar vacío")]
+    private ?string $taxpayerType = null;
+
+    public function getTaxpayerType(): ?string
+    {
+        return $this->taxpayerType;
+    }
+
+    public function setTaxpayerType(string $taxpayerType): self
+    {
+        $this->taxpayerType = $taxpayerType;
+        return $this;
+    }
+
+    public function getPriceWithVAT(): ?float
+    {
+        if ($this->price === null) {
+            return null;
+        }
+    
+        $vatRate = match($this->taxpayerType) {
+            'responsable_inscripto' => 0.21,
+            'consumidor_final' => 0.10,
+            default => 0,
+        };
+    
+        return $this->price * (1 + $vatRate);
+    }
 
     public function getId(): ?int
     {
@@ -189,17 +213,6 @@ class UsedMachinery
         return $this;
     }
 
-    public function getIsPriceOnRequest(): bool
-    {
-        return $this->isPriceOnRequest;
-    }
-
-    public function setIsPriceOnRequest(bool $isPriceOnRequest): self
-    {
-        $this->isPriceOnRequest = $isPriceOnRequest;
-        return $this;
-    }
-
     public function getCategory(): ?string
     {
         return $this->category;
@@ -255,17 +268,6 @@ class UsedMachinery
     public function setIsNew(bool $isNew): self
     {
         $this->isNew = $isNew;
-        return $this;
-    }
-
-    public function getIsEnabled(): bool
-    {
-        return $this->isEnabled;
-    }
-
-    public function setIsEnabled(bool $isEnabled): self
-    {
-        $this->isEnabled = $isEnabled;
         return $this;
     }
 

@@ -4,7 +4,6 @@ namespace App\Form;
 
 use App\Entity\UsedMachinery;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
@@ -94,11 +93,6 @@ class UsedMachineryType extends AbstractType
                 'required' => true,
                 'attr' => ['class' => 'form-control']
             ])
-            ->add('isPriceOnRequest', CheckboxType::class, [
-                'label' => 'Precio a consultar',
-                'required' => false,
-                'attr' => ['class' => 'form-check-input']
-            ])
             ->add('price', MoneyType::class, [
                 'label' => 'Precio (USD)',
                 'currency' => 'USD',
@@ -107,6 +101,18 @@ class UsedMachineryType extends AbstractType
                 'constraints' => [
                     new Positive(['message' => 'El precio debe ser positivo'])
                 ]
+            ])
+            ->add('taxpayerType', ChoiceType::class, [
+                'label' => 'Tipo de Contribuyente',
+                'choices' => [
+                    'Responsable Inscripto (21%)' => 'responsable_inscripto',
+                    'Monotributista (0%)' => 'monotributista',
+                    'Exento en IVA (0%)' => 'exento',
+                    'Consumidor Final (10%)' => 'consumidor_final'
+                ],
+                'placeholder' => 'Seleccione el tipo de contribuyente',
+                'required' => true,
+                'attr' => ['class' => 'form-control']
             ])
             ->add('loadCapacity', NumberType::class, [
                 'label' => 'Capacidad de carga (kg)',
@@ -154,12 +160,7 @@ class UsedMachineryType extends AbstractType
                             ])
                         ]
                     ])
-                ],
-            ])
-            ->add('isEnabled', CheckboxType::class, [
-                'label' => 'Habilitar maquinaria',
-                'required' => false,
-                'attr' => ['class' => 'form-check-input']
+                ]
             ]);
     }
 
