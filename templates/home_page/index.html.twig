@@ -19,6 +19,7 @@
       {% if is_granted('ROLE_USUARIO') %}
         <a href="{{ path('cart_view') }}">Carrito</a>
         <a href="{{ path('favorite_list') }}">Favoritos</a>
+        <a href="{{ path('reservation_list') }}">Mis Reservas</a>
       {% endif %}
       
       {% if is_granted('ROLE_VENDEDOR') %}
@@ -26,6 +27,7 @@
       <a href="{{ path('app_view_used_machinery') }}">Ver Maquinarias</a>
       <a href="{{ path('app_category_new') }}">Agregar Categoría</a>
       <a href="{{ path('app_category_list') }}">Ver Categorías</a>
+      <a href="{{ path('reservation_list') }}">Gestionar Reservas</a>
       {% endif %}
       {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_VENDEDOR') %}
         <a href="{{ path('new_product') }}">Agregar Repuesto</a>
@@ -34,11 +36,39 @@
         <a href="{{ path('view_stock') }}">Gestionar Stock</a>
       {% endif %}
 
-       <a href="{{ path('app_logout') }}">Cerrar Sesión</a>
+      {% if is_granted('ROLE_INVITADO') %}
+          <a href="{{ path('app_logout') }}" onclick="return showGoodbyeMessage(event)" class="logout-link">Salir</a>
+      {% else %}
+          <a href="{{ path('app_logout') }}" class="logout-link">Cerrar Sesión</a>
+      {% endif %}
 
     </nav>
   </header>
 
+  {% if is_granted('ROLE_INVITADO') %}
+    <div class="announcement-banner guest">
+        <div class="announcement-content">
+            <i class="fas fa-info-circle"></i>
+            <div class="announcement-text">
+                <h3>Importante:</h3>
+                <p>Recuerde que debe estar registrado en el sistema para realizar reservas.</p>
+            </div>
+        </div>
+    </div>
+    {% elseif is_granted('ROLE_USUARIO') %}
+        <div class="announcement-banner user">
+            <div class="announcement-content">
+                <i class="fas fa-info-circle"></i>
+                <div class="announcement-text">
+                    <p>Para realizar consultas sobre repuestos, puede comunicarse al:</p>
+                    <div class="contact-info">
+                        <span><i class="fas fa-phone"></i> +54 3497 497233</span>
+                        <span><i class="fas fa-envelope"></i> VENDEDOR@canavesio.org.ar</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
   <div class="navegacion_barra" id="logoContainer">
     <img class="imagen_logo" src="{{ asset('images/66cf4982a8246.png') }}" alt="Logo Canavesio Hnos" width="400px" />
   </div>
@@ -51,6 +81,7 @@
       {% if is_granted('ROLE_USUARIO') %}
         <a href="{{ path('cart_view') }}">Carrito</a>
         <a href="{{ path('favorite_list') }}">Favoritos</a>
+        <a href="{{ path('reservation_list') }}">Mis Reservas</a>
       {% endif %}
       
       {% if is_granted('ROLE_VENDEDOR') %}
@@ -58,6 +89,7 @@
       <a href="{{ path('app_view_used_machinery') }}">Ver Maquinarias</a>
       <a href="{{ path('app_category_new') }}">Agregar Categoría</a>
       <a href="{{ path('app_category_list') }}">Ver Categorías</a>
+      <a href="{{ path('reservation_list') }}">Gestionar Reservas</a>
       {% endif %}
       {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_VENDEDOR') %}
         <a href="{{ path('new_product') }}">Agregar Repuesto</a>
@@ -66,7 +98,11 @@
         <a href="{{ path('view_stock') }}">Gestionar Stock</a>
       {% endif %}
 
-      <a href="{{ path('app_logout') }}">Cerrar Sesión</a>
+      {% if is_granted('ROLE_INVITADO') %}
+          <a href="{{ path('app_logout') }}" onclick="return showGoodbyeMessage(event)" class="logout-link">Salir</a>
+      {% else %}
+          <a href="{{ path('app_logout') }}" class="logout-link">Cerrar Sesión</a>
+      {% endif %}
     </nav>
   </div>
 
@@ -304,5 +340,40 @@
         });
       });
     });
+
+    function showGoodbyeMessage(event) {
+    event.preventDefault();
+    
+    const modalHtml = `
+        <div class="goodbye-modal">
+            <div class="goodbye-modal-content">
+                <div class="goodbye-icon">
+                    <i class="fas fa-hand-wave"></i>
+                </div>
+                <h2>¡Gracias por su visita!</h2>
+                <p>Esperamos que haya encontrado lo que buscaba.</p>
+                <p>Lo esperamos pronto nuevamente.</p>
+                <div class="goodbye-buttons">
+                    <button onclick="closeGoodbyeModal(false)" class="btn-secondary">Cancelar</button>
+                    <button onclick="closeGoodbyeModal(true)" class="btn-primary">Aceptar</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+      document.body.insertAdjacentHTML('beforeend', modalHtml);
+  }
+
+  function closeGoodbyeModal(shouldLogout) {
+      const modal = document.querySelector('.goodbye-modal');
+      modal.classList.add('fadeOut');
+      
+      setTimeout(() => {
+          modal.remove();
+          if (shouldLogout) {
+              window.location.href = "{{ path('app_logout') }}";
+          }
+      }, 300);
+  }
   </script>
 {% endblock %}

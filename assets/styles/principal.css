@@ -889,3 +889,191 @@ body {
     font-size: 1.4rem;
     font-weight: bold;
 }
+
+.announcement-banner {
+    width: 100%;
+    padding: 1rem 0;
+}
+
+.announcement-banner.guest {
+    background: linear-gradient(135deg, #ffd700 0%, #ffa500 100%);
+}
+
+.announcement-banner.user {
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+}
+
+.announcement-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.announcement-banner i.fa-info-circle {
+    font-size: 3rem;
+    color: white;
+}
+
+.announcement-text {
+    flex: 1;
+    color: white;
+}
+
+.announcement-text h3 {
+    font-size: 2rem;
+    margin: 0 0 1rem 0;
+    color: white;
+}
+
+.announcement-text p {
+    font-size: 1.6rem;
+    margin: 0 0 1rem 0;
+}
+
+.announcement-text .contact-info {
+    display: flex;
+    gap: 3rem;
+    flex-wrap: wrap;
+    font-size: 1.6rem;
+}
+
+.announcement-text .contact-info span {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+@media (max-width: 768px) {
+    .announcement-content {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .announcement-text .contact-info {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: center;
+    }
+}
+
+.announcement-banner {
+    animation: slideDown 0.5s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.goodbye-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.goodbye-modal-content {
+    background-color: white;
+    padding: 3rem;
+    border-radius: 10px;
+    text-align: center;
+    max-width: 400px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.goodbye-icon {
+    font-size: 4rem;
+    color: rgb(214, 113, 19);
+    margin-bottom: 2rem;
+}
+
+.goodbye-modal h2 {
+    color: #2c3e50;
+    font-size: 2.4rem;
+    margin-bottom: 1.5rem;
+}
+
+.goodbye-modal p {
+    color: #666;
+    font-size: 1.6rem;
+    margin-bottom: 1rem;
+}
+
+.goodbye-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.goodbye-buttons button {
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.4rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background-color: rgb(214, 113, 19);
+    color: white;
+}
+
+.btn-secondary {
+    background-color: #95a5a6;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: rgb(175, 99, 11);
+}
+
+.btn-secondary:hover {
+    background-color: #7f8c8d;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.fadeOut {
+    animation: fadeOut 0.3s ease-out forwards;
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+@media (max-width: 768px) {
+    .goodbye-modal-content {
+        margin: 2rem;
+        padding: 2rem;
+    }
+    
+    .goodbye-modal h2 {
+        font-size: 2rem;
+    }
+    
+    .goodbye-modal p {
+        font-size: 1.4rem;
+    }
+}

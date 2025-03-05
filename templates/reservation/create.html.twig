@@ -1,0 +1,304 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestión de Reservas{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/reservation.css') }}">
+{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1>Gestión de Reservas</h1>
+
+    <div class="mt-4 text-start">
+        <a href="{{ path('app_home_page') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="card-title mb-0">Crear Nueva Reserva</h5>
+        </div>
+        <div class="card-body">
+            <form action="{{ path('reservation_store') }}" method="POST" id="reservationForm">
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label for="user" class="form-label">Cliente</label>
+                        <select name="user" id="user" class="form-select" required>
+                            <option value="">Seleccione un cliente</option>
+                            {% for user in users %}
+                                <option value="{{ user.id }}">{{ user.email }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div id="productsContainer">
+                    <div class="product-row row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Repuesto</label>
+                            <select name="products[]" class="form-select product-select" required>
+                                <option value="">Seleccione un repuesto</option>
+                                {% for product in products %}
+                                    {% if product.isEnabled and product.quantity > 0 %}
+                                        <option value="{{ product.id }}" data-stock="{{ product.quantity }}">
+                                            {{ product.name }} (Stock: {{ product.quantity }})
+                                        </option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Cantidad</label>
+                            <div class="input-group">
+                                <input type="number" name="quantities[]" class="form-control quantity-input" min="1" required>
+                                <span class="input-group-text stock-display">Stock: -</span>
+                            </div>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="button" class="btn btn-danger btn-sm remove-product" style="display: none;">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <button type="button" id="addProduct" class="btn btn-success">
+                            <i class="fas fa-plus"></i> Agregar Otro Repuesto
+                        </button>
+                    </div>
+                </div>
+
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary">Realizar Reserva</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-info text-white">
+            <h5 class="card-title mb-0">Reservas Activas</h5>
+        </div>
+        <div class="card-body">
+            {% if reservations is empty %}
+                <div class="alert alert-info">No hay reservas activas.</div>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Repuestos</th>
+                                <th>Fecha de Reserva</th>
+                                <th>Expira</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for reservation in reservations %}
+                                <tr>
+                                    <td>{{ reservation.customer.email }}</td>
+                                    <td>
+                                        {{ reservation.product.name }} ({{ reservation.quantity }} unidades)
+                                    </td>
+                                    <td>{{ reservation.createdAt|date('Y-m-d H:i') }}</td>
+                                    <td>{{ reservation.expiresAt|date('Y-m-d H:i') }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ reservation.status == 'pending' ? 'warning' : 'danger' }}">
+                                            {{ reservation.status == 'pending' ? 'Pendiente' : 'Cancelada' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if reservation.status == 'pending' %}
+                                            <form action="{{ path('reservation_cancel', {'id': reservation.id}) }}" 
+                                                  method="POST" 
+                                                  class="d-inline" 
+                                                  onsubmit="return confirm('¿Estás seguro de que deseas cancelar esta reserva?');">
+                                                <button type="submit" class="btn btn-danger btn-sm">Cancelar</button>
+                                            </form>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+ document.addEventListener('DOMContentLoaded', function() {
+    const productsContainer = document.getElementById('productsContainer');
+    const addProductButton = document.getElementById('addProduct');
+    const template = productsContainer.querySelector('.product-row').cloneNode(true);
+
+    function updateAvailableOptions() {
+        const selectedProducts = new Map();
+        
+        productsContainer.querySelectorAll('.product-select').forEach(select => {
+            if (select.value) {
+                const selectedOption = select.options[select.selectedIndex];
+                selectedProducts.set(select.value, {
+                    text: selectedOption.text,
+                    stock: selectedOption.dataset.stock
+                });
+            }
+        });
+
+        productsContainer.querySelectorAll('.product-select').forEach(select => {
+            const currentValue = select.value;
+            
+            if (!select.dataset.originalOptions) {
+                select.dataset.originalOptions = select.innerHTML;
+            }
+            select.innerHTML = select.dataset.originalOptions;
+
+            if (currentValue) {
+                const productInfo = selectedProducts.get(currentValue);
+                Array.from(select.options).forEach(option => {
+                    if (option.value === currentValue) {
+                        option.selected = true;
+                    } else if (option.value && selectedProducts.has(option.value) && option.value !== currentValue) {
+                        option.remove();
+                    }
+                });
+            } else {
+                Array.from(select.options).forEach(option => {
+                    if (option.value && selectedProducts.has(option.value)) {
+                        option.remove();
+                    }
+                });
+            }
+        });
+    }
+
+    function updateStockDisplay(row) {
+        const select = row.querySelector('.product-select');
+        const quantityInput = row.querySelector('.quantity-input');
+        const stockDisplay = row.querySelector('.stock-display');
+        const selectedOption = select.options[select.selectedIndex];
+        
+        if (selectedOption && selectedOption.value) {
+            const stock = selectedOption.dataset.stock;
+            stockDisplay.textContent = `Stock: ${stock}`;
+            quantityInput.max = stock;
+        } else {
+            stockDisplay.textContent = 'Stock: -';
+            quantityInput.max = '';
+        }
+    }
+
+    function setupProductRow(row) {
+        const select = row.querySelector('.product-select');
+        const removeButton = row.querySelector('.remove-product');
+        
+        select.addEventListener('change', () => {
+            updateStockDisplay(row);
+            updateAvailableOptions();
+        });
+        
+        if (productsContainer.children.length > 1) {
+            removeButton.style.display = 'block';
+        }
+    }
+
+    setupProductRow(productsContainer.querySelector('.product-row'));
+
+    addProductButton.addEventListener('click', function() {
+        const firstSelect = productsContainer.querySelector('.product-select');
+        const availableOptions = Array.from(firstSelect.options).filter(opt => opt.value && !opt.selected).length;
+        
+        if (availableOptions === 0) {
+            alert('No hay más repuestos disponibles para agregar');
+            return;
+        }
+
+        const newRow = template.cloneNode(true);
+        const newSelect = newRow.querySelector('.product-select');
+        newSelect.selectedIndex = 0;
+        
+        const quantityInput = newRow.querySelector('.quantity-input');
+        quantityInput.value = '';
+        
+        const stockDisplay = newRow.querySelector('.stock-display');
+        stockDisplay.textContent = 'Stock: -';
+
+        productsContainer.appendChild(newRow);
+        setupProductRow(newRow);
+        updateAvailableOptions();
+
+        if (productsContainer.children.length > 1) {
+            productsContainer.querySelectorAll('.remove-product').forEach(button => {
+                button.style.display = 'block';
+            });
+        }
+    });
+
+    productsContainer.addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-product') || 
+            e.target.parentElement.classList.contains('remove-product')) {
+            const row = e.target.closest('.product-row');
+            row.remove();
+
+            if (productsContainer.children.length === 1) {
+                productsContainer.querySelector('.remove-product').style.display = 'none';
+            }
+
+            updateAvailableOptions();
+        }
+    });
+
+    document.getElementById('reservationForm').addEventListener('submit', function(e) {
+        let isValid = true;
+        const usedProducts = new Set();
+
+        productsContainer.querySelectorAll('.product-row').forEach(row => {
+            const select = row.querySelector('.product-select');
+            const quantity = row.querySelector('.quantity-input');
+            const stock = parseInt(select.options[select.selectedIndex]?.dataset.stock || 0);
+
+            if (!select.value) {
+                alert('Debes seleccionar un repuesto');
+                isValid = false;
+                return;
+            }
+
+            if (usedProducts.has(select.value)) {
+                alert('No puedes seleccionar el mismo repuesto más de una vez');
+                isValid = false;
+                return;
+            }
+            usedProducts.add(select.value);
+
+            if (!quantity.value || parseInt(quantity.value) <= 0) {
+                alert('La cantidad debe ser mayor a 0');
+                isValid = false;
+                return;
+            }
+
+            if (parseInt(quantity.value) > stock) {
+                alert('La cantidad solicitada supera el stock disponible');
+                isValid = false;
+                return;
+            }
+        });
+
+        if (!isValid) {
+            e.preventDefault();
+        }
+    });
+
+    updateAvailableOptions();
+});
+</script>
+{% endblock %}

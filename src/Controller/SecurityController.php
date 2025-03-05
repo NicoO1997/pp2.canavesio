@@ -30,7 +30,7 @@ public function loginAsGuest(
     UserPasswordHasherInterface $passwordHasher
 ): Response {
     if ($this->getUser()) {
-        return $this->redirectToRoute('product_list');
+        return $this->redirectToRoute('app_home_page');
     }
 
     try {
@@ -64,7 +64,7 @@ public function loginAsGuest(
         $event = new InteractiveLoginEvent($request, $token);
         $this->eventDispatcher->dispatch($event);
 
-        return $this->redirectToRoute('product_list');
+        return $this->redirectToRoute('app_home_page');
 
     } catch (\Exception $e) {
         $this->addFlash('error', 'Error al iniciar sesión como invitado');

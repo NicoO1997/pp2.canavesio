@@ -1,0 +1,139 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mis Reservas{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/list_reservation.css') }}">
+{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1>Mis Reservas</h1>
+
+    <div class="mt-4 text-start">
+        <a href="{{ path('app_home_page') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+
+    {% set activeReservations = reservations|filter(r => r.status == 'pending') %}
+
+    {% if activeReservations is empty %}
+        <div class="empty-state mt-5">
+            <div class="empty-state-icon">
+                <i class="fas fa-calendar-times"></i>
+            </div>
+            <h2 class="empty-state-title">No tienes reservas activas</h2>
+            <div class="empty-state-description">
+                <p>Para realizar reservas, puedes contactarnos a través de:</p>
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <i class="fas fa-phone"></i>
+                        <span>+54 3497 497233</span>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <a href="mailto:VENDEDOR@canavesio.org.ar">VENDEDOR@canavesio.org.ar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="table-responsive mt-4">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Repuesto</th>
+                        <th>Cantidad</th>
+                        <th>Precio Unitario</th>
+                        <th>Total</th>
+                        <th>Fecha de Reserva</th>
+                        <th>Expira</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reservation in activeReservations %}
+                        <tr>
+                            <td>{{ reservation.product.name }}</td>
+                            <td>{{ reservation.quantity }}</td>
+                            <td>${{ reservation.product.price|number_format(2, ',', '.') }}</td>
+                            <td>${{ (reservation.product.price * reservation.quantity)|number_format(2, ',', '.') }}</td>
+                            <td>{{ reservation.createdAt|date('Y-m-d H:i') }}</td>
+                            <td>{{ reservation.expiresAt|date('Y-m-d H:i') }}</td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <form action="{{ path('reservation_cancel', {'id': reservation.id}) }}" 
+                                          method="POST" 
+                                          class="d-inline" 
+                                          onsubmit="return confirm('¿Estás seguro de que deseas cancelar esta reserva?');">
+                                        <button type="submit" class="btn btn-danger btn-sm me-2">Cancelar</button>
+                                    </form>
+                                    <form action="{{ path('cart_add_reservation', {'id': reservation.id}) }}" 
+                                          method="POST" 
+                                          class="d-inline cart-form">
+                                        <button type="submit" class="btn btn-success btn-sm">
+                                            Agregar al Carrito
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</div>
+<div id="alertaCarrito" class="alerta"></div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const cartForms = document.querySelectorAll('.cart-form');
+    const alertaCarrito = document.getElementById('alertaCarrito');
+
+    cartForms.forEach(form => {
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log(data);
+                alertaCarrito.textContent = data.message;
+                alertaCarrito.style.display = 'block';
+                alertaCarrito.style.backgroundColor = data.success ? '#28a745' : '#dc3545';
+
+                setTimeout(() => {
+                    alertaCarrito.style.display = 'none';
+                }, 4000);
+
+                if (data.success) {
+                    location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alertaCarrito.textContent = 'Ocurrió un error inesperado.';
+                alertaCarrito.style.display = 'block';
+                alertaCarrito.style.backgroundColor = '#dc3545';
+            });
+        });
+    });
+});
+</script>
+{% endblock %}
