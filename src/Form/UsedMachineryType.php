@@ -3,6 +3,7 @@
 namespace App\Form;
 
 use App\Entity\UsedMachinery;
+use App\Entity\Category;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
@@ -18,11 +19,25 @@ use Symfony\Component\Validator\Constraints\File;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Positive;
 use Symfony\Component\Validator\Constraints\All;
+use Doctrine\ORM\EntityManagerInterface;
 
 class UsedMachineryType extends AbstractType
 {
+    private $entityManager;
+
+    public function __construct(EntityManagerInterface $entityManager)
+    {
+        $this->entityManager = $entityManager;
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $categories = $this->entityManager->getRepository(Category::class)->findAll();
+        $categoryChoices = [];
+        foreach ($categories as $category) {
+            $categoryChoices[$category->getName()] = $category->getCode();
+        }
+
         $builder
             ->add('isNew', ChoiceType::class, [
                 'label' => 'Estado',
@@ -37,14 +52,7 @@ class UsedMachineryType extends AbstractType
             ])
             ->add('category', ChoiceType::class, [
                 'label' => 'Categoría',
-                'choices' => [
-                    'Tractor' => 'tractor',
-                    'Cosechadora' => 'cosechadora',
-                    'Sembradora' => 'sembradora',
-                    'Pulverizadora' => 'pulverizadora',
-                    'Tolva' => 'tolva',
-                    'Otro' => 'otro'
-                ],
+                'choices' => $categoryChoices,
                 'placeholder' => 'Seleccione una categoría',
                 'required' => true,
                 'attr' => ['class' => 'form-control']
@@ -120,7 +128,10 @@ class UsedMachineryType extends AbstractType
                 'scale' => 2,
                 'attr' => ['class' => 'form-control'],
                 'constraints' => [
-                    new Positive(['message' => 'La capacidad de carga debe ser positiva'])
+                    new Positive([
+                        'message' => 'La capacidad de carga debe ser positiva',
+                        'groups' => ['Default']
+                    ])
                 ]
             ])
             ->add('manufacturingDate', DateType::class, [

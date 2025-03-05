@@ -1,8 +1,83 @@
 {% extends 'base.html.twig' %}
 
 {% block stylesheets %}
+  {{ parent() }}
   <link href="{{ asset('styles/listaproductos.css') }}" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Krub:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    .filtros-container {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      z-index: 1000;
+      position: relative;
+    }
+
+    .filtros-form {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .filtro-grupo {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .filtro-select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background-color: white;
+      font-family: 'Krub', sans-serif;
+    }
+
+    .filtro-btn {
+      padding: 8px 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      font-family: 'Krub', sans-serif;
+      font-weight: 600;
+    }
+
+    .filtro-btn:hover {
+      background-color: #45a049;
+    }
+
+    .limpiar-filtros {
+      padding: 8px 16px;
+      background-color: #f44336;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      font-family: 'Krub', sans-serif;
+      font-weight: 600;
+    }
+
+    .limpiar-filtros:hover {
+      background-color: #da190b;
+    }
+
+    .filtros-titulo {
+      text-align: center;
+      margin-bottom: 15px;
+      font-family: 'Krub', sans-serif;
+      font-weight: 600;
+      color: #333;
+    }
+  </style>
 {% endblock %}
 
 {% block title %}
@@ -11,7 +86,7 @@
 
 {% block body %}
   <button class="volver-btn" onclick="location.href='{{ path('app_home_page') }}'">Volver</button>
-  
+
   <div class="nuevas-maquinarias">
     <div style="text-align: center;">
       <h2 class="productos-titulo">Nuevas Maquinarias</h2>
@@ -48,6 +123,32 @@
     <h1 class="productos-titulo">Nuestros Productos</h1>
   </div>
 
+  {# Sección de filtros #}
+  <div class="filtros-container">
+    <h3 class="filtros-titulo">Filtrar Repuestos</h3>
+    <form class="filtros-form" method="get" action="{{ path('product_list') }}">
+        <div class="filtro-grupo">
+            <select name="partType" class="filtro-select" id="partType-select">
+                <option value="">Seleccionar Tipo de Repuesto</option>
+                {% for type, brands in sparePartsBrands %}
+                    <option value="{{ type }}" {% if app.request.query.get('partType') == type %}selected{% endif %}>
+                        {{ type|replace({'_': ' '})|title }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="filtro-grupo">
+            <select name="brand" class="filtro-select" id="brand-select">
+                <option value="">Seleccionar Marca</option>
+            </select>
+        </div>
+
+        <button type="submit" class="filtro-btn">Aplicar Filtros</button>
+        <button type="button" class="limpiar-filtros" onclick="limpiarFiltros()">Limpiar Filtros</button>
+    </form>
+</div>
+
   <div class="productos-grid">
     {% for product in products %}
       {% set i = loop.index %}
@@ -55,7 +156,9 @@
         <a href="{{ path('product_detail', { id: product.id }) }}" class="producto-link">
           <div class="producto-imagen">
             {% if product.image %}
-              <img src="data:image/jpeg;base64,{{ product.image }}" alt="{{ product.name }}" />
+              <img src="{{ asset('assets/imagenes/' ~ product.image) }}" alt="{{ product.name }}" class="product-image">
+            {% else %}
+              <img src="{{ asset('assets/imagenes/no-image.png') }}" alt="No image available" class="product-image">
             {% endif %}
           </div>
           <div class="producto-info">
@@ -68,6 +171,48 @@
       </div>
     {% endfor %}
   </div>
+
   <div class="imagen-fondo imagen--maquina1"></div>
   <div class="imagen-fondo imagen--maquina2"></div>
+{% endblock %}
+
+{% block javascripts %}
+  {{ parent() }}
+   <script>
+        const sparePartsBrands = {{ sparePartsBrands|json_encode|raw }};
+        
+        function updateBrands() {
+            const partType = document.getElementById('partType-select').value;
+            const brandSelect = document.getElementById('brand-select');
+            brandSelect.innerHTML = '<option value="">Seleccionar Marca</option>';
+            
+            if (partType && sparePartsBrands[partType]) {
+                sparePartsBrands[partType].forEach(brand => {
+                    const option = document.createElement('option');
+                    option.value = brand;
+                    option.textContent = brand;
+                    if (brand === '{{ app.request.query.get('brand') }}') {
+                        option.selected = true;
+                    }
+                    brandSelect.appendChild(option);
+                });
+            }
+        }
+
+        function limpiarFiltros() {
+            document.getElementById('partType-select').value = '';
+            document.getElementById('brand-select').innerHTML = '<option value="">Seleccionar Marca</option>';
+            window.location.href = '{{ path('product_list') }}';
+        }
+
+        // Event Listeners
+        document.getElementById('partType-select').addEventListener('change', updateBrands);
+
+        // Mantener los filtros seleccionados después de recargar la página
+        window.addEventListener('load', () => {
+            if (document.getElementById('partType-select').value) {
+                updateBrands();
+            }
+        });
+    </script>
 {% endblock %}

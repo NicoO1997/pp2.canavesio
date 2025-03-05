@@ -1,0 +1,44 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nueva Categoría{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/category.css') }}">
+{% endblock %}
+
+{% block body %}
+    <div class="category-container fade-in">
+        <h1 class="category-title">Nueva Categoría</h1>
+
+        {% for message in app.flashes('error') %}
+            <div class="alert alert-error">
+                {{ message }}
+            </div>  
+        {% endfor %}
+
+        <div class="category-form">
+            {{ form_start(form) }}
+                <div class="form-group">
+                    {{ form_label(form.name) }}
+                    {{ form_widget(form.name) }}
+                    {{ form_errors(form.name) }}
+                </div>
+
+                <div class="form-group">
+                    {{ form_label(form.code) }}
+                    {{ form_widget(form.code) }}
+                    {{ form_errors(form.code) }}
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-save"></i> Guardar
+                </button>
+            {{ form_end(form) }}
+
+            <a href="{{ path('app_category_list') }}" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Volver al listado
+            </a>
+        </div>
+    </div>
+{% endblock %}

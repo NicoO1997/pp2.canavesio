@@ -14,6 +14,8 @@ class CartProductOrder
     #[ORM\Column]
     private ?int $id = null;
 
+    
+
     #[ORM\Column]
     private ?int $quantity = null;
 
@@ -31,7 +33,7 @@ class CartProductOrder
     #[ORM\JoinColumn(nullable: true)]
     private ?Order $orders = null;
 
-    #[ORM\ManyToOne(inversedBy: 'cartProductOrder')]
+    #[ORM\ManyToOne(targetEntity: Product::class, inversedBy: 'cartProductOrder')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Product $product = null;
 

@@ -1,0 +1,12 @@
+{% if product.image %}
+    {% set imageData = product.image|json_decode %}
+    {% if imageData.content is defined %}
+        <img src="data:{{ imageData.type }};base64,{{ imageData.content }}" 
+             alt="{{ imageData.name }}" 
+             class="product-image">
+    {% endif %}
+{% else %}
+    <img src="{{ asset('assets/imagenes/no-image.png') }}" 
+         alt="No image available" 
+         class="product-image">
+{% endif %}

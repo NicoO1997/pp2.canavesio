@@ -462,3 +462,49 @@ tr.low-stock:hover {
     display: flex;
     justify-content: center;
 }
+.stock-table {
+    font-size: 14px;  /* Reducir el tamaño de fuente para acomodar más columnas */
+}
+
+.stock-table td {
+    max-width: 200px;  /* Limitar el ancho máximo de las celdas */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Para mostrar el contenido completo al hacer hover */
+.stock-table td:hover {
+    white-space: normal;
+    overflow: visible;
+    position: relative;
+    z-index: 1;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+/* Ajustar el ancho mínimo de la tabla para scroll horizontal */
+@media (max-width: 1600px) {
+    .stock-table {
+        min-width: 1800px;  /* Aumentar para acomodar todas las columnas */
+    }
+}
+
+/* Estilo para campos específicos */
+.editable-cell[data-field="description"],
+.editable-cell[data-field="compatibleModels"],
+.editable-cell[data-field="installationRequirements"] {
+    min-width: 200px;
+    max-width: 300px;
+}
+
+.editable-cell[data-field="dimensions"],
+.editable-cell[data-field="material"],
+.editable-cell[data-field="mountingType"] {
+    min-width: 120px;
+}
+
+.editable-cell[data-field="weight"],
+.editable-cell[data-field="estimatedLifeHours"] {
+    min-width: 100px;
+}

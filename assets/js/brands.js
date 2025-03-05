@@ -1,0 +1,22 @@
+let machineryBrands = [
+    'John Deere',
+    'Case IH',
+    'New Holland',
+    'Massey Ferguson',
+    'Claas',
+    'Deutz-Fahr',
+    'Fendt',
+    'Valtra',
+    'Kubota',
+    'McCormick',
+    'Challenger',
+    'Steyr',
+    'Same',
+    'Landini',
+    'Lamborghini',
+    'Zetor',
+    'Versatile',
+    'Belarus',
+    'Ursus',
+    'Mahindra'
+];

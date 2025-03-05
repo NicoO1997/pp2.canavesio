@@ -1,0 +1,241 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Categorías{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/category.css') }}">
+{% endblock %}
+
+{% block body %}
+    <div class="category-container fade-in">
+        <h1 class="category-title">Categorías</h1>
+        
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        {% for message in app.flashes('error') %}
+            <div class="alert alert-error">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        {% if is_granted('ROLE_VENDEDOR') %}
+            <a href="{{ path('app_category_new') }}" class="btn-new-category">
+                <i class="fas fa-plus"></i> Nueva Categoría
+            </a>
+        {% endif %}
+
+        {% if categories is empty %}
+            <div class="no-categories">
+                <p>No hay categorías disponibles</p>
+            </div>
+        {% else %}
+            <table class="category-table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Código</th>
+                        {% if is_granted('ROLE_VENDEDOR') %}
+                            <th>Acciones</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for category in categories %}
+                        <tr data-id="{{ category.id }}">
+                            <td>
+                                <span class="category-text">{{ category.name }}</span>
+                                <input type="text" class="category-input hidden" value="{{ category.name }}" data-field="name">
+                                <div class="error-message" id="name-error-{{ category.id }}"></div>
+                            </td>
+                            <td>
+                                <span class="category-text">{{ category.code }}</span>
+                                <input type="text" class="category-input hidden" value="{{ category.code }}" data-field="code">
+                                <div class="error-message" id="code-error-{{ category.id }}"></div>
+                            </td>
+                            {% if is_granted('ROLE_VENDEDOR') %}
+                                <td class="actions">
+                                    <button class="btn-edit" onclick="toggleEdit(this)" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn-save hidden" onclick="saveChanges(this)" title="Guardar">
+                                        <i class="fas fa-save"></i>
+                                    </button>
+                                    <button class="btn-delete" onclick="deleteCategory({{ category.id }})" title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        const updateUrl = "{{ url('app_category_update', {'id': 'ID_PLACEHOLDER'}) }}";
+        const deleteUrl = "{{ url('app_category_delete', {'id': 'ID_PLACEHOLDER'}) }}";
+        
+        function toggleEdit(button) {
+            const row = button.closest('tr');
+            const inputs = row.querySelectorAll('.category-input');
+            const texts = row.querySelectorAll('.category-text');
+            const saveButton = row.querySelector('.btn-save');
+            const editButton = row.querySelector('.btn-edit');
+            const errorMessages = row.querySelectorAll('.error-message');
+    
+            errorMessages.forEach(msg => msg.textContent = '');
+
+            inputs.forEach(input => input.classList.toggle('hidden'));
+            texts.forEach(text => text.classList.toggle('hidden'));
+            saveButton.classList.toggle('hidden');
+            editButton.classList.toggle('hidden');
+        }
+
+        function validateInputs(row) {
+            const inputs = row.querySelectorAll('.category-input');
+            const categoryId = row.dataset.id;
+            let isValid = true;
+
+            if (!inputs[0].value.trim()) {
+                document.getElementById(`name-error-${categoryId}`).textContent = 'El nombre no puede estar vacío';
+                inputs[0].classList.add('input-error');
+                isValid = false;
+            } else {
+                document.getElementById(`name-error-${categoryId}`).textContent = '';
+                inputs[0].classList.remove('input-error');
+            }
+
+            if (!inputs[1].value.trim()) {
+                document.getElementById(`code-error-${categoryId}`).textContent = 'El código no puede estar vacío';
+                inputs[1].classList.add('input-error');
+                isValid = false;
+            } else {
+                document.getElementById(`code-error-${categoryId}`).textContent = '';
+                inputs[1].classList.remove('input-error');
+            }
+
+            return isValid;
+        }
+
+        async function saveChanges(button) {
+            const row = button.closest('tr');
+            const categoryId = row.dataset.id;
+            const inputs = row.querySelectorAll('.category-input');
+            
+            if (!validateInputs(row)) {
+                return;
+            }
+            
+            const data = {
+                name: inputs[0].value.trim(),
+                code: inputs[1].value.trim()
+            };
+
+            try {
+                const url = updateUrl.replace('ID_PLACEHOLDER', categoryId);
+                console.log('Trying to fetch URL:', url);
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Error response:', errorText);
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    const texts = row.querySelectorAll('.category-text');
+                    texts[0].textContent = inputs[0].value;
+                    texts[1].textContent = inputs[1].value;
+                    toggleEdit(button);
+                    showAlert('success', result.message || 'Categoría actualizada con éxito');
+                } else {
+                    if (result.errors) {
+                        if (result.errors.name) {
+                            document.getElementById(`name-error-${categoryId}`).textContent = result.errors.name;
+                            inputs[0].classList.add('input-error');
+                        }
+                        if (result.errors.code) {
+                            document.getElementById(`code-error-${categoryId}`).textContent = result.errors.code;
+                            inputs[1].classList.add('input-error');
+                        }
+                    } else {
+                        throw new Error(result.message || 'Error al actualizar la categoría');
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('error', error.message || 'Error al actualizar la categoría');
+            }
+        }
+
+        async function deleteCategory(categoryId) {
+            if (!confirm('¿Estás seguro que deseas eliminar esta categoría?')) {
+                return;
+            }
+
+            try {
+                const url = deleteUrl.replace('ID_PLACEHOLDER', categoryId);
+                console.log('Trying to fetch URL:', url);
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Error response:', errorText);
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    const row = document.querySelector(`tr[data-id="${categoryId}"]`);
+                    row.remove();
+                    showAlert('success', result.message || 'Categoría eliminada con éxito');
+                } else {
+                    throw new Error(result.message || 'Error al eliminar la categoría');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('error', error.message || 'Error al eliminar la categoría');
+            }
+        }
+
+        function showAlert(type, message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} fade-in`;
+            alertDiv.textContent = message;
+            
+            const container = document.querySelector('.category-container');
+            container.insertBefore(alertDiv, container.firstChild);
+            
+            setTimeout(() => alertDiv.remove(), 3000);
+        }
+    </script>
+{% endblock %}

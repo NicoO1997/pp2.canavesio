@@ -1,366 +1,689 @@
 {% extends 'base.html.twig' %}
 
 {% block stylesheets %}
-    <link href="{{ asset('styles/new_product.css') }}" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+	<link href="{{ asset('styles/new_product.css') }}" rel="stylesheet"/>
+	<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+	<style>
+		.form-section {
+			background: #f8f9fa;
+			padding: 20px;
+			margin-bottom: 20px;
+			border-radius: 8px;
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+		}
+
+		.form-section-title {
+			color: #2c3e50;
+			margin-bottom: 15px;
+			padding-bottom: 10px;
+			border-bottom: 2px solid #e9ecef;
+		}
+
+		.form-row {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 20px;
+			margin-bottom: 15px;
+		}
+
+		.form-group {
+			flex: 1;
+			min-width: 250px;
+		}
+
+		.required:after {
+			content: " *";
+			color: #dc3545;
+		}
+
+		.help-text {
+			font-size: 0.875rem;
+			color: #6c757d;
+			margin-top: 5px;
+		}
+
+		.dimensions-input {
+			letter-spacing: 0.5px;
+		}
+		.dimensions-input::placeholder {
+			opacity: 0.6;
+		}
+	</style>
 {% endblock %}
 
 {% block title %}
-    Agregar Repuesto
+	Agregar Repuesto
 {% endblock %}
 
 {% block body %}
-    <div class="form-container">
-        <h1 class="form-title">Agregar Repuesto</h1>
+	<div class="form-container">
+		<h1 class="form-title">Agregar Repuesto</h1>
 
-        {{ form_start(form, {'attr': {'class': 'product-form'}}) }}
-            
-        <div class="form-flex-container">
-            <div class="form-column">
-                <div class="form-group">
-                    <div class="input-wrapper">
-                        {{ form_label(form.name, 'Nombre', {'label_attr': {'class': 'form-label required'}}) }}
-                        {{ form_widget(form.name, {'attr': {'class': 'form-control', 'placeholder': 'Ingrese el nombre del producto'}}) }}
-                        {{ form_errors(form.name, {'attr': {'class': 'form-error'}}) }}
-                    </div>
-                </div>
+		{{ form_start(form, {'attr': {'class': 'product-form'}}) }}
 
-                <div class="form-group">
-                    <div class="input-wrapper">
-                        {{ form_label(form.quantity, 'Cantidad', {'label_attr': {'class': 'form-label required'}}) }}
-                        {{ form_widget(form.quantity, {'attr': {'class': 'form-control', 'placeholder': 'Ingrese la cantidad'}}) }}
-                        {{ form_errors(form.quantity, {'attr': {'class': 'form-error'}}) }}
-                    </div>
-                </div>
+		{# Sección 1: Identificación del Repuesto #}
+		<div class="form-section">
+			<h3 class="form-section-title">Identificación del Repuesto</h3>
+			<div class="form-row">
+				<div class="form-group">
+					<div class="input-wrapper">
+						{{ form_label(form.name, 'Nombre del repuesto', {'label_attr': {'class': 'form-label required'}}) }}
+						{{ form_widget(form.name) }}
+						{{ form_errors(form.name) }}
+						<small class="help-text">Ejemplo: Filtro de aire, Cuchilla, Disco de siembra</small>
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="input-wrapper">
+						{{ form_label(form.partNumber, 'Código de parte', {'label_attr': {'class': 'form-label required'}}) }}
+						{{ form_widget(form.partNumber) }}
+						{{ form_errors(form.partNumber) }}
+						<small class="help-text">Código único del fabricante</small>
+					</div>
+				</div>
+			</div>
+			<div class="form-row">
+				<div class="form-group">
+					<div class="input-wrapper">
+						{{ form_label(form.brand, 'Marca', {'label_attr': {'class': 'form-label required'}}) }}
+						{{ form_widget(form.brand) }}
+						{{ form_errors(form.brand) }}
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="input-wrapper">
+					{{ form_label(form.partType, 'Tipo de repuesto', {'label_attr': {'class': 'form-label'}}) }}
+					{{ form_widget(form.partType) }}
+					{{ form_errors(form.partType) }}
+				</div>
+			</div>
+		</div>
 
-                {% if is_granted('ROLE_VENDEDOR') %}
-                <div class="form-group">
-                    <div class="input-wrapper">
-                        {{ form_label(form.price, 'Precio', {'label_attr': {'class': 'form-label required'}}) }}
-                        {{ form_widget(form.price, {'attr': {'class': 'form-control', 'placeholder': 'Ingrese el precio'}}) }}
-                        {{ form_errors(form.price, {'attr': {'class': 'form-error'}}) }}
-                    </div>
-                </div>
-                {% else %}
-                    {{ form_widget(form.price, {'attr': {'class': 'd-none', 'value': 0}}) }}
-                {% endif %}
-                
-                {% if is_granted('ROLE_GESTORSTOCK') and form.minStock is defined %}
-                    <div class="form-group">
-                        <div class="input-wrapper">
-                            {{ form_label(form.minStock, 'Stock Mínimo', {'label_attr': {'class': 'form-label required'}}) }}
-                            {{ form_widget(form.minStock, {'attr': {'class': 'form-control', 'placeholder': 'Ingrese el stock mínimo'}}) }}
-                            {{ form_errors(form.minStock, {'attr': {'class': 'form-error'}}) }}
-                        </div>
-                    </div>
-                {% elseif form.minStock is defined %}
-                    {{ form_widget(form.minStock, {'attr': {'class': 'd-none', 'value': 0}}) }}
-                {% endif %}
-            </div>
-            
-            <div class="form-column">
-                <div class="form-group">
-                    <div class="input-wrapper">
-                        {{ form_label(form.brand, 'Marca', {'label_attr': {'class': 'form-label required'}}) }}
-                        {{ form_widget(form.brand, {'attr': {'class': 'form-control', 'placeholder': 'Ingrese la marca'}}) }}
-                        {{ form_errors(form.brand, {'attr': {'class': 'form-error'}}) }}
-                    </div>
-                </div>
+		{# Sección 2: Dimensiones y Materiales #}
+		<div class="form-section">
+			<h3 class="form-section-title">Dimensiones y Materiales</h3>
+			<div class="form-row">
+				<div class="form-group">
+					<div class="input-wrapper">
+						{{ form_label(form.dimensions, 'Dimensiones', {'label_attr': {'class': 'form-label'}}) }}
+						{{ form_widget(form.dimensions) }}
+						{{ form_errors(form.dimensions) }}
+						<small class="help-text">Formato: Largo x Ancho x Alto (mm)</small>
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="input-wrapper">
+						{{ form_label(form.material, 'Material') }}
+						{{ form_widget(form.material) }}
+						{{ form_errors(form.material) }}
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="input-wrapper">
+						{{ form_label(form.weight, 'Peso (kg)', {'label_attr': {'class': 'form-label'}}) }}
+						{{ form_widget(form.weight) }}
+						{{ form_errors(form.weight) }}
+					</div>
+				</div>
+			</div>
+		</div>
 
-                <div class="form-group">
-                    <div class="input-wrapper">
-                        {{ form_label(form.image, 'Imagen', {'label_attr': {'class': 'form-label required'}}) }}
-                        <div class="file-upload-wrapper">
-                            {{ form_widget(form.image, {'attr': {'class': 'form-control-file', 'data-text': 'Seleccionar imagen'}}) }}
-                            <span class="file-upload-info">Formatos permitidos: JPG, PNG, GIF</span>
-                        </div>
-                        {{ form_errors(form.image, {'attr': {'class': 'form-error'}}) }}
-                    </div>
-                </div>
+		{# Sección 3: Características Mecánicas #}
+		<div class="form-section">
+			<h3 class="form-section-title">Características Mecánicas</h3>
+			<div class="form-row">
+				<div class="form-group">
+					<div class="input-wrapper">
+						{{ form_label(form.loadCapacity, 'Resistencia a la carga', {'label_attr': {'class': 'form-label'}}) }}
+						{{ form_widget(form.loadCapacity) }}
+						{{ form_errors(form.loadCapacity) }}
+						<small class="help-text">Especifique la capacidad de carga o presión soportada</small>
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="input-wrapper">
+						{{ form_label(form.estimatedLifeHours, 'Vida útil (horas)', {'label_attr': {'class': 'form-label'}}) }}
+						{{ form_widget(form.estimatedLifeHours) }}
+						{{ form_errors(form.estimatedLifeHours) }}
+						<small class="help-text">Horas de uso estimadas antes del reemplazo</small>
+					</div>
+				</div>
+			</div>
+		</div>
 
-                <div class="form-group description-group">
-                    <div class="input-wrapper">
-                        {{ form_label(form.description, 'Descripción', {'label_attr': {'class': 'form-label required'}}) }}
-                        {{ form_widget(form.description, {'attr': {'class': 'form-control', 'placeholder': 'Ingrese la descripción del producto', 'rows': '3'}}) }}
-                        {{ form_errors(form.description, {'attr': {'class': 'form-error'}}) }}
-                    </div>
-                </div>
+		{# Sección 4: Compatibilidad y Montaje #}
+		<div class="form-section">
+			<h3 class="form-section-title">Compatibilidad y Montaje</h3>
+			<div class="form-row">
+				<div class="form-group">
+					<div class="input-wrapper">
+						{{ form_label(form.installationRequirements, 'Requisitos de instalación', {'label_attr': {'class': 'form-label'}}) }}
+						{{ form_widget(form.installationRequirements) }}
+						{{ form_errors(form.installationRequirements) }}
+						<small class="help-text">Herramientas necesarias y procedimientos especiales</small>
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="input-wrapper">
+						{{ form_label(form.compatibleModels, 'Modelos compatibles', {'label_attr': {'class': 'form-label required'}}) }}
+						{{ form_widget(form.compatibleModels) }}
+						{{ form_errors(form.compatibleModels) }}
+						<small class="help-text">Liste todos los modelos de máquinas compatibles</small>
+					</div>
+				</div>
+			</div>
+		</div>
 
-                <div class="status-container" {% if is_granted('ROLE_GESTORSTOCK') %}style="display: none;"{% endif %}>
-                    <label class="switch-label required">Estado del Producto</label>
-                    <div class="status-toggle">
-                        <label class="switch">
-                            {{ form_widget(form.isEnabled, {
-                                'attr': {
-                                    'checked': false,
-                                    'disabled': is_granted('ROLE_GESTORSTOCK') ? true : false
-                                }
-                            }) }}
-                            <span class="slider"></span>
-                        </label>
-                        <span class="status-text" id="statusText">Deshabilitado</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+		{# Sección 5: Información de Stock y Precio #}
+		<div class="form-section">
+			<h3 class="form-section-title">Información de Stock y Precio</h3>
+			<div class="form-row">
+				<div class="form-group">
+					<div class="input-wrapper">
+						{{ form_label(form.quantity, 'Cantidad en stock', {'label_attr': {'class': 'form-label required'}}) }}
+						{{ form_widget(form.quantity) }}
+						{{ form_errors(form.quantity) }}
+					</div>
+				</div>
+				{% if is_granted('ROLE_VENDEDOR') %}
+					<div class="form-group">
+						<div class="input-wrapper">
+							{{ form_label(form.price, 'Precio', {'label_attr': {'class': 'form-label required'}}) }}
+							{{ form_widget(form.price) }}
+							{{ form_errors(form.price) }}
+						</div>
+					</div>
+				{% else %}
+					{{ form_widget(form.price, {'attr': {'class': 'd-none', 'value': 0}}) }}
+				{% endif %}
 
-        <div class="form-actions">
-            <button type="submit" class="btn-submit">
-                <span class="btn-text">Guardar Producto</span>
-            </button>
-            <a href="{{ path('app_home_page') }}" class="btn-cancel">Volver</a>
-        </div>
+				{% if is_granted('ROLE_GESTORSTOCK') and form.minStock is defined %}
+					<div class="form-group">
+						<div class="input-wrapper">
+							{{ form_label(form.minStock, 'Stock Mínimo', {'label_attr': {'class': 'form-label required'}}) }}
+							{{ form_widget(form.minStock) }}
+							{{ form_errors(form.minStock) }}
+						</div>
+					</div>
+				{% elseif form.minStock is defined %}
+					{{ form_widget(form.minStock, {'attr': {'class': 'd-none', 'value': 0}}) }}
+				{% endif %}
+			</div>
+		</div>
 
-        <input type="hidden" name="redirect_to" value="view_stock">
+		{# Sección 6: Descripción e Imagen #}
+		<div class="form-section">
+			<h3 class="form-section-title">Descripción e Imagen</h3>
+			<div class="form-row">
+				<div class="form-group">
+					<div class="input-wrapper">
+						{{ form_label(form.description, 'Descripción general', {'label_attr': {'class': 'form-label required'}}) }}
+						{{ form_widget(form.description) }}
+						{{ form_errors(form.description) }}
+					</div>
+				</div>
+			</div>
+			<div class="form-row">
+				<div class="form-group">
+					<div class="input-wrapper">
+						{{ form_label(form.image, 'Imagen del repuesto', {'label_attr': {'class': 'form-label required'}}) }}
+						<div class="file-upload-wrapper">
+							{{ form_widget(form.image, {'attr': {'class': 'form-control-file', 'data-text': 'Seleccionar imagen'}}) }}
+							<span class="file-upload-info">Formatos permitidos: JPG, PNG, GIF</span>
+						</div>
+						{{ form_errors(form.image) }}
+					</div>
+				</div>
+			</div>
+		</div>
 
-        {{ form_end(form) }}
-    </div>
+		{# Estado del producto #}
+		<div class="form-section">
+			<div class="status-container" {% if is_granted('ROLE_GESTORSTOCK') %} style="display: none;" {% endif %}>
+				<label class="switch-label required">Estado del Producto</label>
+				<div class="status-toggle">
+					<label class="switch">
+						{{ form_widget(form.isEnabled, {
+                            'attr': {
+                                'checked': false,
+                                'disabled': is_granted('ROLE_GESTORSTOCK') ? true : false
+                            }
+                        }) }}
+						<span class="slider"></span>
+					</label>
+					<span class="status-text" id="statusText">Deshabilitado</span>
+				</div>
+			</div>
+		</div>
 
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.querySelector('.product-form');
-        const inputs = form.querySelectorAll('.form-control:not(.d-none), .form-control-file, textarea');
-        const toggleSwitch = document.querySelector('input[type="checkbox"]');
-        const statusText = document.getElementById('statusText');
-        const fileInput = document.querySelector('.form-control-file');
-        const fileInfo = document.querySelector('.file-upload-info');
-        const submitButton = document.querySelector('.btn-submit');
-        const userRole = "{{ app.user.roles[0] }}";
-        
-        if (userRole === "ROLE_GESTORSTOCK") {
-            const statusContainer = document.querySelector('.status-container');
-            statusContainer.style.display = 'none';
-            const statusToggle = document.querySelector('input[name="{{ form.isEnabled.vars.full_name }}"]');
-            statusToggle.disabled = true;
-        }
-        
-        {% if is_granted('ROLE_GESTORSTOCK') %}
-        const priceInput = form.querySelector('input[name$="[price]"]');
-        if (priceInput) {
-            priceInput.value = '0';
-        }
-        {% endif %}
-        
-        {% if not is_granted('ROLE_GESTORSTOCK') and form.minStock is defined %}
-        const minStockInput = form.querySelector('input[name$="[minStock]"]');
-        if (minStockInput) {
-            minStockInput.value = '0';
-        }
-        {% endif %}
-        
-        toggleSwitch.checked = false;
-        updateStatusText();
-        
-        animateFormElements();
-        
-        toggleSwitch.addEventListener('change', updateStatusText);
-        fileInput.addEventListener('change', handleFileSelection);
-        
-        inputs.forEach(input => {
-            input.addEventListener('focus', handleInputFocus);
-            input.addEventListener('blur', handleInputBlur);
-            
-            checkInputValue(input);
-        });
-        
-        form.addEventListener('submit', handleFormSubmit);
-                
-        function updateStatusText() {
-            statusText.textContent = toggleSwitch.checked ? 'Habilitado' : 'Deshabilitado';
-            statusText.className = 'status-text ' + (toggleSwitch.checked ? 'status-enabled' : 'status-disabled');
-            
-            statusText.style.animation = 'none';
-            setTimeout(() => {
-                statusText.style.animation = 'pulse 0.5s ease-in-out';
-            }, 10);
-        }
-        
-        function handleFileSelection() {
-            if (this.files && this.files[0]) {
-                const fileName = this.files[0].name;
-                const fileSize = (this.files[0].size / 1024).toFixed(2) + ' KB';
-                fileInfo.innerHTML = `Archivo seleccionado: <strong>${fileName}</strong> (${fileSize})`;
-                fileInfo.classList.add('file-selected');
-                
-                const fileType = this.files[0].type;
-                const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
-                
-                if (!validTypes.includes(fileType)) {
-                    addValidationMessage(this, 'El tipo de archivo no es válido. Usa JPG, PNG o GIF.', false);
-                } else {
-                    addValidationMessage(this, 'Archivo válido', true);
-                }
-            } else {
-                fileInfo.textContent = 'Formatos permitidos: JPG, PNG, GIF';
-                fileInfo.classList.remove('file-selected');
-                removeValidationMessage(this);
-            }
-        }
-        
-        function handleInputFocus() {
-            const wrapper = this.closest('.input-wrapper');
-            wrapper.classList.add('focused');
-            
-            this.style.transform = 'translateX(5px)';
-            setTimeout(() => {
-                this.style.transform = 'translateX(0)';
-            }, 200);
-            
-            removeValidationMessage(this);
-        }
-        
-        function handleInputBlur() {
-            const wrapper = this.closest('.input-wrapper');
-            wrapper.classList.remove('focused');
-            checkInputValue(this);
-            
-            validateInput.call(this);
-        }
-        
-        function checkInputValue(input) {
-            const wrapper = input.closest('.input-wrapper');
-            if (input.value.trim() !== '') {
-                wrapper.classList.add('has-value');
-            } else {
-                wrapper.classList.remove('has-value');
-            }
-        }
-        
-        function validateInput() {
-            const field = this;
-            const value = field.value.trim();
-            
-            removeValidationMessage(field);
-            
-            if (value === '') {
-                return;
-            }
-            
-            if (field.id.includes('name')) {
-                if (value.length < 3) {
-                    addValidationMessage(field, 'El nombre debe tener al menos 3 caracteres', false);
-                } else {
-                    addValidationMessage(field, 'Nombre válido', true);
-                }
-            } else if (field.id.includes('quantity') || field.id.includes('minStock')) {
-                if (parseInt(value) <= 0) {
-                    addValidationMessage(field, 'El valor debe ser mayor que cero', false);
-                } else {
-                    addValidationMessage(field, 'Cantidad válida', true);
-                }
-            } else if (field.id.includes('price')) {
-                if (parseFloat(value) <= 0) {
-                    addValidationMessage(field, 'El precio debe ser mayor que cero', false);
-                } else {
-                    addValidationMessage(field, 'Precio válido', true);
-                }
-            } else if (field.id.includes('description')) {
-                if (value.length < 10) {
-                    addValidationMessage(field, 'La descripción debe tener al menos 10 caracteres', false);
-                } else {
-                    addValidationMessage(field, 'Descripción válida', true);
-                }
-            }
-        }
-        
-        function addValidationMessage(field, message, isValid) {
-            removeValidationMessage(field);
-            
-            const validationMsg = document.createElement('div');
-            validationMsg.className = `field-validation ${isValid ? 'valid' : 'invalid'}`;
-            validationMsg.innerHTML = `
-                <span>${isValid ? '✓' : '✗'}</span>
-                <span>${message}</span>
-            `;
-            
-            const wrapper = field.closest('.input-wrapper');
-            wrapper.appendChild(validationMsg);
-            
-            setTimeout(() => {
-                validationMsg.classList.add('show');
-            }, 10);
-        }
-        
-        function removeValidationMessage(field) {
-            const wrapper = field.closest('.input-wrapper');
-            const existingMsg = wrapper.querySelector('.field-validation');
-            if (existingMsg) {
-                existingMsg.classList.remove('show');
-                setTimeout(() => {
-                    existingMsg.remove();
-                }, 300);
-            }
-        }
-        
-        function handleFormSubmit(event) {
-            let hasErrors = false;
-            inputs.forEach(input => {
-                if (input.required && input.value.trim() === '') {
-                    const wrapper = input.closest('.input-wrapper');
-                    wrapper.classList.add('shake-error');
-                    hasErrors = true;
-                    
-                    setTimeout(() => {
-                        wrapper.classList.remove('shake-error');
-                    }, 500);
-                }
-            });
-            
-            if (hasErrors) {
-                event.preventDefault();
-                return;
-            }
-            
-            submitButton.innerHTML = '<span class="btn-text">Guardando...</span>';
-            submitButton.classList.add('submitting');
-        }
-        
-        function animateFormElements() {
-            const groups = document.querySelectorAll('.form-group, .status-container, .form-actions');
-            groups.forEach((group, index) => {
-                group.style.opacity = '0';
-                group.style.transform = 'translateY(20px)';
-                
-                setTimeout(() => {
-                    group.style.transition = 'all 0.5s ease-out';
-                    group.style.opacity = '1';
-                    group.style.transform = 'translateY(0)';
-                }, 100 + (index * 80));
-            });
-        }
-        
-        const style = document.createElement('style');
-        style.textContent = `
-            .d-none {
-                display: none !important;
-            }
-            
-            @keyframes shake-error {
-                0%, 100% { transform: translateX(0); }
-                10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-                20%, 40%, 60%, 80% { transform: translateX(5px); }
-            }
-            
-            .shake-error {
-                animation: shake-error 0.5s ease-in-out;
-                border-color: var(--error-color) !important;
-            }
-            
-            .submitting {
-                position: relative;
-                pointer-events: none;
-                background: linear-gradient(90deg, var(--secondary-color), var(--accent-color), var(--secondary-color)) !important;
-                background-size: 200% 100% !important;
-                animation: gradient-animation 1.5s infinite !important;
-            }
-            
-            @keyframes gradient-animation {
-                0% { background-position: 0% 50%; }
-                50% { background-position: 100% 50%; }
-                100% { background-position: 0% 50%; }
-            }
-        `;
-        document.head.appendChild(style);
-    });
-    </script>
+		<div class="form-actions">
+			<button type="submit" class="btn-submit">
+				<span class="btn-text">Guardar Repuesto</span>
+			</button>
+			<a href="{{ path('app_home_page') }}" class="btn-cancel">Volver</a>
+		</div>
+
+		{{ form_end(form) }}
+	</div>
+
+	 <script>
+										
+						const form = document.querySelector('.product-form');
+						const inputs = form.querySelectorAll('.form-control:not(.d-none), .form-control-file, textarea');
+						const toggleSwitch = document.querySelector('input[type="checkbox"]');
+						const statusText = document.getElementById('statusText');
+						const fileInput = document.querySelector('.form-control-file');
+						const fileInfo = document.querySelector('.file-upload-info');
+						const submitButton = document.querySelector('.btn-submit');
+						const userRole = "{{ app.user.roles[0] }}";
+						const dimensionsInput = document.querySelector('.dimensions-input');
+						const sparePartsBrands = {{ sparePartsBrands|json_encode|raw }};
+						const partTypeSelect = document.querySelector('#product_partType');
+						const brandSelect = document.querySelector('#product_brand');
+					if (dimensionsInput) {
+						// Función para formatear el valor con "mm"
+						function formatDimensions(value) {
+							if (!value) return '';
+							
+							// Eliminar "mm" existentes y espacios extras
+							let cleaned = value.replace(/mm/g, '').replace(/\s+/g, ' ').trim();
+							
+							// Separar por espacios o x
+							let parts = cleaned.split(/[\sx]+/);
+							
+							// Formatear cada número
+							parts = parts.map(part => {
+								part = part.trim();
+								if (part && !isNaN(part)) {
+									return part + ' mm';
+								}
+								return part;
+							});
+					
+							// Unir con " x "
+							return parts.join(' x ').trim();
+						}
+		
+			
+				function handleDimensionsInput(e) {
+					let cursorPosition = e.target.selectionStart;
+					let value = e.target.value;
+					
+					if (e.inputType === "insertText" && e.data === " ") {
+						value = value.replace(/\s+/g, ' ').trim();
+						
+						if (!value.endsWith('x') && !value.endsWith('mm')) {
+							let parts = value.split(/[\sx]+/);
+							let lastPart = parts[parts.length - 1].trim();
+							
+							if (lastPart && !lastPart.endsWith('mm')) {
+								value = value.replace(/\s+$/, '') + ' mm x ';
+							} else {
+								value = value.replace(/\s+$/, '') + ' x ';
+							}
+						}
+						
+						e.target.value = value;
+						setTimeout(() => {
+							e.target.selectionStart = e.target.selectionEnd = value.length;
+						}, 0);
+						e.preventDefault();
+					}
+				}
+				function handleDimensionsBlur(e) {
+					let value = e.target.value.trim();
+					if (value) {
+						e.target.value = formatDimensions(value);
+					}
+				}
+			
+				dimensionsInput.addEventListener('beforeinput', handleDimensionsInput);
+				dimensionsInput.addEventListener('blur', handleDimensionsBlur);
+			
+				if (dimensionsInput.value) {
+					dimensionsInput.value = formatDimensions(dimensionsInput.value);
+				}
+			}
+					document.addEventListener('DOMContentLoaded', function() {
+						const form = document.querySelector('.product-form');
+						const inputs = form.querySelectorAll('.form-control:not(.d-none), .form-control-file, textarea');
+						const toggleSwitch = document.querySelector('input[type="checkbox"]');
+						const statusText = document.getElementById('statusText');
+						const fileInput = document.querySelector('.form-control-file');
+						const fileInfo = document.querySelector('.file-upload-info');
+						const submitButton = document.querySelector('.btn-submit');
+						const userRole = "{{ app.user.roles[0] }}";
+						
+			
+							if (partTypeSelect && brandSelect) {
+								if (partTypeSelect && brandSelect) {
+							// Guardar todas las opciones originales
+							const originalOptions = Array.from(brandSelect.options);
+					
+							partTypeSelect.addEventListener('change', function() {
+								const selectedPartType = this.value;
+								
+								// Restaurar todas las opciones originales primero
+								brandSelect.innerHTML = '';
+								originalOptions.forEach(option => {
+									brandSelect.appendChild(option.cloneNode(true));
+								});
+								
+								if (selectedPartType && sparePartsBrands[selectedPartType]) {
+									const validBrands = sparePartsBrands[selectedPartType];
+									
+									// Filtrar las opciones para mostrar solo las marcas válidas
+									Array.from(brandSelect.options).forEach(option => {
+										if (option.value && !validBrands.includes(option.value)) {
+											option.remove();
+										}
+									});
+								}
+					
+								// Restablecer la selección
+								brandSelect.value = '';
+								
+								// Aplicar animación
+								brandSelect.style.animation = 'none';
+								brandSelect.offsetHeight; // Trigger reflow
+								brandSelect.style.animation = 'fadeIn 0.3s ease-in-out';
+							});
+						}
+							}
+					});
+		function updateBrandOptions() {
+			            const selectedPartType = partTypeSelect.value;
+			            
+			            // Limpiar las opciones actuales
+			            brandSelect.innerHTML = '<option value="">Seleccione una marca</option>';
+			            
+			            if (selectedPartType && sparePartsBrands[selectedPartType]) {
+			                const brands = sparePartsBrands[selectedPartType];
+			                
+			                brands.forEach(brand => {
+			                    const option = document.createElement('option');
+			                    option.value = brand;
+			                    option.textContent = brand;
+			                    brandSelect.appendChild(option);
+			                });
+			
+			                // Aplicar animación
+			                brandSelect.style.animation = 'none';
+			                brandSelect.offsetHeight; // Trigger reflow
+			                brandSelect.style.animation = 'fadeIn 0.3s ease-in-out';
+			            }
+			        }
+			
+			        // Event listener para el cambio de tipo de repuesto
+			        partTypeSelect.addEventListener('change', function() {
+			            updateBrandOptions();
+			            
+			            // Animar el cambio
+			            brandSelect.style.transform = 'translateX(10px)';
+			            setTimeout(() => {
+			                brandSelect.style.transform = 'translateX(0)';
+			            }, 200);
+			        });
+			
+			        // Inicializar las marcas si hay un tipo de repuesto seleccionado
+			        if (partTypeSelect.value) {
+			            updateBrandOptions();
+			        }
+			
+			        // Agregar estilos para la animación
+			        const styleSheet = document.createElement('style');
+			        styleSheet.textContent = `
+			            @keyframes fadeIn {
+			                from { opacity: 0; transform: translateY(-10px); }
+			                to { opacity: 1; transform: translateY(0); }
+			            }
+			
+			            #product_brand {
+			                transition: transform 0.2s ease-in-out;
+			            }
+			
+			            #product_brand option {
+			                padding: 8px;
+			            }
+			        `;
+			        document.head.appendChild(styleSheet);
+			    }
+						
+						if (userRole === "ROLE_GESTORSTOCK") {
+							const statusContainer = document.querySelector('.status-container');
+							statusContainer.style.display = 'none';
+							const statusToggle = document.querySelector('input[name="{{ form.isEnabled.vars.full_name }}"]');
+							statusToggle.disabled = true;
+						}
+						
+						{% if is_granted('ROLE_GESTORSTOCK') %}
+						const priceInput = form.querySelector('input[name$="[price]"]');
+						if (priceInput) {
+							priceInput.value = '0';
+						}
+						{% endif %}
+						
+						{% if not is_granted('ROLE_GESTORSTOCK') and form.minStock is defined %}
+						const minStockInput = form.querySelector('input[name$="[minStock]"]');
+						if (minStockInput) {
+							minStockInput.value = '0';
+						}
+						{% endif %}
+						
+						toggleSwitch.checked = false;
+						updateStatusText();
+						
+						animateFormElements();
+						
+						toggleSwitch.addEventListener('change', updateStatusText);
+						fileInput.addEventListener('change', handleFileSelection);
+						
+						inputs.forEach(input => {
+							input.addEventListener('focus', handleInputFocus);
+							input.addEventListener('blur', handleInputBlur);
+							
+							checkInputValue(input);
+						});
+						
+						form.addEventListener('submit', handleFormSubmit);
+								
+						function updateStatusText() {
+							statusText.textContent = toggleSwitch.checked ? 'Habilitado' : 'Deshabilitado';
+							statusText.className = 'status-text ' + (toggleSwitch.checked ? 'status-enabled' : 'status-disabled');
+							
+							statusText.style.animation = 'none';
+							setTimeout(() => {
+								statusText.style.animation = 'pulse 0.5s ease-in-out';
+							}, 10);
+						}
+						
+						function handleFileSelection() {
+							if (this.files && this.files[0]) {
+								const fileName = this.files[0].name;
+								const fileSize = (this.files[0].size / 1024).toFixed(2) + ' KB';
+								fileInfo.innerHTML = `Archivo seleccionado: <strong>${fileName}</strong> (${fileSize})`;
+								fileInfo.classList.add('file-selected');
+								
+								const fileType = this.files[0].type;
+								const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+								
+								if (!validTypes.includes(fileType)) {
+									addValidationMessage(this, 'El tipo de archivo no es válido. Usa JPG, PNG o GIF.', false);
+								} else {
+									addValidationMessage(this, 'Archivo válido', true);
+								}
+							} else {
+								fileInfo.textContent = 'Formatos permitidos: JPG, PNG, GIF';
+								fileInfo.classList.remove('file-selected');
+								removeValidationMessage(this);
+							}
+						}
+						
+						function handleInputFocus() {
+							const wrapper = this.closest('.input-wrapper');
+							wrapper.classList.add('focused');
+							
+							this.style.transform = 'translateX(5px)';
+							setTimeout(() => {
+								this.style.transform = 'translateX(0)';
+							}, 200);
+							
+							removeValidationMessage(this);
+						}
+						
+						function handleInputBlur() {
+							const wrapper = this.closest('.input-wrapper');
+							wrapper.classList.remove('focused');
+							checkInputValue(this);
+							
+							validateInput.call(this);
+						}
+						
+						function checkInputValue(input) {
+							const wrapper = input.closest('.input-wrapper');
+							if (input.value.trim() !== '') {
+								wrapper.classList.add('has-value');
+							} else {
+								wrapper.classList.remove('has-value');
+							}
+						}
+						
+						function validateInput() {
+							const field = this;
+							const value = field.value.trim();
+							
+							removeValidationMessage(field);
+							
+							if (value === '') {
+								return;
+							}
+							
+							if (field.id.includes('name')) {
+								if (value.length < 3) {
+									addValidationMessage(field, 'El nombre debe tener al menos 3 caracteres', false);
+								} else {
+									addValidationMessage(field, 'Nombre válido', true);
+								}
+							} else if (field.id.includes('quantity') || field.id.includes('minStock')) {
+								if (parseInt(value) <= 0) {
+									addValidationMessage(field, 'El valor debe ser mayor que cero', false);
+								} else {
+									addValidationMessage(field, 'Cantidad válida', true);
+								}
+							} else if (field.id.includes('price')) {
+								if (parseFloat(value) <= 0) {
+									addValidationMessage(field, 'El precio debe ser mayor que cero', false);
+								} else {
+									addValidationMessage(field, 'Precio válido', true);
+								}
+							} else if (field.id.includes('description')) {
+								if (value.length < 10) {
+									addValidationMessage(field, 'La descripción debe tener al menos 10 caracteres', false);
+								} else {
+									addValidationMessage(field, 'Descripción válida', true);
+								}
+							}
+						}
+						
+						function addValidationMessage(field, message, isValid) {
+							removeValidationMessage(field);
+							
+							const validationMsg = document.createElement('div');
+							validationMsg.className = `field-validation ${isValid ? 'valid' : 'invalid'}`;
+							validationMsg.innerHTML = `
+								<span>${isValid ? '✓' : '✗'}</span>
+								<span>${message}</span>
+							`;
+							
+							const wrapper = field.closest('.input-wrapper');
+							wrapper.appendChild(validationMsg);
+							
+							setTimeout(() => {
+								validationMsg.classList.add('show');
+							}, 10);
+						}
+						
+						function removeValidationMessage(field) {
+							const wrapper = field.closest('.input-wrapper');
+							const existingMsg = wrapper.querySelector('.field-validation');
+							if (existingMsg) {
+								existingMsg.classList.remove('show');
+								setTimeout(() => {
+									existingMsg.remove();
+								}, 300);
+							}
+						}
+						
+						function handleFormSubmit(event) {
+							let hasErrors = false;
+							inputs.forEach(input => {
+								if (input.required && input.value.trim() === '') {
+									const wrapper = input.closest('.input-wrapper');
+									wrapper.classList.add('shake-error');
+									hasErrors = true;
+									
+									setTimeout(() => {
+										wrapper.classList.remove('shake-error');
+									}, 500);
+								}
+							});
+							
+							if (hasErrors) {
+								event.preventDefault();
+								return;
+							}
+							
+							submitButton.innerHTML = '<span class="btn-text">Guardando...</span>';
+							submitButton.classList.add('submitting');
+						}
+						
+						function animateFormElements() {
+							const groups = document.querySelectorAll('.form-group, .status-container, .form-actions');
+							groups.forEach((group, index) => {
+								group.style.opacity = '0';
+								group.style.transform = 'translateY(20px)';
+								
+								setTimeout(() => {
+									group.style.transition = 'all 0.5s ease-out';
+									group.style.opacity = '1';
+									group.style.transform = 'translateY(0)';
+								}, 100 + (index * 80));
+							});
+						}
+						
+						const style = document.createElement('style');
+						style.textContent = `
+							.d-none {
+								display: none !important;
+							}
+							
+							@keyframes shake-error {
+								0%, 100% { transform: translateX(0); }
+								10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+								20%, 40%, 60%, 80% { transform: translateX(5px); }
+							}
+							
+							.shake-error {
+								animation: shake-error 0.5s ease-in-out;
+								border-color: var(--error-color) !important;
+							}
+							
+							.submitting {
+								position: relative;
+								pointer-events: none;
+								background: linear-gradient(90deg, var(--secondary-color), var(--accent-color), var(--secondary-color)) !important;
+								background-size: 200% 100% !important;
+								animation: gradient-animation 1.5s infinite !important;
+							}
+							
+							@keyframes gradient-animation {
+								0% { background-position: 0% 50%; }
+								50% { background-position: 100% 50%; }
+								100% { background-position: 0% 50%; }
+							}
+						`;
+						document.head.appendChild(style);
+					});
+					</script>
 {% endblock %}

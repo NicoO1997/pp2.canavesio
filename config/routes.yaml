@@ -4,7 +4,7 @@ controllers:
         namespace: App\Controller
     type: attribute
 
-    # config/routes.yaml
+# Rutas del carrito
 cart_add_product:
     path: /cart/add/{productId}
     controller: App\Controller\CartController::addProduct
@@ -14,11 +14,32 @@ cart_view:
     path: /cart
     controller: App\Controller\CartController::viewCart
 
+# Rutas de pago
 create-preference:
     path: /crear-preferencia
     controller: App\Controller\PaymentController::createPreference
 
+# Rutas de categorías
+app_category_list:
+    path: /admin/category
+    controller: App\Controller\CategoryController::index
+    methods: [GET]
+
+app_category_new:
+    path: /admin/category/new
+    controller: App\Controller\CategoryController::new
+    methods: [GET, POST]
+
+app_category_update:
+    path: /admin/category/update/{id}
+    controller: App\Controller\CategoryController::update
+    methods: [POST]
+
+app_category_delete:
+    path: /admin/category/delete/{id}
+    controller: App\Controller\CategoryController::delete
+    methods: [POST]
+
 # registro:
 #     path: /registro
 #     controller: App\Controller\RegistrationController::register
-

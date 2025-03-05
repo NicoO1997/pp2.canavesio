@@ -3,7 +3,7 @@ security:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
 
     role_hierarchy:
-        ROLE_ADMIN: [ ROLE_USUARIO, ROLE_VENDEDOR, ROLE_GESTORSTOCK]
+        ROLE_ADMIN: [ROLE_VENDEDOR, ROLE_GESTORSTOCK, ROLE_USUARIO]
         ROLE_SUPER_ADMIN: [ROLE_ADMIN, ROLE_ALLOWED_TO_SWITCH]
 
     providers:
@@ -23,25 +23,33 @@ security:
                 login_path: app_login
                 check_path: app_login
                 enable_csrf: true
-                default_target_path: app_home_page
+                default_target_path: product_list
             logout:
                 path: app_logout
                 target: app_login
+                invalidate_session: true
+                clear_site_data: 
+                    - cookies
             login_throttling:
                 max_attempts: 3
                 interval: '1 minutes'
 
     access_control:
-        - { path: ^/login, roles: PUBLIC_ACCESS }
+        - { path: ^/login$, roles: PUBLIC_ACCESS }
+        - { path: ^/login-guest, roles: PUBLIC_ACCESS }
         - { path: ^/register, roles: PUBLIC_ACCESS }
-        - { path: ^/home/page, roles: [ROLE_USER, ROLE_GESTORSTOCK, ROLE_VENDEDOR] }
-        - { path: ^/product, roles: [ROLE_USUARIO, ROLE_VENDEDOR, ROLE_GESTORSTOCK] }
+        - { path: ^/product/detail, roles: [ROLE_INVITADO, ROLE_VENDEDOR, ROLE_USUARIO] }
+        - { path: ^/product/list, roles: [ROLE_INVITADO, ROLE_USUARIO, ROLE_VENDEDOR] }
+        - { path: ^/home/page, roles: [ROLE_USER, ROLE_GESTORSTOCK, ROLE_VENDEDOR, ROLE_INVITADO] }
+        - { path: ^/product, roles: [ROLE_USUARIO, ROLE_VENDEDOR, ROLE_GESTORSTOCK, ROLE_INVITADO] }
         - { path: ^/add-used-machinery, roles: [ROLE_VENDEDOR] }
         - { path: ^/view-used-machinery, roles: [ROLE_VENDEDOR] }
         - { path: ^/product/new, roles: [ROLE_VENDEDOR, ROLE_GESTORSTOCK] }
         - { path: ^/cart, roles: [ROLE_USUARIO] }
         - { path: ^/favorite, roles: [ROLE_USUARIO] }
         - { path: ^/stock/view, roles: [ROLE_VENDEDOR, ROLE_GESTORSTOCK] }
+        - { path: ^/category/new, roles: [ROLE_VENDEDOR] }
+        - { path: ^/category, roles: [ROLE_VENDEDOR] }
 
 when@test:
     security:

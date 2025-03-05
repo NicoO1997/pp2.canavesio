@@ -1,23 +1,16 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}
-Agregar Maquinaria
-{% endblock %}
+{% block title %}Agregar Maquinaria{% endblock %}
 
 {% block stylesheets %}
-{{ parent() }}
-<link href="{{ asset('styles/add_machinery.css') }}" rel="stylesheet" />
+    {{ parent() }}
+    <link href="{{ asset('styles/add_machinery.css') }}" rel="stylesheet" />
+    <link href="{{ asset('styles/machinery_brands.css') }}" rel="stylesheet" />
 {% endblock %}
 
 {% block body %}
 <div class="form-container">
     <h1>Agregar Maquinaria</h1>
-    
-    {% for message in app.flashes('error') %}
-        <div class="alert alert-danger">
-            {{ message }}
-        </div>
-    {% endfor %}
 
     {{ form_start(form) }}
     <div class="form-group-container">
@@ -39,10 +32,11 @@ Agregar Maquinaria
             {{ form_errors(form.model, {'attr': {'class': 'form-error'}}) }}
         </div>
 
-        <div class="form-group">
+        <div class="form-group brand-group">
             {{ form_label(form.brand) }}
             {{ form_widget(form.brand) }}
             {{ form_errors(form.brand, {'attr': {'class': 'form-error'}}) }}
+            <div class="brand-suggestions" style="display: none;"></div>
         </div>
 
         <div class="form-group">
@@ -63,10 +57,11 @@ Agregar Maquinaria
             {{ form_errors(form.transmissionSystem, {'attr': {'class': 'form-error'}}) }}
         </div>
 
-        <div class="form-group">
+        <div class="form-group location-group">
             {{ form_label(form.location) }}
             {{ form_widget(form.location) }}
             {{ form_errors(form.location, {'attr': {'class': 'form-error'}}) }}
+            <div class="location-suggestions" style="display: none;"></div>
         </div>
 
         <div class="form-group price-field">
@@ -133,153 +128,8 @@ Agregar Maquinaria
 {% endblock %}
 
 {% block javascripts %}
-{{ parent() }}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const isNewRadios = document.querySelectorAll('input[name="used_machinery[isNew]"]');
-    const usedFieldsContainer = document.querySelector('.used-fields-container');
-    const priceField = document.querySelector('.price-field');
-    const categorySelect = document.querySelector('select[name="used_machinery[category]"]');
-    const loadCapacityField = document.querySelector('.load-capacity-field');
-    const taxpayerSelect = document.querySelector('select[name="used_machinery[taxpayerType]"]');
-    const priceInput = document.querySelector('input[name="used_machinery[price]"]');
-    const pricePreview = document.getElementById('pricePreview');
-    const basePriceSpan = document.getElementById('basePrice');
-    const ivaAmountSpan = document.getElementById('ivaAmount');
-    const finalPriceSpan = document.getElementById('finalPrice');
-
-    function calculatePrices() {
-        if (priceInput.value) {
-            const basePrice = parseFloat(priceInput.value);
-            let ivaRate;
-            let ivaText;
-            
-            switch(taxpayerSelect.value) {
-                case 'responsable_inscripto':
-                    ivaRate = 0.21;
-                    ivaText = '21%';
-                    break;
-                case 'consumidor_final':
-                    ivaRate = 0.10;
-                    ivaText = '10%';
-                    break;
-                case 'monotributista':
-                case 'exento':
-                    ivaRate = 0;
-                    ivaText = '0%';
-                    break;
-                default:
-                    ivaRate = 0;
-                    ivaText = '0%';
-            }
-
-            const ivaAmount = basePrice * ivaRate;
-            const finalPrice = basePrice + ivaAmount;
-
-            pricePreview.style.display = 'block';
-            basePriceSpan.textContent = `$${basePrice.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-            ivaAmountSpan.textContent = `$${ivaAmount.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} (${ivaText})`;
-            finalPriceSpan.textContent = `$${finalPrice.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-        } else {
-            pricePreview.style.display = 'none';
-        }
-    }
-
-    function toggleLoadCapacityField() {
-        const category = categorySelect.value;
-        if (['sembradora', 'pulverizadora', 'tolva'].includes(category)) {
-            loadCapacityField.style.display = 'block';
-            if (!document.querySelector('input[name="used_machinery[isNew]"]:checked').value === '1') {
-                loadCapacityField.querySelector('input').setAttribute('required', 'required');
-            }
-        } else {
-            loadCapacityField.style.display = 'none';
-            loadCapacityField.querySelector('input').removeAttribute('required');
-            loadCapacityField.querySelector('input').value = '';
-        }
-    }
-
-    function toggleFields() {
-        const selectedRadio = document.querySelector('input[name="used_machinery[isNew]"]:checked');
-        if (selectedRadio) {
-            const isNew = selectedRadio.value === '1';
-            
-            if (isNew) {
-                usedFieldsContainer.style.display = 'none';
-                usedFieldsContainer.style.opacity = '0';
-            } else {
-                usedFieldsContainer.style.display = 'grid';
-                setTimeout(() => {
-                    usedFieldsContainer.style.opacity = '1';
-                }, 10);
-            }
-            
-            const usedFields = usedFieldsContainer.querySelectorAll('input, select');
-            
-            usedFields.forEach(field => {
-                if (isNew) {
-                    field.removeAttribute('required');
-                    if (field.type === 'datetime-local' || field.type === 'date') {
-                        field.value = '';
-                    } else if (field.type === 'number') {
-                        field.value = '';
-                    }
-                } else {
-                    if (field.hasAttribute('data-required')) {
-                        field.setAttribute('required', 'required');
-                    }
-                }
-            });
-        }
-        toggleLoadCapacityField();
-    }
-
-    const usedFields = usedFieldsContainer.querySelectorAll('input, select');
-    usedFields.forEach(field => {
-        if (field.hasAttribute('required')) {
-            field.setAttribute('data-required', 'true');
-        }
-    });
-
-    isNewRadios.forEach(radio => {
-        radio.addEventListener('change', toggleFields);
-    });
-    
-    categorySelect.addEventListener('change', toggleLoadCapacityField);
-    taxpayerSelect.addEventListener('change', calculatePrices);
-    priceInput.addEventListener('input', calculatePrices);
-
-    const fileInput = document.querySelector('input[type="file"]');
-    if (fileInput) {
-        fileInput.addEventListener('change', function() {
-            const files = Array.from(this.files);
-            const parent = this.parentElement;
-            const existingFileList = parent.querySelector('.file-list');
-            
-            if (existingFileList) {
-                parent.removeChild(existingFileList);
-            }
-            
-            if (files.length > 0) {
-                const fileList = document.createElement('div');
-                fileList.className = 'file-list';
-                fileList.style.marginTop = '0.5rem';
-                fileList.style.fontSize = '0.8rem';
-                
-                files.forEach(file => {
-                    const fileItem = document.createElement('div');
-                    fileItem.textContent = file.name;
-                    fileList.appendChild(fileItem);
-                });
-                
-                parent.appendChild(fileList);
-            }
-        });
-    }
-
-    toggleFields();
-    toggleLoadCapacityField();
-    calculatePrices();
-});
-</script>
+    {{ parent() }}
+    <script src="{{ asset('js/brands.js') }}"></script>
+    <script src="{{ asset('js/locations.js') }}"></script>
+    <script src="{{ asset('js/add_machinery.js') }}"></script>
 {% endblock %}

@@ -24,6 +24,8 @@ class UsedMachineryController extends AbstractController
     
         return $this->render('used_machinery/view.html.twig', [
             'usedMachineries' => $usedMachineries,
+            'isVendedor' => $this->isGranted('ROLE_VENDEDOR'),
+            'isGestorStock' => $this->isGranted('ROLE_GESTORSTOCK'),
         ]);
     }
 
@@ -37,19 +39,17 @@ class UsedMachineryController extends AbstractController
             return $this->redirectToRoute('app_view_used_machinery');
         }
         
-        $user = $this->getUser();
-        
         return $this->render('used_machinery/detail.html.twig', [
             'machinery' => $machinery,
-            'isVendedor' => $user ? in_array('ROLE_VENDEDOR', $user->getRoles()) : false,
-            'isGestorStock' => $user ? in_array('ROLE_GESTORSTOCK', $user->getRoles()) : false,
+            'isVendedor' => $this->isGranted('ROLE_VENDEDOR'),
+            'isGestorStock' => $this->isGranted('ROLE_GESTORSTOCK'),
         ]);
     }
 
     #[Route('/add-used-machinery', name: 'app_add_used_machinery_page', methods: ['GET', 'POST'])]
     public function showAddUsedMachineryForm(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $this->denyAccessUnlessGranted('ROLE_GESTORSTOCK', null, 'No tienes permiso para acceder a esta página');
+        $this->denyAccessUnlessGranted('ROLE_VENDEDOR', null, 'No tienes permiso para acceder a esta página');
 
         $machinery = new UsedMachinery();
         $form = $this->createForm(UsedMachineryType::class, $machinery);
@@ -99,10 +99,6 @@ class UsedMachineryController extends AbstractController
                     $machinery->setManufacturingDate(null);
                 }
 
-                if (!in_array($machinery->getCategory(), ['sembradora', 'pulverizadora', 'tolva'])) {
-                    $machinery->setLoadCapacity(null);
-                }
-
                 $entityManager->persist($machinery);
                 $entityManager->flush();
 
@@ -120,15 +116,15 @@ class UsedMachineryController extends AbstractController
 
         return $this->render('used_machinery/add.html.twig', [
             'form' => $form->createView(),
-            'isVendedor' => in_array('ROLE_VENDEDOR', $this->getUser()->getRoles()),
-            'isGestorStock' => in_array('ROLE_GESTORSTOCK', $this->getUser()->getRoles()),
+            'isVendedor' => $this->isGranted('ROLE_VENDEDOR'),
+            'isGestorStock' => $this->isGranted('ROLE_GESTORSTOCK'),
         ]);
     }
     
     #[Route('/edit-used-machinery/{id}', name: 'used_machinery_edit', methods: ['GET', 'POST'])]
     public function editUsedMachinery(int $id, Request $request, EntityManagerInterface $entityManager): Response
     {
-        $this->denyAccessUnlessGranted('ROLE_GESTORSTOCK', null, 'No tienes permiso para acceder a esta página');
+        $this->denyAccessUnlessGranted('ROLE_VENDEDOR', null, 'No tienes permiso para acceder a esta página');
         
         $machinery = $entityManager->getRepository(UsedMachinery::class)->find($id);
         
@@ -140,7 +136,6 @@ class UsedMachineryController extends AbstractController
         $currentImages = $machinery->getImageFilenames();
         
         $form = $this->createForm(UsedMachineryType::class, $machinery);
-        
         $form->handleRequest($request);
         
         if ($form->isSubmitted() && $form->isValid()) {
@@ -167,11 +162,7 @@ class UsedMachineryController extends AbstractController
                         $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
                         
                         try {
-                            $imageFile->move(
-                                $uploadDir,
-                                $newFilename
-                            );
-                            
+                            $imageFile->move($uploadDir, $newFilename);
                             $filenames[] = $newFilename;
                             $count++;
                         } catch (\Exception $e) {
@@ -198,14 +189,6 @@ class UsedMachineryController extends AbstractController
                     $machinery->setManufacturingDate(null);
                 }
                 
-                if ($machinery->getIsPriceOnRequest()) {
-                    $machinery->setPrice(null);
-                }
-                
-                if (!in_array($machinery->getCategory(), ['sembradora', 'pulverizadora', 'tolva'])) {
-                    $machinery->setLoadCapacity(null);
-                }
-                
                 $entityManager->flush();
                 
                 $this->addFlash('success', 'Maquinaria actualizada con éxito');
@@ -218,20 +201,19 @@ class UsedMachineryController extends AbstractController
             foreach ($errors as $error) {
                 $this->addFlash('error', $error->getMessage());
             }
-            $this->addFlash('error', 'Error en el formulario. Por favor revisa los campos.');
         }
         
         return $this->render('used_machinery/edit.html.twig', [
             'form' => $form->createView(),
             'machinery' => $machinery,
-            'isVendedor' => in_array('ROLE_VENDEDOR', $this->getUser()->getRoles()),
+            'isVendedor' => $this->isGranted('ROLE_VENDEDOR'),
         ]);
     }
     
     #[Route('/delete-machinery/{id}', name: 'used_machinery_delete', methods: ['GET', 'POST'])]
     public function deleteMachinery(int $id, EntityManagerInterface $entityManager): Response
     {
-        $this->denyAccessUnlessGranted('ROLE_GESTORSTOCK', null, 'No tienes permiso para realizar esta acción');
+        $this->denyAccessUnlessGranted('ROLE_VENDEDOR', null, 'No tienes permiso para realizar esta acción');
         
         $machinery = $entityManager->getRepository(UsedMachinery::class)->find($id);
         
@@ -252,6 +234,7 @@ class UsedMachineryController extends AbstractController
                     }
                 }
             }
+            
             $entityManager->remove($machinery);
             $entityManager->flush();
             
@@ -268,13 +251,12 @@ class UsedMachineryController extends AbstractController
     {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
         
-        $user = $this->getUser();
         $usedMachineries = $entityManager->getRepository(UsedMachinery::class)->findBy(['category' => $category]);
     
         return $this->render('used_machinery/view.html.twig', [
             'usedMachineries' => $usedMachineries,
-            'isVendedor' => in_array('ROLE_VENDEDOR', $user->getRoles()),
-            'isGestorStock' => in_array('ROLE_GESTORSTOCK', $user->getRoles()),
+            'isVendedor' => $this->isGranted('ROLE_VENDEDOR'),
+            'isGestorStock' => $this->isGranted('ROLE_GESTORSTOCK'),
         ]);
     }
 
@@ -296,10 +278,9 @@ class UsedMachineryController extends AbstractController
             throw $this->createNotFoundException('Sección no encontrada');
         }
 
-        $user = $this->getUser();
         $usedMachineries = $entityManager->getRepository(UsedMachinery::class)->findBy(['category' => $category]);
         
-        if (!in_array('ROLE_VENDEDOR', $user->getRoles()) && !in_array('ROLE_GESTORSTOCK', $user->getRoles())) {
+        if (!$this->isGranted('ROLE_VENDEDOR') && !$this->isGranted('ROLE_GESTORSTOCK')) {
             $usedMachineries = array_filter($usedMachineries, function($machinery) {
                 return $machinery->getIsEnabled();
             });
@@ -308,8 +289,8 @@ class UsedMachineryController extends AbstractController
         return $this->render('used_machinery/view.html.twig', [
             'usedMachineries' => $usedMachineries,
             'section' => $section,
-            'isVendedor' => in_array('ROLE_VENDEDOR', $user->getRoles()),
-            'isGestorStock' => in_array('ROLE_GESTORSTOCK', $user->getRoles()),
+            'isVendedor' => $this->isGranted('ROLE_VENDEDOR'),
+            'isGestorStock' => $this->isGranted('ROLE_GESTORSTOCK'),
         ]);
     }
 }

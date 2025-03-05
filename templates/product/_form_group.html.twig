@@ -1,0 +1,10 @@
+<div class="form-group">
+    <div class="input-wrapper">
+        {{ form_label(field, label, {'label_attr': {'class': 'form-label required'}}) }}
+        {{ form_widget(field, {'attr': {
+            'class': 'form-control',
+            'placeholder': placeholder|default('')
+        }}) }}
+        {{ form_errors(field, {'attr': {'class': 'form-error'}}) }}
+    </div>
+</div>

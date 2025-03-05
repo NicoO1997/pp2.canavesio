@@ -1,448 +1,687 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Stock de Productos{% endblock %}
+{% block title %}Stock de Productos
+{% endblock %}
 
 {% block stylesheets %}
-    {{ parent() }}
-    <link href="{{ asset('styles/view_stock.css') }}" rel="stylesheet">
+	{{ parent() }}
+	<link href="{{ asset('styles/view_stock.css') }}" rel="stylesheet">
 {% endblock %}
 
 {% block body %}
-    <div class="page-stock">
-        <h1>Stock de Productos</h1>
-        
-        <a href="{{ path('app_home_page') }}" class="btn btn-primary mb-3">Volver</a>
+	<div class="page-stock">
+		<h1>Stock de Productos</h1>
 
-        {% if (is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN')) and products is defined and products|filter(p => p.needsRestock)|length > 0 %}
-            <div class="stock-warning">
-                <strong>¡Atención!</strong> Los siguientes productos están por debajo o igual a su stock mínimo:
-                <ul>
-                    {% for product in products|filter(p => p.needsRestock) %}
-                        <li>{{ product.name }} (Cantidad: {{ product.quantity }}, Stock Mínimo: {{ product.minStock }})</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        {% endif %}
+		<a href="{{ path('app_home_page') }}" class="btn btn-primary mb-3">Volver</a>
 
-        <div class="stock-container">
-            <table class="stock-table">
-                <thead>
-                    <tr>
-                        <th>Imagen</th>
-                        <th>Nombre</th>
-                        <th>Marca</th>
-                        <th>Cantidad</th>
-                        {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') %}
-                            <th>Stock Mínimo</th>
-                        {% endif %}
-                        {% if is_granted('ROLE_VENDEDOR') or is_granted('ROLE_ADMIN') %}
-                            <th>Precio</th>
-                        {% endif %}
-                        <th>Descripción</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% if products is defined and products|length > 0 %}
-                        {% for product in products %}
-                            <tr data-id="{{ product.id }}" class="{{ product.needsRestock ? 'low-stock' : '' }}">
-                                <td>
-                                    {% if product.image %}
-                                        <img src="data:image/jpeg;base64,{{ product.image }}" 
-                                             alt="{{ product.name }}"
-                                             class="product-image">
-                                    {% endif %}
-                                </td>
-                                <td class="editable-cell" data-field="name">{{ product.name }}</td>
-                                <td class="editable-cell" data-field="brand">{{ product.brand }}</td>
-                                <td class="editable-cell {% if product.needsRestock %}bajo-stock{% endif %}" 
-                                    data-field="quantity">{{ product.quantity }}</td>
-                                {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') %}
-                                    <td class="editable-cell" data-field="minStock">{{ product.minStock }}</td>
-                                {% endif %}
-                                {% if is_granted('ROLE_VENDEDOR') or is_granted('ROLE_ADMIN') %}
-                                    <td class="editable-cell" data-field="price">${{ product.price }}</td>
-                                {% endif %}
-                                <td class="editable-cell" data-field="description">{{ product.description }}</td>
-                                <td>
-                                    {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') %}
-                                        {% if not product.hasEnoughStock %}
-                                            <span class="status-badge out-of-stock">Sin Stock</span>
-                                        {% elseif product.needsRestock %}
-                                            <span class="status-badge low-stock">Stock Bajo</span>
-                                        {% else %}
-                                            <span class="status-badge in-stock">En Stock</span>
-                                        {% endif %}
-                                    {% endif %}
-                                    
-                                    {% if is_granted('ROLE_VENDEDOR') or is_granted('ROLE_ADMIN') %}
-                                        <div class="status-toggle" data-field="isEnabled">
-                                            <button data-field="isEnabled" type="button" 
-                                                    class="btn {{ product.isEnabled ? 'btn-success' : 'btn-danger' }} toggle-status"
-                                                    data-status="{{ product.isEnabled ? '1' : '0' }}"
-                                                    onclick="toggleStatus(this)">
-                                                {{ product.isEnabled ? 'Habilitado' : 'Deshabilitado' }}
-                                            </button>
-                                        </div>
-                                    {% endif %}
-                                </td>
-                                <td class="actions">
-                                     {% if is_granted('ROLE_GESTORSTOCK') and not is_granted('ROLE_ADMIN') %}
-                                        <button type="button" class="btn btn-secondary edit-btn" 
-                                                onclick="toggleEditing(this.closest('tr'), 'stock')">Editar Stock</button>
-                                    {% endif %}
-                                    {% if is_granted('ROLE_VENDEDOR') or is_granted('ROLE_ADMIN') %}
-                                        <button type="button" class="btn btn-secondary edit-btn" 
-                                                onclick="toggleEditing(this.closest('tr'), 'all')">Editar</button>
-                                    {% endif %}
-                                    <button type="button" class="btn btn-primary save-btn" style="display:none;" 
-                                            onclick="validateAndSave(this.closest('tr'))">Guardar</button>
-                                    {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_VENDEDOR') or is_granted('ROLE_GESTORSTOCK') %}
-                                        <form method="post" action="{{ path('product_delete', {id: product.id}) }}" 
-                                            onsubmit="return confirm('¿Estás seguro de que quieres eliminar este producto?');" 
-                                            style="display:inline;">
-                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ product.id) }}">
-                                            <button type="submit" class="btn btn-danger">Eliminar</button>
-                                        </form>
-                                    {% endif %}
-                                    <input type="hidden" class="csrf-token" value="{{ csrf_token('edit' ~ product.id) }}">
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    {% else %}
-                        <tr>
-                            <td colspan="8" class="no-products">No hay productos en stock</td>
-                        </tr>
-                    {% endif %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    
-    <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Error de Validación</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <ul id="errorList"></ul>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-                </div>
-            </div>
-        </div>
-    </div>
+		{% if (is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN')) and products is defined and products|filter(p => p.needsRestock)|length > 0 %}
+			<div class="stock-warning">
+				<strong>¡Atención!</strong>
+				Los siguientes productos están por debajo o igual a su stock mínimo:
+				<ul>
+					{% for product in products|filter(p => p.needsRestock) %}
+						<li>{{ product.name }}
+							(Cantidad:
+							{{ product.quantity }}, Stock Mínimo:
+							{{ product.minStock }})</li>
+					{% endfor %}
+				</ul>
+			</div>
+		{% endif %}
+
+		<div class="stock-container">
+			<table class="stock-table">
+				<thead>
+					<tr>
+						<th>Imagen</th>
+						<th>Nombre</th>
+						<th>Número de Parte</th>
+						<th>Marca</th>
+						<th>Tipo de Parte</th>
+						<th>Cantidad</th>
+						{% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') %}
+							<th>Stock Mínimo</th>
+						{% endif %}
+						{% if is_granted('ROLE_VENDEDOR') or is_granted('ROLE_ADMIN') %}
+							<th>Precio</th>
+						{% endif %}
+						<th>Descripción</th>
+						<th>Modelos Compatibles</th>
+						<th>Dimensiones</th>
+						<th>Material</th>
+						<th>Peso</th>
+						<th>Capacidad de Carga</th>
+						<th>Vida Útil (Horas)</th>
+						<th>Requisitos de Instalación</th>
+						<th>Estado</th>
+						<th>Acciones</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% if products is defined and products|length > 0 %}
+						{% for product in products %}
+							<tr data-id="{{ product.id }}" class="{{ product.needsRestock ? 'low-stock' : '' }}">
+								<td>
+									{% if product.image %}
+										<img src="{{ asset('assets/imagenes/' ~ product.image) }}" alt="{{ product.name }}" class="product-image">
+									{% else %}
+										<img src="{{ asset('assets/imagenes/no-image.png') }}" alt="No image available" class="product-image">
+									{% endif %}
+								</td>
+								<td class="editable-cell" data-field="name">{{ product.name }}</td>
+								<td class="editable-cell" data-field="partNumber">{{ product.partNumber }}</td>
+								<td class="editable-cell" data-field="brand">{{ product.brand }}</td>
+								<td class="editable-cell" data-field="partType">{{ product.partType }}</td>
+								<td class="editable-cell {% if product.needsRestock %}bajo-stock{% endif %}" data-field="quantity">
+									{{ product.quantity }}
+								</td>
+								{% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') %}
+									<td class="editable-cell" data-field="minStock">{{ product.minStock }}</td>
+								{% endif %}
+								{% if is_granted('ROLE_VENDEDOR') or is_granted('ROLE_ADMIN') %}
+									<td class="editable-cell" data-field="price">${{ product.price }}</td>
+								{% endif %}
+								<td class="editable-cell" data-field="description">{{ product.description }}</td>
+								<td class="editable-cell" data-field="compatibleModels">{{ product.compatibleModels }}</td>
+								<td class="editable-cell" data-field="dimensions">{{ product.dimensions }}</td>
+								<td class="editable-cell" data-field="material">{{ product.material }}</td>
+								<td class="editable-cell" data-field="weight">{{ product.weight }}</td>
+								<td class="editable-cell" data-field="loadCapacity">{{ product.loadCapacity }}</td>
+								<td class="editable-cell" data-field="estimatedLifeHours">{{ product.estimatedLifeHours }}</td>
+								<td class="editable-cell" data-field="installationRequirements">{{ product.installationRequirements }}</td>
+								<td>
+									{% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN') %}
+										{% if not product.hasEnoughStock %}
+											<span class="status-badge out-of-stock">Sin Stock</span>
+										{% elseif product.needsRestock %}
+											<span class="status-badge low-stock">Stock Bajo</span>
+										{% else %}
+											<span class="status-badge in-stock">En Stock</span>
+										{% endif %}
+									{% endif %}
+
+									{% if is_granted('ROLE_VENDEDOR') or is_granted('ROLE_ADMIN') %}
+										<div class="status-toggle" data-field="isEnabled">
+											<button type="button" class="btn {{ product.isEnabled ? 'btn-success' : 'btn-danger' }} toggle-status" data-status="{{ product.isEnabled ? '1' : '0' }}" onclick="toggleStatus(this)">
+												{{ product.isEnabled ? 'Habilitado' : 'Deshabilitado' }}
+											</button>
+										</div>
+									{% endif %}
+								</td>
+								<td class="actions">
+									{% if is_granted('ROLE_GESTORSTOCK') and not is_granted('ROLE_ADMIN') %}
+										<button type="button" class="btn btn-secondary edit-btn" onclick="toggleEditing(this.closest('tr'), 'stock')">
+											Editar Stock
+										</button>
+									{% endif %}
+									{% if is_granted('ROLE_VENDEDOR') or is_granted('ROLE_ADMIN') %}
+										<button type="button" class="btn btn-secondary edit-btn" onclick="toggleEditing(this.closest('tr'), 'all')">
+											Editar
+										</button>
+									{% endif %}
+									<button type="button" class="btn btn-primary save-btn" style="display:none;" onclick="validateAndSave(this.closest('tr'))">
+										Guardar
+									</button>
+									{% if is_granted('ROLE_ADMIN') or is_granted('ROLE_VENDEDOR') or is_granted('ROLE_GESTORSTOCK') %}
+										<form method="post" action="{{ path('product_delete', {id: product.id}) }}" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este producto?');" style="display:inline;">
+											<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ product.id) }}">
+											<button type="submit" class="btn btn-danger">Eliminar</button>
+										</form>
+									{% endif %}
+									<input type="hidden" class="csrf-token" value="{{ csrf_token('edit' ~ product.id) }}">
+								</td>
+							</tr>
+						{% endfor %}
+					{% else %}
+						<tr>
+							<td colspan="19" class="no-products">No hay productos en stock</td>
+						</tr>
+					{% endif %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-hidden="true">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Error de Validación</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<ul id="errorList"></ul>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+				</div>
+			</div>
+		</div>
+	</div>
 {% endblock %}
 
 {% block javascripts %}
-    {{ parent() }}
-    <script>
-    function toggleEditing(row, mode) {
-    const cells = row.querySelectorAll('.editable-cell');
-    const editBtn = row.querySelector('.edit-btn');
-    const saveBtn = row.querySelector('.save-btn');
-    
-    cells.forEach(cell => {
-        const field = cell.dataset.field;
-        const isStockMode = mode === 'stock';
-        const isAdmin = {{ is_granted('ROLE_ADMIN') ? 'true' : 'false' }};
-        const isGestorStock = {{ is_granted('ROLE_GESTORSTOCK') ? 'true' : 'false' }};
-        const isVendedor = {{ is_granted('ROLE_VENDEDOR') ? 'true' : 'false' }};
-        
-        let isEditable = false;
-        
-        if (isAdmin) {
-            isEditable = true;
-        } else if (isGestorStock && (field === 'quantity' || field === 'minStock')) {
-            isEditable = true;
-        } else if (isVendedor && field !== 'minStock' && !isStockMode) {
-            isEditable = true;
-        }
-        
-        if (isEditable) {
-            const currentValue = cell.textContent.trim();
-            
-            if (!cell.classList.contains('editing')) {
-                const hasBajoStock = cell.classList.contains('bajo-stock');
-                
-                cell.classList.add('editing');
-                const input = document.createElement('input');
-                input.type = ['quantity', 'minStock'].includes(field) ? 'number' : 'text';
-                input.value = field === 'price' ? currentValue.replace('$', '') : currentValue;
-                input.name = field;
-                input.className = 'form-control editable';
-                
-                if (field === 'quantity') {
-                    input.min = "1";
-                    input.step = "1";
-                } else if (field === 'minStock') {
-                    input.min = "0";
-                    input.step = "1";
-                } else if (field === 'price') {
-                    input.min = "0.01";
-                    input.step = "0.01";
-                }
-                
-                cell.textContent = '';
-                cell.appendChild(input);
-                
-                if (hasBajoStock) {
-                    cell.classList.add('bajo-stock');
-                }
-            } else {
-                cell.classList.remove('editing');
-                const input = cell.querySelector('input');
-                cell.textContent = field === 'price' ? '$' + input.value : input.value;
-            }
-        }
-    });
-
-    editBtn.style.display = editBtn.style.display === 'none' ? '' : 'none';
-    saveBtn.style.display = saveBtn.style.display === 'none' ? '' : 'none';
-}
-
-function toggleStatus(button) {
-    const currentStatus = button.dataset.status === '1';
-    const newStatus = currentStatus ? '0' : '1';
-    
-    const row = button.closest('tr');
-    const id = row.dataset.id;
-    const formData = new FormData();
-    const csrfToken = row.querySelector('.csrf-token').value;
-    
-    formData.append('isEnabled', newStatus);
-    formData.append('_token', csrfToken);
-    
-    fetch('{{ path('product_toggle_status', {'id': '__id__'}) }}'.replace('__id__', id), {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => {
-        if (!response.ok) {
-            return response.text().then(text => {
-                console.error('Respuesta no-JSON:', text);
-                throw new Error('Error en la respuesta del servidor');
-            });
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.success) {
-            button.dataset.status = newStatus;
-            button.textContent = newStatus === '0' ? 'Deshabilitado' : 'Habilitado';
-            button.className = `btn ${newStatus === '0' ? 'btn-danger' : 'btn-success'} toggle-status`;
-            window.location.reload();
-        } else {
-            throw new Error(data.message || 'Error al actualizar el estado');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error al actualizar el estado del producto: ' + error.message);
-    });
-}
-
-function validateAndSave(row) {
-    const errors = [];
-    let nameValue = '';
-    let brandValue = '';
-    let quantityValue = '';
-    let minStockValue = '';
-    let priceValue = '';
-    let descriptionValue = '';
-    
-    row.querySelectorAll('.editable-cell input').forEach(input => {
-        const fieldName = input.name;
-        const value = input.value.trim();
-        
-        if (fieldName === 'name') {
-            nameValue = value;
-            if (value === '') {
-                errors.push('El Nombre no puede estar vacío');
-                markFieldAsInvalid(input);
-            } else {
-                markFieldAsValid(input);
-            }
-        }
-        
-        if (fieldName === 'brand') {
-            brandValue = value;
-            if (value === '') {
-                errors.push('La Marca no puede estar vacía');
-                markFieldAsInvalid(input);
-            } else {
-                markFieldAsValid(input);
-            }
-        }
-        
-        if (fieldName === 'quantity') {
-            quantityValue = value;
-            if (value === '' || parseInt(value) <= 0) {
-                errors.push('La Cantidad debe ser mayor que cero');
-                markFieldAsInvalid(input);
-            } else {
-                markFieldAsValid(input);
-            }
-        }
-        
-        if (fieldName === 'minStock') {
-            minStockValue = value;
-            if (value === '') {
-                errors.push('El Stock Mínimo no puede estar vacío');
-                markFieldAsInvalid(input);
-            } else {
-                markFieldAsValid(input);
-            }
-        }
-        
-        if (fieldName === 'price') {
-            priceValue = value;
-            if (value === '' || parseFloat(value) <= 0) {
-                errors.push('El Precio debe ser mayor que cero');
-                markFieldAsInvalid(input);
-            } else {
-                markFieldAsValid(input);
-            }
-        }
-        
-        if (fieldName === 'description') {
-            descriptionValue = value;
-            if (value === '') {
-                errors.push('La Descripción no puede estar vacía');
-                markFieldAsInvalid(input);
-            } else if (value.length < 10) {
-                errors.push('La Descripción debe tener al menos 10 caracteres');
-                markFieldAsInvalid(input);
-            } else {
-                markFieldAsValid(input);
-            }
-        }
-    });
-    
-    if (errors.length > 0) {
-        showErrors(errors);
-        return false;
-    }
-    
-    saveChanges(row);
-    return true;
-}
-
-function markFieldAsInvalid(input) {
-    input.classList.add('is-invalid');
-    input.classList.remove('is-valid');
-}
-
-function markFieldAsValid(input) {
-    input.classList.add('is-valid');
-    input.classList.remove('is-invalid');
-}
-
-function showErrors(errors) {
-    if (typeof $('#errorModal').modal === 'function') {
-        const errorList = document.getElementById('errorList');
-        errorList.innerHTML = '';
-        
-        errors.forEach(error => {
-            const li = document.createElement('li');
-            li.textContent = error;
-            errorList.appendChild(li);
-        });
-        
-        $('#errorModal').modal('show');
-    } else {
-        alert('Errores de validación:\n- ' + errors.join('\n- '));
-    }
-}
-
-function saveChanges(row) {
-    const id = row.dataset.id;
-    const formData = new FormData();
-    const csrfToken = row.querySelector('.csrf-token').value;
-    const saveBtn = row.querySelector('.save-btn');
-    
-    if (saveBtn) saveBtn.classList.add('loading');
-    
-    const statusBtn = row.querySelector('.toggle-status');
-    if (statusBtn) {
-        const status = statusBtn.dataset.status;
-        formData.append('isEnabled', status);
-    }
-    
-    row.querySelectorAll('.editable-cell input').forEach(input => {
-        formData.append(input.name, input.value);
-    });
-
-    formData.append('_token', csrfToken);
-
-    fetch('{{ path('product_edit', {'id': '__id__'}) }}'.replace('__id__', id), {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => {
-        if (!response.ok) {
-            return response.text().then(text => {
-                console.error('Respuesta de error completa:', text);
-                try {
-                    return JSON.parse(text);
-                } catch (e) {
-                    throw new Error('Error del servidor: ' + text.substring(0, 100) + '...');
-                }
-            });
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.success) {
-            console.log('Producto actualizado correctamente');
-            window.location.reload();
-        } else {
-            if (saveBtn) saveBtn.classList.remove('loading');
-            throw new Error(data.message || 'Error en la actualización');
-        }
-    })
-    .catch(error => {
-        console.error('Error detallado:', error);
-        if (saveBtn) saveBtn.classList.remove('loading');
-        
-        const errorMessage = document.createElement('div');
-        errorMessage.className = 'alert alert-danger';
-        errorMessage.textContent = error.message;
-        row.closest('.stock-container').insertBefore(errorMessage, row.closest('table'));
-        
-        setTimeout(() => {
-            errorMessage.remove();
-        }, 5000);
-    });
-}
-
-function deleteProduct(productId, csrfToken) {
-    if (confirm('¿Estás seguro de que quieres eliminar este producto?')) {
-        const formData = new FormData();
-        formData.append('_token', csrfToken);
-        
-        fetch('/product/' + productId, {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => {
-            if (response.ok) {
-                window.location.href = '/stock/view';
-            } else {
-                throw new Error('Error al eliminar el producto');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error al eliminar el producto: ' + error.message);
-        });
-    }
-}
-    </script>
+	{{ parent() }}
+	 <script>
+								function toggleEditing(row, mode) {
+					                    const cells = row.querySelectorAll('.editable-cell');
+					                    const editBtn = row.querySelector('.edit-btn');
+					                    const saveBtn = row.querySelector('.save-btn');
+					                    
+					                    cells.forEach(cell => {
+					                        const field = cell.dataset.field;
+					                        const isStockMode = mode === 'stock';
+					                        const isAdmin = {{ is_granted('ROLE_ADMIN') ? 'true' : 'false' }};
+					                        const isGestorStock = {{ is_granted('ROLE_GESTORSTOCK') ? 'true' : 'false' }};
+					                        const isVendedor = {{ is_granted('ROLE_VENDEDOR') ? 'true' : 'false' }};
+					                        
+					                        let isEditable = false;
+					                        
+					                        if (isAdmin) {
+					                            isEditable = true;
+					                        } else if (isGestorStock && (field === 'quantity' || field === 'minStock')) {
+					                            isEditable = true;
+					                        } else if (isVendedor && field !== 'minStock' && !isStockMode) {
+					                            isEditable = true;
+					                        }
+					                        
+					                        if (isEditable) {
+					                            const currentValue = cell.textContent.trim();
+					                            
+					                            if (!cell.classList.contains('editing')) {
+					                                const hasBajoStock = cell.classList.contains('bajo-stock');
+					                                cell.classList.add('editing');
+					                
+					                                // Crear el elemento de entrada según el tipo de campo
+					                                let inputElement;
+					                                
+					                                if (field === 'partType' || field === 'material') {
+					                                    inputElement = createSelect(field, currentValue);
+					                                } else if (field === 'description' || field === 'installationRequirements' || field === 'compatibleModels') {
+					                                    inputElement = document.createElement('textarea');
+					                                    inputElement.rows = 3;
+					                                    inputElement.className = 'form-control editable';
+					                                    inputElement.name = field;
+					                                    inputElement.value = currentValue;
+					                                } else {
+					                                    inputElement = document.createElement('input');
+					                                    inputElement.type = getInputType(field);
+					                                    inputElement.className = 'form-control editable';
+					                                    inputElement.name = field;
+					                                    inputElement.value = field === 'price' ? currentValue.replace('$', '') : currentValue;
+					                                    
+					                                    // Configurar atributos específicos
+					                                    if (field === 'quantity') {
+					                                        inputElement.min = "1";
+					                                        inputElement.step = "1";
+					                                    } else if (field === 'minStock') {
+					                                        inputElement.min = "0";
+					                                        inputElement.step = "1";
+					                                    } else if (field === 'price' || field === 'weight') {
+					                                        inputElement.min = "0.01";
+					                                        inputElement.step = "0.01";
+					                                    }
+					                                }
+					                
+					                                // Agregar placeholder
+					                                inputElement.placeholder = getPlaceholder(field);
+					                                
+					                                // Limpiar y agregar el nuevo elemento
+					                                cell.textContent = '';
+					                                cell.appendChild(inputElement);
+					                                
+					                                if (hasBajoStock) {
+					                                    cell.classList.add('bajo-stock');
+					                                }
+					                            }
+					                        }
+					                    });
+					                
+					                    editBtn.style.display = editBtn.style.display === 'none' ? '' : 'none';
+					                    saveBtn.style.display = saveBtn.style.display === 'none' ? '' : 'none';
+					                }
+					
+			            function createSelect(field, currentValue) {
+	    const select = document.createElement('select');
+	    select.className = 'form-control editable';
+	    select.name = field;
+	    select.required = true;
+	
+	    if (field === 'partType') {
+	        const partTypes = {
+	            'Repuestos para Tractores': {
+	                'tractor_filtro_aire': 'Filtros de aire',
+	                'tractor_filtro_aceite': 'Filtros de aceite',
+	                'tractor_filtro_combustible': 'Filtros de combustible',
+	                'tractor_filtro_hidraulico': 'Filtros hidráulicos',
+	                'tractor_correa_transmision': 'Correas de transmisión',
+	                'tractor_correa_alternador': 'Correas de alternador',
+	                'tractor_bateria': 'Baterías',
+	                'tractor_alternador': 'Alternadores',
+	                'tractor_motor_arranque': 'Motores de arranque',
+	                'tractor_fusible': 'Fusibles',
+	                'tractor_neumatico': 'Neumáticos',
+	                'tractor_llanta': 'Llantas',
+	                'tractor_piston': 'Pistones',
+	                'tractor_bujia': 'Bujías',
+	                'tractor_inyector': 'Inyectores',
+	                'tractor_radiador': 'Radiadores',
+	                'tractor_bomba_hidraulica': 'Bombas hidráulicas',
+	                'tractor_manguera_hidraulica': 'Mangueras hidráulicas',
+	                'tractor_valvula_hidraulica': 'Válvulas hidráulicas'
+	            },
+	            'Repuestos para Cosechadoras': {
+	                'cosechadora_cuchilla_trigo': 'Cuchillas para trigo',
+	                'cosechadora_cuchilla_maiz': 'Cuchillas para maíz',
+	                'cosechadora_cuchilla_arroz': 'Cuchillas para arroz',
+	                'cosechadora_tamiz': 'Tamices',
+	                'cosechadora_zaranda': 'Zarandas',
+	                'cosechadora_correa': 'Correas de transmisión',
+	                'cosechadora_cadena': 'Cadenas de transmisión',
+	                'cosechadora_rotor': 'Rotores',
+	                'cosechadora_sacudidor': 'Sacudidores'
+	            },
+	            'Repuestos para Equipos de Siembra': {
+	                'siembra_disco': 'Discos de siembra',
+	                'siembra_cuchilla': 'Cuchillas de siembra',
+	                'siembra_dosificador': 'Dosificadores de semillas',
+	                'siembra_tubo': 'Tubos de fertilización',
+	                'siembra_boquilla': 'Boquillas de fertilización',
+	                'siembra_rodamiento': 'Rodamientos',
+	                'siembra_eje': 'Ejes'
+	            },
+	            'Repuestos para Equipos de Riego': {
+	                'riego_aspersor': 'Aspersores',
+	                'riego_boquilla': 'Boquillas de riego',
+	                'riego_manguera': 'Mangueras',
+	                'riego_tuberia': 'Tuberías',
+	                'riego_bomba': 'Bombas de agua',
+	                'riego_filtro': 'Filtros de riego'
+	            },
+	            'Repuestos para Equipos de Forraje': {
+	                'forraje_cuchilla': 'Cuchillas para forraje',
+	                'forraje_martillo': 'Martillos picadores',
+	                'forraje_barra': 'Barras de corte',
+	                'forraje_pua_segadora': 'Púas para segadoras',
+	                'forraje_pua_empacadora': 'Púas para empacadoras',
+	                'forraje_cadena': 'Cadenas',
+	                'forraje_engranaje': 'Engranajes'
+	            }
+	        };
+	
+	        // Buscar el valor actual en el mapa de valores
+	        let currentKey = currentValue;
+	        for (const [category, items] of Object.entries(partTypes)) {
+	            for (const [value, label] of Object.entries(items)) {
+	                if (label === currentValue || value === currentValue) {
+	                    currentKey = value;
+	                    break;
+	                }
+	            }
+	        }
+	
+	        Object.entries(partTypes).forEach(([category, items]) => {
+	            const optgroup = document.createElement('optgroup');
+	            optgroup.label = category;
+	            
+	            Object.entries(items).forEach(([value, label]) => {
+	                const option = document.createElement('option');
+	                option.value = value;
+	                option.textContent = label;
+	                option.selected = value === currentKey;
+	                optgroup.appendChild(option);
+	            });
+	            
+	            select.appendChild(optgroup);
+	        });
+	    } else if (field === 'material') {
+	        const materials = [
+	            'Acero inoxidable',
+	            'Hierro fundido',
+	            'Caucho',
+	            'Plástico reforzado',
+	            'Aluminio',
+	            'Otro'
+	        ];
+	
+	        // Opción por defecto
+	        const defaultOption = document.createElement('option');
+	        defaultOption.value = '';
+	        defaultOption.textContent = 'Seleccione el material';
+	        defaultOption.selected = !currentValue;
+	        select.appendChild(defaultOption);
+	
+	        materials.forEach(material => {
+	            const option = document.createElement('option');
+	            option.value = material;
+	            option.textContent = material;
+	            option.selected = material === currentValue;
+	            select.appendChild(option);
+	        });
+	    }
+	
+	    return select;
+	}
+			            function getInputType(field) {
+		                    const types = {
+		                        quantity: 'number',
+		                        minStock: 'number',
+		                        price: 'number',
+		                        weight: 'number',
+		                        estimatedLifeHours: 'number',
+		                        default: 'text'
+		                    };
+		                    return types[field] || types.default;
+			}
+													
+				                function getPlaceholder(field) {
+				                    const placeholders = {
+				                        name: 'Ej: Filtro de aire, Cuchilla, Disco de siembra',
+				                        partNumber: 'Código único del fabricante',
+				                        brand: 'Marca del repuesto',
+				                        quantity: 'Cantidad disponible',
+				                        minStock: 'Stock mínimo',
+				                        price: 'Precio en $',
+				                        description: 'Descripción detallada del repuesto',
+				                        compatibleModels: 'Liste los modelos de máquinas compatibles',
+				                        dimensions: 'Ej: 100 x 50 x 25 mm',
+				                        weight: 'Peso en kg',
+				                        loadCapacity: 'Capacidad de carga o presión soportada',
+				                        estimatedLifeHours: 'Horas de uso estimadas',
+				                        mountingType: 'Tipo de montaje',
+				                        installationRequirements: 'Herramientas y procedimientos necesarios'
+				                    };
+				                    return placeholders[field] || '';
+				                }
+																
+				                function toggleStatus(button) {
+				                    const currentStatus = button.dataset.status === '1';
+				                    const newStatus = currentStatus ? '0' : '1';
+				                    
+				                    const row = button.closest('tr');
+				                    const id = row.dataset.id;
+				                    const formData = new FormData();
+				                    const csrfToken = row.querySelector('.csrf-token').value;
+				                    
+				                    formData.append('isEnabled', newStatus);
+				                    formData.append('_token', csrfToken);
+				                    
+				                    fetch('{{ path('product_toggle_status', {'id': '__id__'}) }}'.replace('__id__', id), {
+				                        method: 'POST',
+				                        body: formData
+				                    })
+				                    .then(response => {
+				                        if (!response.ok) {
+				                            return response.text().then(text => {
+				                                console.error('Respuesta no-JSON:', text);
+				                                throw new Error('Error en la respuesta del servidor');
+				                            });
+				                        }
+				                        return response.json();
+				                    })
+				                    .then(data => {
+				                        if (data.success) {
+				                            button.dataset.status = newStatus;
+				                            button.textContent = newStatus === '0' ? 'Deshabilitado' : 'Habilitado';
+				                            button.className = `btn ${newStatus === '0' ? 'btn-danger' : 'btn-success'} toggle-status`;
+				                            window.location.reload();
+				                        } else {
+				                            throw new Error(data.message || 'Error al actualizar el estado');
+				                        }
+				                    })
+				                    .catch(error => {
+				                        console.error('Error:', error);
+				                        alert('Error al actualizar el estado del producto: ' + error.message);
+				                    });
+				                }
+																
+				            function validateAndSave(row) {
+				                    const errors = [];
+				                    const fields = row.querySelectorAll('.editable-cell input, .editable-cell select, .editable-cell textarea');
+				                    
+				                    fields.forEach(field => {
+				                        const fieldName = field.name;
+				                        const value = field.value.trim();
+				                        
+				                        // Validaciones generales
+				                        if (field.required && value === '') {
+				                            errors.push(`El campo ${fieldName} es obligatorio`);
+				                            markFieldAsInvalid(field);
+				                            return;
+				                        }
+				                
+				                        // Validaciones específicas por campo
+				                        switch(fieldName) {
+				                            case 'name':
+				                            case 'partNumber':
+				                            case 'brand':
+				                                if (value.length < 3) {
+				                                    errors.push(`${fieldName} debe tener al menos 3 caracteres`);
+				                                    markFieldAsInvalid(field);
+				                                }
+				                                break;
+				                            case 'quantity':
+				                                if (parseInt(value) < 1) {
+				                                    errors.push('La cantidad debe ser mayor que cero');
+				                                    markFieldAsInvalid(field);
+				                                }
+				                                break;
+				                            case 'minStock':
+				                                if (parseInt(value) < 0) {
+				                                    errors.push('El stock mínimo no puede ser negativo');
+				                                    markFieldAsInvalid(field);
+				                                }
+				                                break;
+				                            case 'price':
+				                                if (parseFloat(value) <= 0) {
+				                                    errors.push('El precio debe ser mayor que cero');
+				                                    markFieldAsInvalid(field);
+				                                }
+				                                break;
+				                            case 'description':
+				                                if (value.length < 10) {
+				                                    errors.push('La descripción debe tener al menos 10 caracteres');
+				                                    markFieldAsInvalid(field);
+				                                }
+				                                break;
+				                            case 'compatibleModels':
+				                                if (value.length < 5) {
+				                                    errors.push('Debe especificar al menos un modelo compatible');
+				                                    markFieldAsInvalid(field);
+				                                }
+				                                break;
+				                            case 'dimensions':
+				                                if (value && !value.match(/^\d+(?:\s*x\s*\d+(?:\s*x\s*\d+)?)?$/)) {
+				                                    errors.push('Formato de dimensiones inválido (ej: 100 x 50 x 25)');
+				                                    markFieldAsInvalid(field);
+				                                }
+				                                break;
+				                            case 'weight':
+				                                if (value && parseFloat(value) <= 0) {
+				                                    errors.push('El peso debe ser mayor que cero');
+				                                    markFieldAsInvalid(field);
+				                                }
+				                                break;
+				                            case 'estimatedLifeHours':
+				                                if (value && parseInt(value) <= 0) {
+				                                    errors.push('Las horas estimadas deben ser mayores que cero');
+				                                    markFieldAsInvalid(field);
+				                                }
+				                                break;
+				                        }
+				                    });
+				                
+				                        if (errors.length > 0) {
+				                            showErrors(errors);
+				                            return false;
+				                        }
+				                    
+				                        saveChanges(row);
+				                        return true;
+				                }
+																
+				        function markFieldAsInvalid(input) {
+				            input.classList.add('is-invalid');
+				            input.classList.remove('is-valid');
+				        }
+				                
+				        function markFieldAsValid(input) {
+				            input.classList.add('is-valid');
+				            input.classList.remove('is-invalid');
+				        }
+				                
+				        function showErrors(errors) {
+				            if (typeof $('#errorModal').modal === 'function') {
+				                const errorList = document.getElementById('errorList');
+				                errorList.innerHTML = '';
+				                
+				                errors.forEach(error => {
+				                    const li = document.createElement('li');
+				                    li.textContent = error;
+				                    errorList.appendChild(li);
+				                });
+				                
+				                $('#errorModal').modal('show');
+				            } else {
+				                alert('Errores de validación:\n- ' + errors.join('\n- '));
+				            }
+				        }
+				                
+				        function saveChanges(row) {
+		    const id = row.dataset.id;
+		    const formData = new FormData();
+		    const csrfToken = row.querySelector('.csrf-token').value;
+		    const saveBtn = row.querySelector('.save-btn');
+		    
+		    if (saveBtn) saveBtn.classList.add('loading');
+		    
+		    // Obtener todos los campos editables
+		    const editableCells = row.querySelectorAll('.editable-cell.editing');
+		    editableCells.forEach(cell => {
+		        const field = cell.dataset.field;
+		        const input = cell.querySelector('input, select, textarea');
+		        
+		        if (input) {
+		            if (input.tagName === 'SELECT') {
+		                // Para selectores, guardar tanto el valor como el texto visible
+		                const selectedOption = input.options[input.selectedIndex];
+		                formData.append(field, input.value);
+		                formData.append(field + '_text', selectedOption ? selectedOption.textContent : '');
+		            } else {
+		                formData.append(field, input.value);
+		            }
+		        }
+		    });
+		
+		    // Agregar el estado si existe
+		    const statusBtn = row.querySelector('.toggle-status');
+		    if (statusBtn) {
+		        formData.append('isEnabled', statusBtn.dataset.status);
+		    }
+		
+		    formData.append('_token', csrfToken);
+		
+		    fetch('{{ path('product_edit', {'id': '__id__'}) }}'.replace('__id__', id), {
+		        method: 'POST',
+		        body: formData
+		    })
+		    .then(response => {
+		        if (!response.ok) {
+		            throw new Error('Error en la respuesta del servidor');
+		        }
+		        return response.json();
+		    })
+		    .then(data => {
+		        if (data.success) {
+		            // Actualizar la UI con los nuevos valores
+		            editableCells.forEach(cell => {
+		                const field = cell.dataset.field;
+		                const input = cell.querySelector('input, select, textarea');
+		                
+		                if (input) {
+		                    if (input.tagName === 'SELECT') {
+		                        const selectedOption = input.options[input.selectedIndex];
+		                        cell.textContent = selectedOption ? selectedOption.textContent : '';
+		                    } else if (field === 'price') {
+		                        cell.textContent = '$' + input.value;
+		                    } else {
+		                        cell.textContent = input.value;
+		                    }
+		                }
+		                
+		                cell.classList.remove('editing');
+		            });
+		
+		            // Mostrar/ocultar botones
+		            const editBtn = row.querySelector('.edit-btn');
+		            if (editBtn) editBtn.style.display = '';
+		            if (saveBtn) {
+		                saveBtn.style.display = 'none';
+		                saveBtn.classList.remove('loading');
+		            }
+		
+		            // Actualizar el estado de stock si es necesario
+		            if (data.needsRestock !== undefined) {
+		                if (data.needsRestock) {
+		                    row.classList.add('low-stock');
+		                } else {
+		                    row.classList.remove('low-stock');
+		                }
+		            }
+		
+		            // Mostrar mensaje de éxito
+		            const successMessage = document.createElement('div');
+		            successMessage.className = 'alert alert-success';
+		            successMessage.textContent = 'Producto actualizado correctamente';
+		            row.closest('.stock-container').insertBefore(successMessage, row.closest('table'));
+		            
+		            // Actualizar la página después de un breve delay
+		            setTimeout(() => {
+		                successMessage.remove();
+		                window.location.reload();
+		            }, 1500);
+		        } else {
+		            throw new Error(data.message || 'Error en la actualización');
+		        }
+		    })
+		    .catch(error => {
+		        console.error('Error:', error);
+		        if (saveBtn) saveBtn.classList.remove('loading');
+		        
+		        const errorMessage = document.createElement('div');
+		        errorMessage.className = 'alert alert-danger';
+		        errorMessage.textContent = error.message;
+		        row.closest('.stock-container').insertBefore(errorMessage, row.closest('table'));
+		        
+		        setTimeout(() => {
+		            errorMessage.remove();
+		        }, 5000);
+		    });
+		}
+				                
+				        function deleteProduct(productId, csrfToken) {
+				                if (confirm('¿Estás seguro de que quieres eliminar este producto?')) {
+				                    const formData = new FormData();
+				                    formData.append('_token', csrfToken);
+				                    
+				                    fetch('/product/' + productId, {
+				                        method: 'POST',
+				                        body: formData
+				                    })
+				                    .then(response => {
+				                        if (response.ok) {
+				                            window.location.href = '/stock/view';
+				                        } else {
+				                            throw new Error('Error al eliminar el producto');
+				                        }
+				                    })
+				                    .catch(error => {
+				                        console.error('Error:', error);
+				                        alert('Error al eliminar el producto: ' + error.message);
+				                    });
+				                }
+				            }
+				    </script>
 {% endblock %}

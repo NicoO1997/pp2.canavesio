@@ -2,6 +2,7 @@
 
 # Parámetros globales
 parameters:
+    app.timezone: 'America/Argentina/Buenos_Aires'
     images_directory: '%kernel.project_dir%/public/images'
     mercado_pago_access_token: '%env(MERCADO_PAGO_ACCESS_TOKEN)%'
 
@@ -11,6 +12,8 @@ services:
     _defaults:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+        bind:
+            $defaultTimezone: '%app.timezone%'
 
     # Servicios en src/
     App\:

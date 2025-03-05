@@ -98,7 +98,16 @@
             <button type="submit" class="register-button">Registrarse</button>
         {{ form_end(registrationForm) }}
 
-        <p class="register-login-prompt">¿Ya tienes una cuenta? <a href="{{ path('app_login') }}" class="register-login-link">Ingresa</a></p>
+        <p class="register-login-prompt">
+            ¿Ya tienes una cuenta? 
+            <a href="{{ path('app_login') }}" class="register-login-link">
+                {% if is_granted('ROLE_INVITADO') %}
+                    Iniciar Sesión
+                {% else %}
+                    Iniciar Sesión
+                {% endif %}
+            </a>
+        </p>
     </div>
 </div>
 

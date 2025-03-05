@@ -121,10 +121,12 @@ class UsedMachinery
 
     public function setBrand(string $brand): self
     {
-        $this->brand = $brand;
+        $this->brand = implode(' ', array_map(function($word) {
+            return ucfirst(strtolower($word));
+        }, explode(' ', $brand)));
+        
         return $this;
     }
-
     public function getManufacturingDate(): ?\DateTimeInterface
     {
         return $this->manufacturingDate;
@@ -301,13 +303,6 @@ class UsedMachinery
         } elseif ($this->manufacturingDate > new \DateTime()) {
             $context->buildViolation('La fecha de fabricación no puede ser posterior al día de hoy')
                 ->atPath('manufacturingDate')
-                ->addViolation();
-        }
-
-        if (in_array($this->category, ['sembradora', 'pulverizadora', 'tolva']) && 
-            (null === $this->loadCapacity || $this->loadCapacity <= 0)) {
-            $context->buildViolation('La capacidad de carga debe ser mayor a 0 para esta categoría')
-                ->atPath('loadCapacity')
                 ->addViolation();
         }
     }

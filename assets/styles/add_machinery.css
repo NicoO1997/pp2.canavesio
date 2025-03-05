@@ -308,3 +308,138 @@ input[type="radio"] {
     font-weight: bold;
     color: #0d6efd;
 }
+
+.brand-group {
+    position: relative;
+}
+
+.brand-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    width: 100%;
+    z-index: 1000;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 4px;
+}
+
+.suggestion-item {
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 0.95rem;
+    color: #333;
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestion-item:hover {
+    background-color: #f8f9fa;
+    color: #007bff;
+    padding-left: 20px;
+}
+
+.suggestion-item.selected {
+    background-color: #e9ecef;
+    color: #007bff;
+}
+
+.brand-suggestions::-webkit-scrollbar {
+    width: 8px;
+}
+
+.brand-suggestions::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.brand-suggestions::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.brand-suggestions::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.brand-suggestions {
+    animation: fadeIn 0.2s ease-out;
+}
+
+.used-fields-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+    transition: opacity 0.3s ease;
+}
+
+.price-preview {
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+}
+
+.price-preview p {
+    margin: 0.5rem 0;
+    font-size: 0.95rem;
+}
+
+.load-capacity-field {
+    margin-bottom: 1rem;
+}
+
+.full-width {
+    grid-column: 1 / -1;
+}
+
+.machinery-type-selector {
+    margin-bottom: 2rem;
+}
+
+.machinery-type-selector .form-check {
+    display: inline-block;
+    margin-right: 2rem;
+}
+
+.location-group {
+    position: relative;
+}
+
+.location-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    width: 100%;
+    z-index: 1000;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 4px;
+}

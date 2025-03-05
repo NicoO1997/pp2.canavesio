@@ -3,13 +3,16 @@
 namespace App\Entity;
 
 use App\Repository\ProductRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use DateTime;
+use DateTimeZone;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 class Product
 {
     #[ORM\Id]
@@ -17,114 +20,94 @@ class Product
     #[ORM\Column]
     private ?int $id = null;
 
-    /**
-     * @Assert\NotBlank(message="El nombre es obligatorio")
-     */
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'El nombre no puede estar vacío')]
     private ?string $name = null;
 
-    /**
-     * @Assert\NotBlank(message="La cantidad es obligatoria")
-     * @Assert\GreaterThan(
-     *     value = 0,
-     *     message = "La cantidad debe ser mayor a 0"
-     * )
-     */
-    #[ORM\Column(nullable: true)]
-    private ?int $quantity = null;
-
-    /**
-     * @Assert\NotBlank(message="El stock mínimo es obligatorio")
-     * @Assert\GreaterThanOrEqual(
-     *     value = 0,
-     *     message = "El stock mínimo debe ser mayor o igual a 0"
-     * )
-     */
-    #[ORM\Column]
-    private int $minStock = 0;
-
-    /**
-     * @Assert\NotBlank(message="El precio es obligatorio")
-     * @Assert\GreaterThan(
-     *     value = 0,
-     *     message = "El precio debe ser mayor a 0"
-     * )
-     */
-    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2, nullable: true)]
-    private ?string $price = null;
-
-    /**
-     * @Assert\NotBlank(message="La descripción es obligatoria")
-     */
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: Types::TEXT)]
+    #[Assert\NotBlank(message: 'La descripción no puede estar vacía')]
     private ?string $description = null;
 
-    /**
-     * @Assert\NotBlank(message="La marca es obligatoria")
-     */
+    #[ORM\Column]
+    #[Assert\NotBlank(message: 'El precio es obligatorio')]
+    #[Assert\GreaterThanOrEqual(0, message: 'El precio no puede ser inferior a cero')]
+    private ?float $price = null;
+
+    #[ORM\Column]
+    #[Assert\NotBlank(message: 'La cantidad es obligatoria')]
+    #[Assert\GreaterThanOrEqual(0, message: 'La cantidad no puede ser inferior a cero')]
+    private ?int $quantity = null;
+
+    #[ORM\Column]
+    private ?bool $isEnabled = false;
+
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'La marca no puede estar vacía')]
     private ?string $brand = null;
 
-    /**
-     * @Assert\NotBlank(message="La imagen es obligatoria")
-     */
-    #[ORM\Column(type: Types::TEXT)]
+    #[ORM\Column]
+    #[Assert\NotBlank(message: 'El stock mínimo es obligatorio')]
+    #[Assert\GreaterThanOrEqual(0, message: 'El stock mínimo no puede ser inferior a cero')]
+    private ?int $minStock = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $image = null;
 
-    #[ORM\Column(type: 'boolean')]
-    private bool $isEnabled = true;
+    #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'El código de parte es obligatorio')]
+    private ?string $partNumber = null;
 
-    public function getIsEnabled(): bool
-    {
-        return $this->isEnabled;
-    }
+    #[ORM\Column(type: Types::TEXT)]
+    #[Assert\NotBlank(message: 'Debe especificar los modelos compatibles')]
+    private ?string $compatibleModels = null;
 
-    public function setIsEnabled(bool $isEnabled): static
-    {
-        $this->isEnabled = $isEnabled;
-        return $this;
-    }
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $dimensions = null;
 
-    /**
-     * @var Collection<int, UserFavoriteProduct>
-     */
-    #[ORM\OneToMany(targetEntity: UserFavoriteProduct::class, mappedBy: 'product', orphanRemoval: true)]
-    private Collection $userFavoriteProduct;
+    #[ORM\Column(length: 255)]
+    private ?string $material = null;
 
-    /**
-     * @var Collection<int, CartProductOrder>
-     */
+    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2, nullable: true)]
+    private ?string $weight = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $loadCapacity = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $estimatedLifeHours = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $mountingType = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $installationRequirements = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $partType = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    private ?\DateTimeInterface $createdAt = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $createdBy = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $updatedAt = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $updatedBy = null;
+
     #[ORM\OneToMany(targetEntity: CartProductOrder::class, mappedBy: 'product', orphanRemoval: true)]
     private Collection $cartProductOrder;
 
-    /**
-     * @var Collection<int, Parts>
-     */
-    #[ORM\ManyToMany(targetEntity: Parts::class, inversedBy: 'product')]
-    private Collection $parts;
-
-    /**
-     * @var Collection<int, ProductPartsMachine>
-     */
-    #[ORM\OneToMany(targetEntity: ProductPartsMachine::class, mappedBy: 'product')]
-    private Collection $productPartsMachines;
-
-    /**
-     * @var Collection<int, RecipeMachine>
-     */
-    #[ORM\ManyToMany(targetEntity: RecipeMachine::class, mappedBy: 'products')]
-    private Collection $recipeMachines;
-
     public function __construct()
     {
-        $this->userFavoriteProduct = new ArrayCollection();
         $this->cartProductOrder = new ArrayCollection();
-        $this->parts = new ArrayCollection();
-        $this->productPartsMachines = new ArrayCollection();
-        $this->recipeMachines = new ArrayCollection();
+{
+        $this->createdAt = new DateTime();
+}
     }
 
-    // Métodos básicos existentes
     public function getId(): ?int
     {
         return $this->id;
@@ -135,54 +118,9 @@ class Product
         return $this->name;
     }
 
-    public function setName(?string $name): static
+    public function setName(string $name): self
     {
-        $this->name = $name !== null ? $name : '';
-        return $this;
-    }
-
-    public function getQuantity(): ?int
-    {
-        return $this->quantity;
-    }
-
-    public function setQuantity(?int $quantity): static
-    {
-        $this->quantity = $quantity !== null ? $quantity : 0;
-        return $this;
-    }
-
-    public function getMinStock(): ?int
-    {
-        return $this->minStock;
-    }
-
-    public function setMinStock(int $minStock): static
-    {
-        $this->minStock = max(0, $minStock);
-        return $this;
-    }
-
-    // Nuevos métodos de utilidad como en Repuestos
-    public function hasEnoughStock(): bool
-    {
-        return $this->quantity > 0;
-    }
-
-    public function needsRestock(): bool
-    {
-        return $this->quantity <= $this->minStock;
-    }
-
-    // Resto de getters y setters existentes
-    public function getPrice(): ?string
-    {
-        return $this->price;
-    }
-
-    public function setPrice(?string $price): static
-    {
-        $this->price = $price;
+        $this->name = $name;
         return $this;
     }
 
@@ -191,9 +129,42 @@ class Product
         return $this->description;
     }
 
-    public function setDescription(string $description): static
+    public function setDescription(string $description): self
     {
         $this->description = $description;
+        return $this;
+    }
+
+    public function getPrice(): ?float
+    {
+        return $this->price;
+    }
+
+    public function setPrice(float $price): self
+    {
+        $this->price = $price;
+        return $this;
+    }
+
+    public function getQuantity(): ?int
+    {
+        return $this->quantity;
+    }
+
+    public function setQuantity(int $quantity): self
+    {
+        $this->quantity = $quantity;
+        return $this;
+    }
+
+    public function isIsEnabled(): ?bool
+    {
+        return $this->isEnabled;
+    }
+
+    public function setIsEnabled(bool $isEnabled): self
+    {
+        $this->isEnabled = $isEnabled;
         return $this;
     }
 
@@ -202,9 +173,20 @@ class Product
         return $this->brand;
     }
 
-    public function setBrand(string $brand): static
+    public function setBrand(string $brand): self
     {
         $this->brand = $brand;
+        return $this;
+    }
+
+    public function getMinStock(): ?int
+    {
+        return $this->minStock;
+    }
+
+    public function setMinStock(int $minStock): self
+    {
+        $this->minStock = $minStock;
         return $this;
     }
 
@@ -213,126 +195,282 @@ class Product
         return $this->image;
     }
 
-    public function setImage(string $image): static
+    public function setImage(?string $image): self
     {
         $this->image = $image;
         return $this;
     }
 
-    // Métodos de colección existentes
-    public function getUserFavoriteProduct(): Collection
+    public function getPartNumber(): ?string
     {
-        return $this->userFavoriteProduct;
+        return $this->partNumber;
     }
 
-    public function addUserFavoriteProduct(UserFavoriteProduct $userFavoriteProduct): static
+    public function setPartNumber(string $partNumber): self
     {
-        if (!$this->userFavoriteProduct->contains($userFavoriteProduct)) {
-            $this->userFavoriteProduct->add($userFavoriteProduct);
-            $userFavoriteProduct->setProduct($this);
-        }
+        $this->partNumber = $partNumber;
         return $this;
     }
 
-    public function removeUserFavoriteProduct(UserFavoriteProduct $userFavoriteProduct): static
+    public function getCompatibleModels(): ?string
     {
-        if ($this->userFavoriteProduct->removeElement($userFavoriteProduct)) {
-            if ($userFavoriteProduct->getProduct() === $this) {
-                $userFavoriteProduct->setProduct(null);
-            }
-        }
+        return $this->compatibleModels;
+    }
+
+    public function setCompatibleModels(string $compatibleModels): self
+    {
+        $this->compatibleModels = $compatibleModels;
         return $this;
     }
 
+    public function getDimensions(): ?string
+    {
+        return $this->dimensions;
+    }
+
+    public function setDimensions(?string $dimensions): self
+    {
+        $this->dimensions = $dimensions;
+        return $this;
+    }
+
+    public function getMaterial(): ?string
+    {
+        return $this->material;
+    }
+
+    public function setMaterial(string $material): self
+    {
+        $this->material = $material;
+        return $this;
+    }
+
+    public function getWeight(): ?string
+    {
+        return $this->weight;
+    }
+
+    public function setWeight(?string $weight): self
+    {
+        $this->weight = $weight;
+        return $this;
+    }
+
+    public function getLoadCapacity(): ?string
+    {
+        return $this->loadCapacity;
+    }
+
+    public function setLoadCapacity(?string $loadCapacity): self
+    {
+        $this->loadCapacity = $loadCapacity;
+        return $this;
+    }
+
+    public function getEstimatedLifeHours(): ?int
+    {
+        return $this->estimatedLifeHours;
+    }
+
+    public function setEstimatedLifeHours(?int $estimatedLifeHours): self
+    {
+        $this->estimatedLifeHours = $estimatedLifeHours;
+        return $this;
+    }
+
+    public function getMountingType(): ?string
+    {
+        return $this->mountingType;
+    }
+
+    public function setMountingType(?string $mountingType): self
+    {
+        $this->mountingType = $mountingType;
+        return $this;
+    }
+
+    public function getInstallationRequirements(): ?string
+    {
+        return $this->installationRequirements;
+    }
+
+    public function setInstallationRequirements(?string $installationRequirements): self
+    {
+        $this->installationRequirements = $installationRequirements;
+        return $this;
+    }
+
+    public function getPartType(): ?string
+    {
+        return $this->partType;
+    }
+
+    public function setPartType(string $partType): self
+    {
+        $this->partType = $partType;
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(?\DateTimeInterface $createdAt): self
+{
+    $this->createdAt = $createdAt;
+    return $this;
+}
+
+    public function getCreatedBy(): ?string
+    {
+        return $this->createdBy;
+    }
+
+    public function setCreatedBy(string $createdBy): self
+    {
+        $this->createdBy = $createdBy;
+        return $this;
+    }
+
+     /**
+     * Determina si el producto necesita reabastecimiento basado en el stock mínimo
+     */
+    public function needsRestock(): bool
+    {
+        return $this->quantity <= $this->minStock;
+    }
+
+    /**
+     * Calcula el porcentaje de stock restante
+     */
+    public function getStockPercentage(): float
+    {
+        if ($this->minStock === 0) {
+            return 100;
+        }
+        
+        return ($this->quantity / $this->minStock) * 100;
+    }
+
+    /**
+     * Obtiene el estado del stock como texto
+     */
+    public function getStockStatus(): string
+    {
+        if ($this->quantity <= 0) {
+            return 'Sin stock';
+        }
+        
+        if ($this->needsRestock()) {
+            return 'Stock bajo';
+        }
+        
+        return 'En stock';
+    }
+
+    /**
+     * Obtiene el color del estado del stock para la UI
+     */
+    public function getStockStatusColor(): string
+    {
+        if ($this->quantity <= 0) {
+            return 'danger';
+        }
+        
+        if ($this->needsRestock()) {
+            return 'warning';
+        }
+        
+        return 'success';
+    }
+
+    public function setUpdatedAtValue(): void
+    {
+        $this->updatedAt = new DateTime('2025-03-03 15:30:19');
+        $this->updatedBy = 'SantiAragon';
+    }
+
+    public function getUpdatedAt(): ?\DateTimeInterface
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(?\DateTimeInterface $updatedAt): self
+    {
+        $this->updatedAt = $updatedAt;
+        return $this;
+    }
+
+    public function getUpdatedBy(): ?string
+    {
+        return $this->updatedBy;
+    }
+
+    public function setUpdatedBy(?string $updatedBy): self
+    {
+        $this->updatedBy = $updatedBy;
+        return $this;
+    }
+
+    #[ORM\PrePersist]
+    public function setCreatedAtValue(): void
+    {
+        $this->createdAt = new DateTime();
+    }
+
+    /**
+     * @return Collection<int, CartProductOrder>
+     */
     public function getCartProductOrder(): Collection
     {
         return $this->cartProductOrder;
     }
 
-    public function addCartProductOrder(CartProductOrder $cartProductOrder): static
+    public function addCartProductOrder(CartProductOrder $cartProductOrder): self
     {
         if (!$this->cartProductOrder->contains($cartProductOrder)) {
             $this->cartProductOrder->add($cartProductOrder);
             $cartProductOrder->setProduct($this);
         }
+
         return $this;
     }
 
-    public function removeCartProductOrder(CartProductOrder $cartProductOrder): static
+    public function removeCartProductOrder(CartProductOrder $cartProductOrder): self
     {
         if ($this->cartProductOrder->removeElement($cartProductOrder)) {
+            // set the owning side to null (unless already changed)
             if ($cartProductOrder->getProduct() === $this) {
                 $cartProductOrder->setProduct(null);
             }
         }
+
         return $this;
     }
 
-    public function getParts(): Collection
+    public function hasEnoughStock(): bool
     {
-        return $this->parts;
+        return $this->quantity > 0;
     }
 
-    public function addPart(Parts $part): static
+    #[ORM\PrePersist]
+    public function setTimestamps(): void
     {
-        if (!$this->parts->contains($part)) {
-            $this->parts->add($part);
-            $part->addProduct($this);
-        }
-        return $this;
+        $argentinaTime = new DateTime('now', new DateTimeZone('America/Argentina/Buenos_Aires'));
+        $argentinaTime->setTimezone(new DateTimeZone('America/Argentina/Buenos_Aires'));
+        
+        $this->setCreatedAt($argentinaTime);
+        $this->setCreatedBy('SantiAragon');
     }
 
-    public function removePart(Parts $part): static
+    #[ORM\PreUpdate]
+    public function updateTimestamps(): void
     {
-        if ($this->parts->removeElement($part)) {
-            $part->removeProduct($this);
-        }
-        return $this;
-    }
-
-    public function getProductPartsMachines(): Collection
-    {
-        return $this->productPartsMachines;
-    }
-
-    public function addProductPartsMachine(ProductPartsMachine $productPartsMachine): static
-    {
-        if (!$this->productPartsMachines->contains($productPartsMachine)) {
-            $this->productPartsMachines->add($productPartsMachine);
-            $productPartsMachine->setProduct($this);
-        }
-        return $this;
-    }
-
-    public function removeProductPartsMachine(ProductPartsMachine $productPartsMachine): static
-    {
-        if ($this->productPartsMachines->removeElement($productPartsMachine)) {
-            if ($productPartsMachine->getProduct() === $this) {
-                $productPartsMachine->setProduct(null);
-            }
-        }
-        return $this;
-    }
-
-    public function getRecipeMachines(): Collection
-    {
-        return $this->recipeMachines;
-    }
-
-    public function addRecipeMachine(RecipeMachine $recipeMachine): static
-    {
-        if (!$this->recipeMachines->contains($recipeMachine)) {
-            $this->recipeMachines->add($recipeMachine);
-            $recipeMachine->addProduct($this);
-        }
-        return $this;
-    }
-
-    public function removeRecipeMachine(RecipeMachine $recipeMachine): static
-    {
-        if ($this->recipeMachines->removeElement($recipeMachine)) {
-            $recipeMachine->removeProduct($this);
-        }
-        return $this;
+        $argentinaTime = new DateTime('now', new DateTimeZone('America/Argentina/Buenos_Aires'));
+        $argentinaTime->setTimezone(new DateTimeZone('America/Argentina/Buenos_Aires'));
+        
+        $this->setUpdatedAt($argentinaTime);
+        $this->setUpdatedBy('SantiAragon');
     }
 }
