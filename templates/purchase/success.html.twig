@@ -1,0 +1,304 @@
+{# templates/purchase/success.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}¡Compra Exitosa!
+{% endblock %}
+
+{% block stylesheets %}
+	{{ parent() }}
+	<style>
+		.success-container {
+			max-width: 600px;
+			margin: 2rem auto;
+			padding: 2rem;
+			background: white;
+			border-radius: 8px;
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+			text-align: center;
+		}
+
+		.success-icon {
+			color: #28a745;
+			font-size: 4rem;
+			margin-bottom: 1rem;
+			animation: scaleIn 0.5s ease-out;
+		}
+
+		.purchase-details {
+			margin-top: 2rem;
+			text-align: left;
+			padding: 1.5rem;
+			background: #f8f9fa;
+			border-radius: 8px;
+			border: 1px solid #e9ecef;
+		}
+
+		.purchase-details h3 {
+			color: #2c3e50;
+			margin-bottom: 1rem;
+			padding-bottom: 0.5rem;
+			border-bottom: 2px solid #e9ecef;
+		}
+
+		.purchase-details p {
+			margin: 0.5rem 0;
+			color: #495057;
+		}
+
+		.btn-download {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.5rem;
+			margin-top: 1.5rem;
+			padding: 0.75rem 1.5rem;
+			background: linear-gradient(135deg, #2d9346, #45b15c);
+			color: white;
+			text-decoration: none;
+			border-radius: 6px;
+			font-weight: 600;
+			transition: all 0.3s ease;
+			border: none;
+			cursor: pointer;
+		}
+
+		.btn-volver {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.5rem;
+			padding: 0.75rem 1rem;
+			background: linear-gradient(135deg, #2d9346, #45b15c);
+			color: white;
+			text-decoration: none;
+			border-radius: 6px;
+			font-weight: 600;
+			transition: all 0.3s ease;
+			border: none;
+			cursor: pointer;
+		}
+
+		.btn-volver:hover {
+			background: linear-gradient(135deg, #45b15c, #2d9346);
+			transform: translateY(-2px);
+			box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+		}
+
+		.btn-download:hover {
+			background: linear-gradient(135deg, #45b15c, #2d9346);
+			transform: translateY(-2px);
+			box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+		}
+
+		.btn-download i {
+			font-size: 1.1rem;
+		}
+
+		@keyframes scaleIn {
+			from {
+				transform: scale(0);
+				opacity: 0;
+			}
+			to {
+				transform: scale(1);
+				opacity: 1;
+			}
+		}
+
+		.loading {
+			position: relative;
+			pointer-events: none;
+		}
+
+		.loading:after {
+			content: '';
+			position: absolute;
+			width: 1rem;
+			height: 1rem;
+			border: 2px solid #ffffff;
+			border-radius: 50%;
+			border-top-color: transparent;
+			animation: spin 1s linear infinite;
+			margin-left: 0.5rem;
+		}
+
+		@keyframes spin {
+			to {
+				transform: rotate(360deg);
+			}
+		}
+	</style>
+{% endblock %}
+
+{% block body %}
+	<div class="success-container">
+		<div class="success-icon">
+			<i class="fas fa-check-circle"></i>
+		</div>
+
+		<h1>¡Compra Realizada con Éxito!</h1>
+		<p>Tu transacción se ha completado correctamente.</p>
+
+		<div class="purchase-details">
+			<h3>Detalles de la Compra</h3>
+			<p>
+				<strong>ID de Transacción:</strong>
+				{{ purchase.transactionId }}</p>
+			<p>
+				<strong>Fecha:</strong>
+				{{ purchase.purchaseDate|date('d/m/Y H:i:s') }}</p>
+			<p>
+				<strong>Total:</strong>
+				${{ purchase.totalPrice|number_format(2) }}</p>
+
+			<h4>Productos:</h4>
+			<table class="table">
+				<thead>
+					<tr>
+						<th>Producto</th>
+						<th>Cantidad</th>
+						<th>Precio Unit.</th>
+						<th>Subtotal</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for item in purchase.purchaseItems %}
+						<tr>
+							<td>{{ item.product.name }}</td>
+							<td>{{ item.quantity }}</td>
+							<td>${{ item.price|number_format(2) }}</td>
+							<td>${{ (item.price * item.quantity)|number_format(2) }}</td>
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+
+		<button type="button" class="btn-download" onclick="generatePDF()">
+			<i class="fas fa-download"></i>
+			Descargar Comprobante
+		</button>
+
+		<button type="button" class="btn-volver" onclick="location.href='{{ path('product_list') }}'">
+			<i class="fas fa-arrow-left"></i>
+			Volver
+		</button>
+	</div>
+{% endblock %}
+
+{% block javascripts %}
+	{{ parent() }}
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+	 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+	 <script>
+	        function generatePDF() {
+	            const { jsPDF } = window.jspdf;
+	            const doc = new jsPDF();
+	            
+	            // Agregar el botón de carga
+	            const button = document.querySelector('.btn-download');
+	            button.classList.add('loading');
+	            button.disabled = true;
+	
+	            // Configuración del documento
+	            doc.setFont('helvetica');
+	            
+	            // Agregar logo o nombre de la empresa
+	            doc.setFontSize(24);
+	            doc.setTextColor(45, 147, 70);
+	            doc.text('Canavesio Repuestos', 105, 20, { align: 'center' });
+	            
+	            // Título del comprobante
+	            doc.setFontSize(16);
+	            doc.setTextColor(0);
+	            doc.text('Comprobante de Compra', 105, 35, { align: 'center' });
+	            
+	            // Línea separadora
+	            doc.setLineWidth(0.5);
+	            doc.setDrawColor(45, 147, 70);
+	            doc.line(20, 40, 190, 40);
+	            
+	            // Información básica de la compra
+	            const basicDetails = [
+	                ['ID de Transacción:', '{{ purchase.transactionId }}'],
+	                ['Fecha:', '{{ purchase.purchaseDate|date('d/m/Y H:i:s') }}'],
+	                ['Cliente:', '{{ purchase.user.email }}']
+	            ];
+	
+	            // Crear tabla con los detalles básicos
+	            doc.autoTable({
+	                startY: 50,
+	                head: [['Concepto', 'Detalle']],
+	                body: basicDetails,
+	                theme: 'grid',
+	                headStyles: {
+	                    fillColor: [45, 147, 70],
+	                    textColor: 255
+	                },
+	                alternateRowStyles: {
+	                    fillColor: [245, 245, 245]
+	                }
+	            });
+	
+	            // Productos comprados
+	            const productRows = [];
+	            {% for item in purchase.purchaseItems %}
+	                productRows.push([
+	                    '{{ item.product.name }}',
+	                    '{{ item.quantity }}',
+	                    '${{ item.price|number_format(2) }}',
+	                    '${{ (item.price * item.quantity)|number_format(2) }}'
+	                ]);
+	            {% endfor %}
+	
+	            // Tabla de productos
+	            doc.autoTable({
+	                startY: doc.lastAutoTable.finalY + 10,
+	                head: [['Producto', 'Cantidad', 'Precio Unit.', 'Subtotal']],
+	                body: productRows,
+	                theme: 'grid',
+	                headStyles: {
+	                    fillColor: [45, 147, 70],
+	                    textColor: 255
+	                }
+	            });
+	
+	            // Total
+	            doc.autoTable({
+	                startY: doc.lastAutoTable.finalY + 5,
+	                body: [[
+	                    'Total:',
+	                    '',
+	                    '',
+	                    '${{ purchase.totalPrice|number_format(2) }}'
+	                ]],
+	                theme: 'grid',
+	                styles: {
+	                    fontStyle: 'bold'
+	                }
+	            });
+	            
+	            // Pie de página
+	            const pageHeight = doc.internal.pageSize.height;
+	            doc.setFontSize(10);
+	            doc.setTextColor(128);
+	            doc.text('Este documento es un comprobante de compra válido.', 105, pageHeight - 30, { align: 'center' });
+	            doc.text('Gracias por su compra.', 105, pageHeight - 20, { align: 'center' });
+	            
+	            // Código de transacción
+	            doc.setFontSize(8);
+	            doc.text('*{{ purchase.transactionId }}*', 105, pageHeight - 10, { align: 'center' });
+	
+	            // Guardar el PDF
+	            doc.save(`comprobante-${normalizeString('{{ purchase.transactionId }}')}.pdf`);
+	            
+	            // Quitar el estado de carga
+	            setTimeout(() => {
+	                button.classList.remove('loading');
+	                button.disabled = false;
+	            }, 1000);
+	        }
+	
+	        function normalizeString(str) {
+	            return str.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+	        }
+	    </script>
+{% endblock %}

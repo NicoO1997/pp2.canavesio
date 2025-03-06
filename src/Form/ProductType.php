@@ -90,7 +90,6 @@ class ProductType extends AbstractType
                 'attr' => [
                     'placeholder' => 'Ej: 100 x 50 x 25',
                     'class' => 'form-control dimensions-input',
-                    'data-suffix' => 'mm'
                 ]
             ])
             ->add('material', ChoiceType::class, [
@@ -105,7 +104,6 @@ class ProductType extends AbstractType
                     'Otro' => 'Otro'
                 ],
                 'required' => true,
-                'attr' => ['class' => 'form-label']
             ])
             ->add('weight', NumberType::class, [
                 'label' => 'Peso (kg)',

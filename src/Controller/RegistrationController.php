@@ -45,11 +45,11 @@ class RegistrationController extends AbstractController
                     
                     // Lógica de asignación de roles
                     $roles = ['ROLE_INVITADO'];
-                    if (strpos($email, 'admin@prueba.com') !== false) {
+                    if (strpos($email, 'ADMIN@canavesio.org.ar') !== false) {
                         $roles = ['ROLE_ADMIN'];
-                    } elseif (strpos($email, 'stock@prueba.com') !== false) {
+                    } elseif (strpos($email, 'GESTORSTOCK@canavesio.org.ar') !== false) {
                         $roles = ['ROLE_GESTORSTOCK'];              
-                    } elseif (strpos($email, 'ventas@prueba.com') !== false) {
+                    } elseif (strpos($email, 'VENDEDOR@canavesio.org.ar') !== false) {
                         $roles = ['ROLE_VENDEDOR'];
                     } else {
                         $roles = ['ROLE_USUARIO'];
