@@ -28,6 +28,7 @@
       <a href="{{ path('app_category_new') }}">Agregar Categoría</a>
       <a href="{{ path('app_category_list') }}">Ver Categorías</a>
       <a href="{{ path('reservation_list') }}">Gestionar Reservas</a>
+      <a href="{{ path('product_movements') }}">Historial de movimientos</a>
       {% endif %}
       {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_VENDEDOR') %}
         <a href="{{ path('new_product') }}">Agregar Repuesto</a>
@@ -90,6 +91,7 @@
       <a href="{{ path('app_category_new') }}">Agregar Categoría</a>
       <a href="{{ path('app_category_list') }}">Ver Categorías</a>
       <a href="{{ path('reservation_list') }}">Gestionar Reservas</a>
+      <a href="{{ path('product_movements') }}">Historial de movimientos</a>
       {% endif %}
       {% if is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_VENDEDOR') %}
         <a href="{{ path('new_product') }}">Agregar Repuesto</a>

@@ -126,10 +126,10 @@ class ProductType extends AbstractType
                 ]
             ])
             ->add('estimatedLifeHours', NumberType::class, [
-                'label' => 'Vida útil estimada (horas)',
+                'label' => 'Vida útil estimada (meses)',
                 'required' => false,
                 'attr' => [
-                    'placeholder' => 'Ingrese las horas de uso estimadas',
+                    'placeholder' => 'Ingrese los meses de uso estimados',
                     'class' => 'form-control'
                 ]
             ])

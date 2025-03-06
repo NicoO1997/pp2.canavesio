@@ -82,6 +82,4 @@ class UserFavoriteProduct
 
         return $this;
     }
-
-   
 }

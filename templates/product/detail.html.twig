@@ -5,7 +5,6 @@
 	<link href="https://fonts.googleapis.com/css2?family=Krub:wght@400;600;700&display=swap" rel="stylesheet"/>
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 	<link href="{{ asset('styles/detailProduct.css') }}" rel="stylesheet"/>
-
 {% endblock %}
 
 {% block title %}
@@ -136,6 +135,31 @@
 
         .out-of-stock-message i {
             margin-right: 0.5rem;
+        }
+
+        .alerta-carrito {
+            display: none;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 5px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
 	</style>
 	<div class="producto-detalle-container">
@@ -346,6 +370,8 @@
 				Volver al Catálogo
 			</a>
 		</div>
+
+        <div id="alertaCarrito" class="alerta-carrito"></div>
 	</div>
 {% endblock %}
 
@@ -391,7 +417,7 @@
             const cartQuantity = document.getElementById('cartQuantity');
             const btnPagoSimulado = document.getElementById('btn-pago-simulado');
 
-            if (buyNowQuantity) buyNowQuantity.value = quantity;
+			if (buyNowQuantity) buyNowQuantity.value = quantity;
             if (cartQuantity) cartQuantity.value = quantity;
             if (btnPagoSimulado) {
                 const baseUrl = "{{ path('purchase_simulate', {'productId': product.id, 'quantity': 1}) }}";
@@ -426,9 +452,10 @@
                     })
                     .then(data => {
                         console.log(data);
-                        alertaCarrito.textContent = data.message;
+                        const icon = data.success ? '<i class="fas fa-check-circle"></i> ' : '<i class="fas fa-exclamation-circle"></i> ';
+                        alertaCarrito.innerHTML = icon + data.message;
                         alertaCarrito.style.display = 'block';
-                        alertaCarrito.style.backgroundColor = data.success ? 'green' : 'red';
+                        alertaCarrito.style.backgroundColor = data.success ? '#28a745' : '#dc3545';
 
                         setTimeout(() => {
                             alertaCarrito.style.display = 'none';
@@ -438,7 +465,7 @@
                         console.error('Error:', error);
                         alertaCarrito.textContent = 'Ocurrió un error inesperado.';
                         alertaCarrito.style.display = 'block';
-                        alertaCarrito.style.backgroundColor = 'red';
+                        alertaCarrito.style.backgroundColor = '#dc3545';
                     });
                 });
             }

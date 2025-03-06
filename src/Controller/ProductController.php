@@ -3,11 +3,13 @@
 namespace App\Controller;
 
 use App\Entity\Product;
+use App\Entity\ProductMovement;
 use App\Entity\UserFavoriteProduct;
 use App\Form\ProductType;
 use App\Repository\ProductRepository;
 use App\Repository\UserFavoriteProductRepository;
 use App\Entity\Favorite;
+use App\Service\ProductMovementService;
 use Symfony\Bundle\SecurityBundle\Security;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -16,24 +18,31 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
-
-
-
-
+use DateTime;
+use DateTimeZone;
 
 class ProductController extends AbstractController
 {
-    #[Route('/product/new', name: 'new_product')]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    private $productMovementService;
+
+    public function __construct(ProductMovementService $productMovementService)
     {
+        $this->productMovementService = $productMovementService;
+    }
+
+    #[Route('/product/new', name: 'new_product')]
+    public function new(
+        Request $request, 
+        EntityManagerInterface $entityManager
+    ): Response {
         if (!$this->isGranted('ROLE_VENDEDOR') && !$this->isGranted('ROLE_GESTORSTOCK')) {
             return $this->redirectToRoute('app_login');
         }
 
         $product = new Product();
         $product->setIsEnabled(false);
-        $product->setCreatedBy('SantiAragon');
-        $argentinaTime = new \DateTime('now', new \DateTimeZone('America/Argentina/Buenos_Aires'));
+        $product->setCreatedBy('NicoO1997');
+        $argentinaTime = new DateTime('now', new DateTimeZone('America/Argentina/Buenos_Aires'));
         $product->setCreatedAt($argentinaTime);
 
         if (!$this->isGranted('ROLE_GESTORSTOCK')) {
@@ -49,17 +58,14 @@ class ProductController extends AbstractController
 
             if ($imageFile) {
                 try {
-                    // Generar un nombre de archivo seguro
                     $originalFilename = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $imageFile->getClientOriginalName())));
                     $newFilename = $originalFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
 
-                    // Mover el archivo
                     $imageFile->move(
                         'assets/imagenes',
                         $newFilename
                     );
 
-                    // Guardar solo el nombre del archivo
                     $product->setImage($newFilename);
 
                 } catch (\Exception $e) {
@@ -71,6 +77,14 @@ class ProductController extends AbstractController
             try {
                 $entityManager->persist($product);
                 $entityManager->flush();
+
+                // Registrar el movimiento inicial usando el servicio
+                $this->productMovementService->recordMovement(
+                    $product,
+                    ProductMovement::TYPE_ENTRY,
+                    $product->getQuantity(),
+                    'Ingreso inicial de stock'
+                );
 
                 $this->addFlash('success', 'Producto creado exitosamente');
                 return $this->redirectToRoute('view_stock');
@@ -376,6 +390,36 @@ class ProductController extends AbstractController
         return $this->redirectToRoute('product_list');
     }
 
+    #[Route('/product/{id}/delete', name: 'product_delete', methods: ['POST'])]
+    public function delete(
+        Request $request,
+        Product $product,
+        EntityManagerInterface $entityManager
+    ): Response {
+        if (!$this->isGranted('ROLE_VENDEDOR') && !$this->isGranted('ROLE_GESTORSTOCK')) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        if ($this->isCsrfTokenValid('delete' . $product->getId(), $request->request->get('_token'))) {
+            // Registrar el movimiento de eliminación antes de eliminar el producto
+            $this->productMovementService->recordMovement(
+                $product,
+                ProductMovement::TYPE_DELETION,
+                $product->getQuantity(),
+                'Eliminación del producto'
+            );
+
+            $entityManager->remove($product);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Producto eliminado correctamente');
+        } else {
+            $this->addFlash('error', 'Token CSRF inválido');
+        }
+
+        return $this->redirectToRoute('view_stock');
+    }
+
     #[Route('/product/edit/{id}', name: 'product_edit', methods: ['POST'])]
     public function editProduct(
         Request $request,
@@ -391,6 +435,9 @@ class ProductController extends AbstractController
             return new JsonResponse(['message' => 'Token CSRF inválido.'], 400);
         }
 
+        // Guardar la cantidad anterior antes de actualizarla
+        $oldQuantity = $product->getQuantity();
+
         if ($request->request->has('isEnabled')) {
             $isEnabled = $request->request->get('isEnabled') === '1';
             $product->setIsEnabled($isEnabled);
@@ -405,7 +452,19 @@ class ProductController extends AbstractController
         }
 
         if ($request->request->has('quantity')) {
-            $product->setQuantity((int) $request->request->get('quantity'));
+            $newQuantity = (int) $request->request->get('quantity');
+            $difference = $newQuantity - $oldQuantity;
+            
+            if ($difference !== 0) {
+                $this->productMovementService->recordMovement(
+                    $product,
+                    $difference > 0 ? ProductMovement::TYPE_ENTRY : ProductMovement::TYPE_DELETION,
+                    abs($difference),
+                    'Ajuste manual de stock'
+                );
+            }
+            
+            $product->setQuantity($newQuantity);
         }
 
         if ($request->request->has('minStock')) {
@@ -427,27 +486,5 @@ class ProductController extends AbstractController
             'success' => true,
             'message' => 'Producto actualizado correctamente.'
         ]);
-    }
-
-    #[Route('/product/{id}/delete', name: 'product_delete', methods: ['POST'])]
-    public function delete(
-        Request $request,
-        Product $product,
-        EntityManagerInterface $entityManager
-    ): Response {
-        if (!$this->isGranted('ROLE_VENDEDOR') && !$this->isGranted('ROLE_GESTORSTOCK')) {
-            return $this->redirectToRoute('app_login');
-        }
-
-        if ($this->isCsrfTokenValid('delete' . $product->getId(), $request->request->get('_token'))) {
-            $entityManager->remove($product);
-            $entityManager->flush();
-
-            $this->addFlash('success', 'Producto eliminado correctamente');
-        } else {
-            $this->addFlash('error', 'Token CSRF inválido');
-        }
-
-        return $this->redirectToRoute('view_stock');
     }
 }

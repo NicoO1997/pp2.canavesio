@@ -40,6 +40,12 @@ app_category_delete:
     controller: App\Controller\CategoryController::delete
     methods: [POST]
 
+# Rutas de productos
+product_movements:
+    path: /historial-movimientos
+    controller: App\Controller\ProductMovementController::index
+    methods: [GET]
+
 # registro:
 #     path: /registro
 #     controller: App\Controller\RegistrationController::register

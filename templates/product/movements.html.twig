@@ -1,0 +1,109 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Historial de Movimientos{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/movements.css') }}">
+{% endblock %}
+
+{% block body %}
+<div class="movements-container">
+    <div class="movements-header">
+        <h1>Historial de Movimientos de Repuestos</h1>
+        <div class="current-info">
+            <span class="datetime"><i class="fas fa-clock"></i> {{ "now"|date("d/m/Y H:i:s") }}</span>
+            <span class="user"><i class="fas fa-user"></i> {{ app.user.username }}</span>
+        </div>
+    </div>
+
+    <div class="filters-section">
+        {{ form_start(form, {'attr': {'class': 'filters-form'}}) }}
+        <div class="filters-grid">
+            <div class="filter-group">
+                {{ form_label(form.product) }}
+                {{ form_widget(form.product) }}
+            </div>
+            
+            <div class="filter-group">
+                {{ form_label(form.type) }}
+                {{ form_widget(form.type) }}
+            </div>
+
+            <div class="filter-group">
+                {{ form_label(form.dateFrom) }}
+                {{ form_widget(form.dateFrom) }}
+            </div>
+
+            <div class="filter-group">
+                {{ form_label(form.dateTo) }}
+                {{ form_widget(form.dateTo) }}
+            </div>
+
+            <div class="filter-actions">
+                <button type="submit" class="btn-filter">
+                    <i class="fas fa-search"></i> Filtrar
+                </button>
+                <a href="{{ path('product_movements') }}" class="btn-clear">
+                    <i class="fas fa-undo"></i> Limpiar
+                </a>
+            </div>
+        </div>
+        {{ form_end(form) }}
+    </div>
+
+    <div class="movements-table">
+        <table>
+            <thead>
+                <tr>
+                    <th><i class="fas fa-calendar"></i> Fecha y Hora</th>
+                    <th><i class="fas fa-box"></i> Repuesto</th>
+                    <th><i class="fas fa-exchange-alt"></i> Tipo</th>
+                    <th><i class="fas fa-hashtag"></i> Cantidad</th>
+                    <th><i class="fas fa-history"></i> Stock Anterior</th>
+                    <th><i class="fas fa-warehouse"></i> Stock Nuevo</th>
+                    <th><i class="fas fa-user"></i> Realizado por</th>
+                    <th><i class="fas fa-info-circle"></i> Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for movement in movements %}
+                    <tr>
+                        <td>{{ movement.createdAt|date('d/m/Y H:i:s') }}</td>
+                        <td>{{ movement.product.name }}</td>
+                        <td>
+                            <span class="badge {{ movement.movementType }}">
+                                {% if movement.movementType == 'entry' %}
+                                    <i class="fas fa-plus-circle"></i> Entrada
+                                {% elseif movement.movementType == 'sale' %}
+                                    <i class="fas fa-shopping-cart"></i> Venta
+                                {% elseif movement.movementType == 'deletion' %}
+                                    <i class="fas fa-trash-alt"></i> Eliminación
+                                {% elseif movement.movementType == 'edit' %}
+                                    <i class="fas fa-edit"></i> Editado
+                                {% else %}
+                                    <i class="fas fa-sync-alt"></i> Ajuste
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>{{ movement.quantity }}</td>
+                        <td>{{ movement.previousStock }}</td>
+                        <td>{{ movement.newStock }}</td>
+                        <td>{{ movement.performedBy }}</td>
+                        <td>{{ movement.description }}</td>
+                    </tr>
+                {% else %}
+                    <tr class="no-results">
+                        <td colspan="8">
+                            <div class="empty-state">
+                                <i class="fas fa-folder-open"></i>
+                                <p>No se encontraron movimientos</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -4,18 +4,29 @@ namespace App\Controller;
 use App\Entity\Cart;
 use App\Entity\CartProductOrder;
 use App\Entity\Product;
+use App\Entity\ProductMovement;
 use App\Repository\CartRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\ProductRepository;
+use App\Service\ProductMovementService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\SecurityBundle\Security;
+use DateTime;
+use DateTimeZone;
 
 class CartController extends AbstractController
 {
+    private $productMovementService;
+
+    public function __construct(ProductMovementService $productMovementService)
+    {
+        $this->productMovementService = $productMovementService;
+    }
+
     #[Route('/cart/add/{productId}', name: 'cart_add_product', methods: ['POST'])]
     public function addProduct(
         int $productId,
@@ -57,14 +68,21 @@ class CartController extends AbstractController
             $cartProductOrder->setProduct($product);
             $cartProductOrder->setCart($cart);
             $cartProductOrder->setQuantity($quantity);
-            $cartProductOrder->setDate(new \DateTime());
-            $cartProductOrder->setTime(new \DateTime());
+            $cartProductOrder->setDate(new DateTime('now', new DateTimeZone('America/Argentina/Buenos_Aires')));
+            $cartProductOrder->setTime(new DateTime('now', new DateTimeZone('America/Argentina/Buenos_Aires')));
 
             $entityManager->persist($cartProductOrder);
         }
 
         $product->setQuantity($product->getQuantity() - $quantity);
         $entityManager->persist($product);
+
+        $this->productMovementService->recordMovement(
+            $product,
+            ProductMovement::TYPE_SALE,
+            $quantity,
+            'Venta a través del carrito'
+        );
 
         $entityManager->flush();
 
@@ -108,14 +126,22 @@ class CartController extends AbstractController
         }
 
         $cart->removeCartProductOrder($cartProductOrder);
-        $entityManager->remove($cartProductOrder);
-
+        
         $product = $cartProductOrder->getProduct();
         if ($product) {
-            $product->setQuantity($product->getQuantity() + $cartProductOrder->getQuantity());
+            $quantity = $cartProductOrder->getQuantity();
+            $product->setQuantity($product->getQuantity() + $quantity);
             $entityManager->persist($product);
+
+            $this->productMovementService->recordMovement(
+                $product,
+                ProductMovement::TYPE_ENTRY,
+                $quantity,
+                'Devolución al stock por eliminación del carrito'
+            );
         }
 
+        $entityManager->remove($cartProductOrder);
         $entityManager->flush();
 
         $this->addFlash('success', 'Producto eliminado del carrito');
@@ -124,7 +150,6 @@ class CartController extends AbstractController
     }
 
     #[Route('/cart/update-quantity', name: 'cart_update_quantity', methods: ['POST'])]
-
     public function updateQuantity(
         Request $request,
         EntityManagerInterface $entityManager,
@@ -154,7 +179,6 @@ class CartController extends AbstractController
         }
 
         $product = $cartProductOrder->getProduct();
-
         $quantityDiff = $quantity - $cartProductOrder->getQuantity();
 
         if ($quantityDiff > 0 && $product->getQuantity() < $quantityDiff) {
@@ -165,8 +189,16 @@ class CartController extends AbstractController
         }
 
         $cartProductOrder->setQuantity($quantity);
-
         $product->setQuantity($product->getQuantity() - $quantityDiff);
+
+        if ($quantityDiff !== 0) {
+            $this->productMovementService->recordMovement(
+                $product,
+                $quantityDiff > 0 ? ProductMovement::TYPE_SALE : ProductMovement::TYPE_ENTRY,
+                abs($quantityDiff),
+                $quantityDiff > 0 ? 'Aumento de cantidad en carrito' : 'Disminución de cantidad en carrito'
+            );
+        }
 
         $entityManager->persist($cartProductOrder);
         $entityManager->persist($product);
