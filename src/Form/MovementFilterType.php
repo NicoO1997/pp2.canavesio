@@ -23,8 +23,14 @@ class MovementFilterType extends AbstractType
                 'choice_label' => 'name',
                 'required' => false,
                 'placeholder' => 'Todos los repuestos',
+                'label' => 'Repuesto',
+                'attr' => [
+                    'class' => 'form-control select2'
+                ],
                 'query_builder' => function (EntityRepository $er) {
                     return $er->createQueryBuilder('p')
+                        ->where('p.isDeleted = :isDeleted')
+                        ->setParameter('isDeleted', false)
                         ->orderBy('p.name', 'ASC');
                 }
             ])
@@ -38,18 +44,40 @@ class MovementFilterType extends AbstractType
                     'Editado' => ProductMovement::TYPE_EDIT
                 ],
                 'required' => false,
+                'label' => 'Tipo de Movimiento',
+                'attr' => [
+                    'class' => 'form-control'
+                ]
             ])
             ->add('dateFrom', DateType::class, [
                 'widget' => 'single_text',
                 'required' => false,
                 'label' => 'Desde',
-                'html5' => true
+                'html5' => true,
+                'attr' => [
+                    'class' => 'form-control',
+                    'data-provide' => 'datepicker',
+                    'data-date-format' => 'yyyy-mm-dd',
+                    'data-date-timezone' => 'UTC'
+                ],
+                'input' => 'datetime',
+                'model_timezone' => 'UTC',
+                'view_timezone' => 'UTC'
             ])
             ->add('dateTo', DateType::class, [
                 'widget' => 'single_text',
                 'required' => false,
                 'label' => 'Hasta',
-                'html5' => true
+                'html5' => true,
+                'attr' => [
+                    'class' => 'form-control',
+                    'data-provide' => 'datepicker',
+                    'data-date-format' => 'yyyy-mm-dd',
+                    'data-date-timezone' => 'UTC'
+                ],
+                'input' => 'datetime',
+                'model_timezone' => 'UTC',
+                'view_timezone' => 'UTC'
             ]);
     }
 
@@ -57,7 +85,18 @@ class MovementFilterType extends AbstractType
     {
         $resolver->setDefaults([
             'method' => 'GET',
-            'csrf_protection' => false
+            'csrf_protection' => false,
+            'attr' => [
+                'class' => 'filters-form',
+                'novalidate' => 'novalidate', // Deshabilita la validación HTML5 del navegador
+                'autocomplete' => 'off'
+            ],
+            'data_class' => null
         ]);
+    }
+
+    public function getBlockPrefix(): string
+    {
+        return 'movement_filter'; // Prefijo personalizado para los campos del formulario
     }
 }

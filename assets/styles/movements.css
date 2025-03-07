@@ -1,9 +1,12 @@
+/* Container principal */
 .movements-container {
-    padding: 2rem;
+    padding: 20px;
     max-width: 1400px;
     margin: 0 auto;
+    background-color: #ffffff;
 }
 
+/* Header y información actual */
 .movements-header {
     display: flex;
     justify-content: space-between;
@@ -24,18 +27,39 @@
     gap: 1.5rem;
     font-size: 0.9rem;
     color: #666;
+    align-items: center;
+}
+
+.current-info .datetime {
+    font-family: 'Courier New', monospace;
+    background-color: #f8f9fa;
+    padding: 0.5rem 0.8rem;
+    border-radius: 4px;
+    border: 1px solid #e9ecef;
+    color: #495057;
+}
+
+.current-info .user {
+    font-weight: 500;
+    color: #007bff;
 }
 
 .current-info i {
     margin-right: 0.5rem;
+    color: #6c757d;
 }
 
+/* Sección de filtros */
 .filters-section {
     background: #f8f9fa;
     padding: 1.5rem;
     border-radius: 8px;
     margin-bottom: 2rem;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.filters-form {
+    width: 100%;
 }
 
 .filters-grid {
@@ -63,13 +87,21 @@
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 0.9rem;
+    width: 100%;
+    background-color: #fff;
+}
+
+.filter-group input[type="date"] {
+    font-family: inherit;
 }
 
 .filter-actions {
     display: flex;
     gap: 0.5rem;
+    align-items: flex-end;
 }
 
+/* Botones */
 .btn-filter,
 .btn-clear {
     padding: 0.5rem 1rem;
@@ -78,6 +110,9 @@
     cursor: pointer;
     font-weight: 500;
     transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .btn-filter {
@@ -99,6 +134,7 @@
     background-color: #5a6268;
 }
 
+/* Tabla de movimientos */
 .movements-table {
     background: white;
     border-radius: 8px;
@@ -117,6 +153,7 @@ th {
     text-align: left;
     font-weight: 600;
     color: #444;
+    white-space: nowrap;
 }
 
 td {
@@ -124,6 +161,7 @@ td {
     border-top: 1px solid #eee;
 }
 
+/* Badges para tipos de movimiento */
 .badge {
     padding: 0.4rem 0.8rem;
     border-radius: 20px;
@@ -154,6 +192,12 @@ td {
     color: #000;
 }
 
+.badge.edit {
+    background-color: #17a2b8;
+    color: white;
+}
+
+/* Estado vacío */
 .no-results .empty-state {
     text-align: center;
     padding: 3rem;
@@ -170,82 +214,18 @@ td {
     font-size: 1.1rem;
 }
 
-.badge.edit {
-    background-color: #17a2b8;
-    color: white;
+/* Columnas específicas */
+td.date-column {
+    font-family: 'Courier New', monospace;
+    white-space: nowrap;
 }
 
-.filters-section {
-    background: #f8f9fa;
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-}
-
-.filters-form {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-}
-
-.filters-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
-    width: 100%;
-}
-
-.filter-group {
-    display: flex;
-    flex-direction: column;
-}
-
-.filter-group label {
-    margin-bottom: 5px;
+td.user-column {
     font-weight: 500;
+    color: #007bff;
 }
 
-.filter-group select,
-.filter-group input {
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    width: 100%;
-}
-
-.filter-actions {
-    display: flex;
-    gap: 10px;
-    align-items: flex-end;
-}
-
-.btn-filter,
-.btn-clear {
-    padding: 8px 16px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.btn-filter {
-    background-color: #007bff;
-    color: white;
-}
-
-.btn-clear {
-    background-color: #6c757d;
-    color: white;
-    text-decoration: none;
-}
-
-.btn-filter:hover,
-.btn-clear:hover {
-    opacity: 0.9;
-}
-
+/* Responsive */
 @media (max-width: 768px) {
     .movements-container {
         padding: 1rem;
@@ -257,8 +237,24 @@ td {
         align-items: flex-start;
     }
 
+    .current-info {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
     .filters-grid {
         grid-template-columns: 1fr;
+    }
+
+    .filter-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .btn-filter,
+    .btn-clear {
+        width: 100%;
+        justify-content: center;
     }
 
     .movements-table {
@@ -268,4 +264,75 @@ td {
     table {
         font-size: 0.9rem;
     }
+
+    th, td {
+        padding: 0.75rem;
+    }
+
+    .current-info .datetime {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* Mejoras de accesibilidad */
+.btn-filter:focus,
+.btn-clear:focus,
+.filter-group select:focus,
+.filter-group input:focus {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+}
+
+/* Animaciones */
+.movements-container {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Estilos para Select2 */
+.select2-container .select2-selection--single {
+    height: 38px;
+    border: 1px solid #ddd;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 36px;
+    padding-left: 12px;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 36px;
+}
+
+/* Tooltips */
+[data-tooltip] {
+    position: relative;
+    cursor: help;
+}
+
+[data-tooltip]:before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.5rem;
+    background: rgba(0,0,0,0.8);
+    color: white;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+[data-tooltip]:hover:before {
+    opacity: 1;
+    visibility: visible;
 }

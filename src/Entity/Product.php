@@ -100,6 +100,12 @@ class Product
     #[ORM\OneToMany(targetEntity: CartProductOrder::class, mappedBy: 'product', orphanRemoval: true)]
     private Collection $cartProductOrder;
 
+    #[ORM\Column(type: 'boolean')]
+    private bool $isDeleted = false;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $deletedAt = null;
+
     public function __construct()
     {
         $this->cartProductOrder = new ArrayCollection();
@@ -472,5 +478,27 @@ class Product
         
         $this->setUpdatedAt($argentinaTime);
         $this->setUpdatedBy('SantiAragon');
+    }
+
+    public function isDeleted(): bool
+    {
+        return $this->isDeleted;
+    }
+
+    public function getDeletedAt(): ?\DateTimeInterface
+    {
+        return $this->deletedAt;
+    }
+
+    public function softDelete(): void
+    {
+        $this->isDeleted = true;
+        $this->deletedAt = new DateTime();
+    }
+
+    public function restore(): void
+    {
+        $this->isDeleted = false;
+        $this->deletedAt = null;
     }
 }

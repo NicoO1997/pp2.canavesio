@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\Product;
+use App\Entity\ProductMovement;
 use App\Repository\ProductRepository;
+use App\Service\ProductMovementService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,11 +15,17 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class StockController extends AbstractController
 {
+    private $productMovementService;
+
+    public function __construct(ProductMovementService $productMovementService)
+    {
+        $this->productMovementService = $productMovementService;
+    }
+
     #[Route('/stock/view', name: 'view_stock')]
     public function viewStock(EntityManagerInterface $entityManager): Response
     {
-        $user = $this->getUser();
-        $products = $entityManager->getRepository(Product::class)->findAll();
+        $products = $entityManager->getRepository(Product::class)->findAllActive();
 
         return $this->render('stock/view_stock.html.twig', [
             'products' => $products
@@ -40,6 +48,8 @@ class StockController extends AbstractController
         }
 
         try {
+            $previousQuantity = $product->getQuantity();
+
             if ($isVendedor || $isAdmin) {
                 // Actualizar solo los campos que se enviaron en el request
                 foreach ($request->request->all() as $field => $value) {
@@ -47,16 +57,16 @@ class StockController extends AbstractController
                         $setter = 'set' . ucfirst($field);
                         if (method_exists($product, $setter)) {
                             if (in_array($field, ['quantity', 'minStock', 'estimatedLifeHours'])) {
-                                $product->$setter((int)$value);
+                                $product->$setter((int) $value);
                             } elseif ($field === 'price' || $field === 'weight') {
-                                $product->$setter((float)$value);
+                                $product->$setter((float) $value);
                             } else {
                                 $product->$setter($value);
                             }
                         }
                     }
                 }
-    
+
                 if ($request->request->has('isEnabled')) {
                     $product->setIsEnabled($request->request->get('isEnabled') == '1');
                 }
@@ -64,10 +74,18 @@ class StockController extends AbstractController
 
             if ($isGestorStock || $isAdmin) {
                 if ($request->request->has('quantity')) {
-                    $product->setQuantity((int)$request->request->get('quantity'));
+                    $newQuantity = (int) $request->request->get('quantity');
+                    if ($newQuantity !== $previousQuantity) {
+                        $quantityChange = $newQuantity - $previousQuantity;
+                        $this->productMovementService->recordEdit(
+                            $product,
+                            $quantityChange,
+                            'Modificación manual de stock'
+                        );
+                    }
                 }
                 if ($request->request->has('minStock')) {
-                    $product->setMinStock((int)$request->request->get('minStock'));
+                    $product->setMinStock((int) $request->request->get('minStock'));
                 }
             }
 
@@ -101,6 +119,14 @@ class StockController extends AbstractController
         try {
             $newStatus = $request->request->get('isEnabled') == '1';
             $product->setIsEnabled($newStatus);
+            
+            // Registrar el cambio de estado como un movimiento de ajuste
+            $this->productMovementService->recordAdjustment(
+                $product,
+                $product->getQuantity(),
+                'Cambio de estado a ' . ($newStatus ? 'habilitado' : 'deshabilitado')
+            );
+
             $entityManager->flush();
 
             return new JsonResponse([
@@ -121,16 +147,62 @@ class StockController extends AbstractController
     {
         if ($this->isCsrfTokenValid('delete' . $product->getId(), $request->request->get('_token'))) {
             try {
-                $entityManager->remove($product);
+                // Registrar el movimiento antes de la eliminación suave
+                $this->productMovementService->recordDeletion(
+                    $product,
+                    'Eliminación del producto'
+                );
+
+                // Realizar la eliminación suave
+                $product->softDelete();
                 $entityManager->flush();
+                
                 $this->addFlash('success', 'Producto eliminado correctamente.');
             } catch (\Exception $e) {
                 $this->addFlash('error', 'Error al eliminar el producto: ' . $e->getMessage());
                 error_log('Error en eliminación de producto: ' . $e->getMessage());
             }
         } else {
-            $this->addFlash('error', 'Token CSRF inválido: ' . $request->request->get('_token'));
+            $this->addFlash('error', 'Token CSRF inválido');
         }
+        
         return $this->redirect($this->generateUrl('view_stock'));
+    }
+
+    #[Route('/stock/deleted', name: 'view_deleted_stock')]
+    public function viewDeletedStock(ProductRepository $productRepository): Response
+    {
+        $deletedProducts = $productRepository->findAllDeleted();
+
+        return $this->render('stock/view_deleted_stock.html.twig', [
+            'products' => $deletedProducts
+        ]);
+    }
+
+    #[Route('/product/{id}/restore', name: 'product_restore', methods: ['POST'])]
+    public function restore(Request $request, Product $product, EntityManagerInterface $entityManager): Response
+    {
+        if ($this->isCsrfTokenValid('restore' . $product->getId(), $request->request->get('_token'))) {
+            try {
+                $product->restore();
+                
+                // Registrar la restauración como un movimiento de entrada
+                $this->productMovementService->recordEntry(
+                    $product,
+                    $product->getQuantity(),
+                    'Restauración del producto'
+                );
+
+                $entityManager->flush();
+                
+                $this->addFlash('success', 'Producto restaurado correctamente.');
+            } catch (\Exception $e) {
+                $this->addFlash('error', 'Error al restaurar el producto: ' . $e->getMessage());
+            }
+        } else {
+            $this->addFlash('error', 'Token CSRF inválido');
+        }
+        
+        return $this->redirect($this->generateUrl('view_deleted_stock'));
     }
 }

@@ -9,10 +9,20 @@
 {% endblock %}
 
 {% block body %}
+{% for type, messages in app.flashes %}
+    {% for message in messages %}
+        <div class="alert alert-{{ type }}">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endfor %}
 	<div class="page-stock">
 		<h1>Stock de Productos</h1>
 
 		<a href="{{ path('app_home_page') }}" class="btn btn-primary mb-3">Volver</a>
+        {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_VENDEDOR') or is_granted('ROLE_GESTORSTOCK') %}
+                <a href="{{ path('view_deleted_stock') }}" class="btn btn-primary">Ver Productos Eliminados</a>
+        {% endif %}
 
 		{% if (is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN')) and products is defined and products|filter(p => p.needsRestock)|length > 0 %}
 			<div class="stock-warning">

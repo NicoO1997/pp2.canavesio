@@ -180,4 +180,30 @@ class ProductRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+     /**
+     * @return Product[]
+     */
+    public function findAllActive(): array
+    {
+        return $this->createQueryBuilder('p')
+            ->where('p.isDeleted = :isDeleted')
+            ->setParameter('isDeleted', false)
+            ->orderBy('p.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @return Product[]
+     */
+    public function findAllDeleted(): array
+    {
+        return $this->createQueryBuilder('p')
+            ->where('p.isDeleted = :isDeleted')
+            ->setParameter('isDeleted', true)
+            ->orderBy('p.deletedAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }

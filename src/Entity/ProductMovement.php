@@ -15,6 +15,17 @@ class ProductMovement
     public const TYPE_ADJUSTMENT = 'adjustment';
     public const TYPE_EDIT = 'edit';
 
+    /**
+     * Mapa de tipos de movimiento a sus descripciones en español
+     */
+    public const TYPE_DESCRIPTIONS = [
+        self::TYPE_ENTRY => 'Entrada',
+        self::TYPE_SALE => 'Venta',
+        self::TYPE_DELETION => 'Eliminación',
+        self::TYPE_ADJUSTMENT => 'Ajuste',
+        self::TYPE_EDIT => 'Editado'
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -47,11 +58,34 @@ class ProductMovement
 
     public function __construct()
     {
-        $this->createdAt = new \DateTime();
+        // Establecer la fecha actual en UTC
+        $this->createdAt = new \DateTime('now', new \DateTimeZone('UTC'));
     }
 
-    // Getters y Setters...
-    
+    /**
+     * Crea un nuevo movimiento de producto
+     */
+    public static function create(
+        Product $product,
+        string $movementType,
+        int $quantity,
+        int $previousStock,
+        int $newStock,
+        string $performedBy = 'SantiAragon',
+        ?string $description = null
+    ): self {
+        $movement = new self();
+        $movement->setProduct($product);
+        $movement->setMovementType($movementType);
+        $movement->setQuantity($quantity);
+        $movement->setPreviousStock($previousStock);
+        $movement->setNewStock($newStock);
+        $movement->setPerformedBy($performedBy);
+        $movement->setDescription($description);
+        
+        return $movement;
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -73,8 +107,19 @@ class ProductMovement
         return $this->movementType;
     }
 
+    /**
+     * Obtiene la descripción en español del tipo de movimiento
+     */
+    public function getMovementTypeDescription(): string
+    {
+        return self::TYPE_DESCRIPTIONS[$this->movementType] ?? 'Desconocido';
+    }
+
     public function setMovementType(string $movementType): self
     {
+        if (!isset(self::TYPE_DESCRIPTIONS[$movementType])) {
+            throw new \InvalidArgumentException('Tipo de movimiento inválido');
+        }
         $this->movementType = $movementType;
         return $this;
     }
@@ -139,9 +184,41 @@ class ProductMovement
         return $this->createdAt;
     }
 
+    /**
+     * Obtiene la fecha de creación formateada en UTC
+     */
+    public function getFormattedCreatedAt(): string
+    {
+        return $this->createdAt->format('Y-m-d H:i:s');
+    }
+
     public function setCreatedAt(\DateTimeInterface $createdAt): self
     {
         $this->createdAt = $createdAt;
         return $this;
+    }
+
+    /**
+     * Calcula la diferencia de stock
+     */
+    public function getStockDifference(): int
+    {
+        return $this->newStock - $this->previousStock;
+    }
+
+    /**
+     * Indica si el movimiento representa un incremento en el stock
+     */
+    public function isStockIncrease(): bool
+    {
+        return $this->getStockDifference() > 0;
+    }
+
+    /**
+     * Indica si el movimiento representa un decremento en el stock
+     */
+    public function isStockDecrease(): bool
+    {
+        return $this->getStockDifference() < 0;
     }
 }

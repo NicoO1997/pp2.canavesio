@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Productos Eliminados{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <h1>Productos Eliminados</h1>
+        
+        <a href="{{ path('view_stock') }}" class="btn btn-primary mb-3">Volver al Stock</a>
+
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        {% for message in app.flashes('error') %}
+            <div class="alert alert-danger">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Número de Parte</th>
+                    <th>Fecha de Eliminación</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                    <tr>
+                        <td>{{ product.name }}</td>
+                        <td>{{ product.partNumber }}</td>
+                        <td>{{ product.deletedAt|date('Y-m-d H:i:s') }}</td>
+                        <td>
+                            <form method="post" action="{{ path('product_restore', {id: product.id}) }}" style="display: inline;">
+                                <input type="hidden" name="_token" value="{{ csrf_token('restore' ~ product.id) }}">
+                                <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('¿Estás seguro de que quieres restaurar este producto?');">
+                                    Restaurar
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="4">No hay productos eliminados</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
