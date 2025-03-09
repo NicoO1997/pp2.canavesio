@@ -47,7 +47,7 @@ class ProductMovement
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Product::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]  // Cambiar a nullable true y SET NULL
     private ?Product $product = null;
 
     #[ORM\Column(length: 25)]

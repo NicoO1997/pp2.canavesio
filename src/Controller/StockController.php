@@ -150,16 +150,16 @@ class StockController extends AbstractController
                 $this->productMovementService->recordDeletion(
                     $product,
                     sprintf(
-                        'Eliminación lógica del producto %s realizada por %s', 
+                        'Eliminación lógica del producto %s realizada por %s',
                         $product->getName(),
                         'SantiAragon'
                     )
                 );
-    
+
                 // Realizar la eliminación suave
                 $product->softDelete();
                 $entityManager->flush();
-    
+
                 $this->addFlash('success', 'Producto eliminado correctamente.');
             } catch (\Exception $e) {
                 $this->addFlash('error', 'Error al eliminar el producto: ' . $e->getMessage());
@@ -168,10 +168,10 @@ class StockController extends AbstractController
         } else {
             $this->addFlash('error', 'Token CSRF inválido');
         }
-    
+
         return $this->redirect($this->generateUrl('view_stock'));
     }
-    
+
 
     #[Route('/stock/deleted', name: 'view_deleted_stock')]
     public function viewDeletedStock(ProductRepository $productRepository): Response
@@ -183,67 +183,67 @@ class StockController extends AbstractController
         ]);
     }
 
-   #[Route('/product/{id}/permanent-delete', name: 'product_permanent_delete', methods: ['POST'])]
-public function permanentDelete(
-    Request $request, 
-    Product $product, 
-    EntityManagerInterface $entityManager
-): Response {
-    // Verificar el token CSRF
-    if (!$this->isCsrfTokenValid('permanent_delete' . $product->getId(), $request->request->get('_token'))) {
-        $this->addFlash('error', 'Token CSRF inválido');
-        return $this->redirectToRoute('view_deleted_stock');
-    }
+    #[Route('/product/{id}/permanent-delete', name: 'product_permanent_delete', methods: ['POST'])]
+    public function permanentDelete(
+        Request $request,
+        Product $product,
+        EntityManagerInterface $entityManager
+    ): Response {
+        // Verificar el token CSRF
+        if (!$this->isCsrfTokenValid('permanent_delete' . $product->getId(), $request->request->get('_token'))) {
+            $this->addFlash('error', 'Token CSRF inválido');
+            return $this->redirectToRoute('view_deleted_stock');
+        }
 
-    // Verificar permisos
-    if (!$this->isGranted('ROLE_ADMIN') && 
-        !$this->isGranted('ROLE_VENDEDOR') && 
-        !$this->isGranted('ROLE_GESTORSTOCK')) {
-        $this->addFlash('error', 'No tienes permisos para eliminar permanentemente productos');
-        return $this->redirectToRoute('view_deleted_stock');
-    }
-
-    try {
-        $entityManager->beginTransaction();
+        // Verificar permisos
+        if (
+            !$this->isGranted('ROLE_ADMIN') &&
+            !$this->isGranted('ROLE_VENDEDOR') &&
+            !$this->isGranted('ROLE_GESTORSTOCK')
+        ) {
+            $this->addFlash('error', 'No tienes permisos para eliminar permanentemente productos');
+            return $this->redirectToRoute('view_deleted_stock');
+        }
 
         try {
-            // 1. Crear el movimiento de eliminación permanente
-            $this->productMovementService->recordPermanentDeletion(
-                $product,
-                sprintf(
-                    'Eliminación permanente del producto %s realizada por %s (%s)', 
-                    $product->getName(),
-                    'SantiAragon',
-                    $this->getUserRole($this->getUser())
-                )
-            );
+            $entityManager->beginTransaction();
 
-            // 2. Eliminar solo las referencias en cart_product_order
-            foreach ($product->getCartProductOrder() as $cartOrder) {
-                $entityManager->remove($cartOrder);
+            try {
+                // 1. Registrar el movimiento de eliminación permanente
+                $this->productMovementService->recordPermanentDeletion(
+                    $product,
+                    sprintf(
+                        'Eliminación permanente del producto %s realizada por %s (%s) - %s',
+                        $product->getName(),
+                        'SantiAragon',
+                        $this->getUserRole($this->getUser()),
+                        (new \DateTime('2025-03-09 17:27:54'))->format('Y-m-d H:i:s')
+                    )
+                );
+
+                // 2. Eliminar las referencias en cart_product_order
+                foreach ($product->getCartProductOrder() as $cartOrder) {
+                    $entityManager->remove($cartOrder);
+                }
+
+                // 3. Eliminar el producto (los movimientos quedarán con product_id = NULL)
+                $entityManager->remove($product);
+                $entityManager->flush();
+                $entityManager->commit();
+
+                $this->addFlash('success', 'Producto eliminado permanentemente con éxito.');
+            } catch (\Exception $e) {
+                $entityManager->rollback();
+                throw $e;
             }
-
-            // 3. Eliminar el producto
-            $product->setIsEnabled(false);
-            $product->softDelete();  // Marcar como eliminado lógicamente
-            $entityManager->remove($product);  // Eliminar físicamente
-            
-            $entityManager->flush();
-            $entityManager->commit();
-
-            $this->addFlash('success', 'Producto eliminado permanentemente con éxito.');
         } catch (\Exception $e) {
-            $entityManager->rollback();
-            throw $e;
+            $this->addFlash('error', 'Error al eliminar permanentemente el producto: ' . $e->getMessage());
+            error_log('Error en eliminación permanente de producto: ' . $e->getMessage());
         }
-    } catch (\Exception $e) {
-        $this->addFlash('error', 'Error al eliminar permanentemente el producto: ' . $e->getMessage());
-        error_log('Error en eliminación permanente de producto: ' . $e->getMessage());
+
+        return $this->redirectToRoute('view_deleted_stock');
     }
 
-    return $this->redirectToRoute('view_deleted_stock');
-}
-    
     private function getUserRole($user): string
     {
         if ($this->isGranted('ROLE_ADMIN')) {

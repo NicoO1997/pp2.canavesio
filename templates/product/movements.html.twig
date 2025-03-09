@@ -97,7 +97,13 @@
 					{% for movement in movements %}
 						<tr>
 							<td>{{ movement.createdAt|date('d/m/Y H:i:s') }}</td>
-							<td>{{ movement.product.name }}</td>
+							<td>
+								{% if movement.product %}
+									{{ movement.product.name }}
+								{% else %}
+									{{ movement.description|split(' realizada por ')|first|replace({'Eliminación permanente del producto ': ''}) }}
+								{% endif %}
+							</td>
 							<td>
 								<span class="badge {{ movement.movementType }}">
 									{% if movement.movementType == 'entry' %}
@@ -109,6 +115,7 @@
 									{% elseif movement.movementType == 'deletion' %}
 										<i class="fas fa-trash-alt"></i>
 										Eliminación Lógica
+
 									{% elseif movement.movementType == 'permanent_delete' %}
 										<i class="fas fa-trash-alt"></i>
 										Eliminación Permanente
