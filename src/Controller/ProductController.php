@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Product;
+use App\Entity\Category;
 use App\Entity\ProductMovement;
 use App\Entity\UserFavoriteProduct;
 use App\Form\ProductType;
@@ -32,7 +33,7 @@ class ProductController extends AbstractController
 
     #[Route('/product/new', name: 'new_product')]
     public function new(
-        Request $request, 
+        Request $request,
         EntityManagerInterface $entityManager
     ): Response {
         if (!$this->isGranted('ROLE_VENDEDOR') && !$this->isGranted('ROLE_GESTORSTOCK')) {
@@ -42,6 +43,7 @@ class ProductController extends AbstractController
         $product = new Product();
         $product->setIsEnabled(false);
         $product->setCreatedBy('NicoO1997');
+        $product->setQuantity(0); // Establecer cantidad inicial en 0
         $argentinaTime = new DateTime('now', new DateTimeZone('America/Argentina/Buenos_Aires'));
         $product->setCreatedAt($argentinaTime);
 
@@ -75,16 +77,28 @@ class ProductController extends AbstractController
             }
 
             try {
+                // Obtener la cantidad del formulario
+                $initialQuantity = $form->get('quantity')->getData();
+
+                // Establecer la cantidad inicial en 0
+                $product->setQuantity(0);
+
+                // Persistir el producto con cantidad 0
                 $entityManager->persist($product);
                 $entityManager->flush();
 
-                // Registrar el movimiento inicial usando el servicio
-                $this->productMovementService->recordMovement(
-                    $product,
-                    ProductMovement::TYPE_ENTRY,
-                    $product->getQuantity(),
-                    'Ingreso inicial de stock'
-                );
+                // Si hay una cantidad inicial, registrar como entrada
+                if ($initialQuantity > 0) {
+                    $this->productMovementService->recordEntry(
+                        $product,
+                        $initialQuantity,
+                        'Stock inicial del producto'
+                    );
+
+                    // Actualizar la cantidad del producto
+                    $product->setQuantity($initialQuantity);
+                    $entityManager->flush();
+                }
 
                 $this->addFlash('success', 'Producto creado exitosamente');
                 return $this->redirectToRoute('view_stock');
@@ -99,6 +113,8 @@ class ProductController extends AbstractController
             'sparePartsBrands' => $this->getSparePartsBrands()
         ]);
     }
+
+
 
     #[Route('/stock', name: 'view_stock')]
     public function viewStock(
@@ -132,16 +148,36 @@ class ProductController extends AbstractController
     ): Response {
         $user = $this->getUser();
 
+        $categories = $entityManager->getRepository(Category::class)
+            ->findAll();
+
         // Obtener los parámetros de filtro
         $category = $request->query->get('category');
         $partType = $request->query->get('partType');
         $brand = $request->query->get('brand');
+        $searchTerm = $request->query->get('search'); // Agregar parámetro de búsqueda
 
-        // Crear el QueryBuilder
-        $queryBuilder = $entityManager->getRepository(Product::class)
-            ->createQueryBuilder('p')
-            ->where('p.isEnabled = :isEnabled')
+        // Obtener el repositorio
+        $repository = $entityManager->getRepository(Product::class);
+
+        // Crear el QueryBuilder basado en findAllActive
+        $queryBuilder = $repository->createQueryBuilder('p')
+            ->where('p.isDeleted = :isDeleted')
+            ->andWhere('p.isEnabled = :isEnabled')
+            ->setParameter('isDeleted', false)
             ->setParameter('isEnabled', true);
+
+        // Aplicar búsqueda si existe
+        if ($searchTerm) {
+            $queryBuilder->andWhere(
+                $queryBuilder->expr()->orX(
+                    'LOWER(p.name) LIKE LOWER(:searchTerm)',
+                    'LOWER(p.description) LIKE LOWER(:searchTerm)',
+                    'LOWER(p.partNumber) LIKE LOWER(:searchTerm)'
+                )
+            )
+                ->setParameter('searchTerm', '%' . $searchTerm . '%');
+        }
 
         // Aplicar filtros si están presentes
         if ($partType) {
@@ -155,7 +191,10 @@ class ProductController extends AbstractController
         }
 
         // Ejecutar la consulta
-        $products = $queryBuilder->getQuery()->getResult();
+        $products = $queryBuilder
+            ->orderBy('p.id', 'ASC')
+            ->getQuery()
+            ->getResult();
 
         // Obtener favoritos
         $favoriteProductIds = [];
@@ -164,85 +203,260 @@ class ProductController extends AbstractController
             $favoriteProductIds = array_map(fn($favorite) => $favorite->getProduct()->getId(), $favorites);
         }
 
-        // Pasar sparePartsBrands a la vista
+        // Pasar todos los parámetros necesarios a la vista
         return $this->render('product/list.html.twig', [
             'products' => $products,
             'favoriteProductIds' => $favoriteProductIds,
             'isGuest' => $user && in_array('ROLE_INVITADO', $user->getRoles()),
-            'sparePartsBrands' => $this->getSparePartsBrands(), // Asegúrate de tener este método en tu controlador
+            'categories' => $categories,
+            'sparePartsBrands' => $this->getSparePartsBrands(),
+            'searchTerm' => $searchTerm, // Pasar el término de búsqueda a la vista
+            'selectedBrand' => $brand,   // Pasar la marca seleccionada a la vista
+            'selectedPartType' => $partType // Pasar el tipo de parte seleccionado a la vista
         ]);
     }
     private function getSparePartsBrands(): array
     {
-        return [
-            // Repuestos para Tractores - Filtros
-            'tractor_filtro_aire' => ['Mann+Hummel', 'Fleetguard', 'Donaldson', 'Baldwin', 'WIX', 'FRAM', 'Mahle', 'Luber-finer', 'Parker Filtration', 'K&N'],
-            'tractor_filtro_aceite' => ['Mann+Hummel', 'Fleetguard', 'WIX', 'FRAM', 'Mahle', 'Baldwin', 'Donaldson', 'Luber-finer', 'Bosch', 'ACDelco'],
-            'tractor_filtro_combustible' => ['Fleetguard', 'Mann+Hummel', 'Donaldson', 'Baldwin', 'Bosch', 'Delphi', 'Parker', 'WIX', 'FRAM', 'Mahle'],
-            'tractor_filtro_hidraulico' => ['Hydac', 'Parker', 'Donaldson', 'Mann+Hummel', 'Fleetguard', 'Baldwin', 'Bosch Rexroth', 'MP Filtri', 'Mahle', 'Pall'],
-
-            // Repuestos para Tractores - Correas
-            'tractor_correa_transmision' => ['Gates', 'Continental', 'Dayco', 'Goodyear', 'Mitsuboshi', 'Optibelt', 'Bando', 'SKF', 'Jason', 'PIX'],
-            'tractor_correa_alternador' => ['Gates', 'Dayco', 'Continental', 'Bosch', 'SKF', 'Mitsuboshi', 'Goodyear', 'Bando', 'Optibelt', 'PIX'],
-
-            // Repuestos para Tractores - Sistema Eléctrico
-            'tractor_bateria' => ['Bosch', 'Varta', 'Exide', 'Optima', 'ACDelco', 'Interstate', 'Deka', 'Yuasa', 'Banner', 'Odyssey'],
-            'tractor_alternador' => ['Bosch', 'Denso', 'Delco Remy', 'Prestolite', 'Valeo', 'Mitsubishi Electric', 'Hitachi', 'Lucas', 'Nikko', 'Sawafuji'],
-            'tractor_motor_arranque' => ['Bosch', 'Denso', 'Delco Remy', 'Valeo', 'Prestolite', 'Mitsubishi Electric', 'Hitachi', 'Lucas', 'Nikko', 'WAI'],
-            'tractor_fusible' => ['Littelfuse', 'Bussmann', 'Cooper Bussmann', 'Ferraz Shawmut', 'Schneider Electric', 'ABB', 'Siemens', 'Phoenix Contact', 'TE Connectivity', 'Mersen'],
-
-            // Repuestos para Tractores - Neumáticos y Llantas
-            'tractor_neumatico' => ['Firestone', 'Michelin', 'Goodyear', 'BKT', 'Alliance', 'Continental', 'Trelleborg', 'Titan', 'Mitas', 'Bridgestone'],
-            'tractor_llanta' => ['Titan', 'GKN Wheels', 'Accuride', 'Maxion Wheels', 'Pronar', 'Birrana', 'Stalker', 'Grasdorf', 'Starco', 'Wheel Works'],
-
-            // Repuestos para Tractores - Motor
-            'tractor_piston' => ['Mahle', 'Federal-Mogul', 'NPR', 'Nural', 'Sealed Power', 'DNJ Engine Components', 'IPD', 'United Engine & Machine', 'Wiseco', 'Ross Racing Pistons'],
-            'tractor_bujia' => ['NGK', 'Bosch', 'Denso', 'Champion', 'ACDelco', 'Motorcraft', 'Autolite', 'BERU', 'Splitfire', 'E3'],
-            'tractor_inyector' => ['Bosch', 'Delphi', 'Denso', 'Continental/VDO', 'Siemens/VDO', 'Stanadyne', 'Yanmar', 'Zexel', 'Lucas', 'Caterpillar'],
-            'tractor_radiador' => ['Modine', 'Valeo', 'Denso', 'Nissens', 'Behr', 'CSF', 'TYC', 'APDI', 'Spectra Premium', 'Vista-Pro'],
-
-            // Repuestos para Tractores - Sistema Hidráulico
-            'tractor_bomba_hidraulica' => ['Parker', 'Bosch Rexroth', 'Eaton', 'Danfoss', 'Casappa', 'Bondioli & Pavesi', 'Sauer-Danfoss', 'Commercial', 'Prince', 'Cross'],
-            'tractor_manguera_hidraulica' => ['Parker', 'Gates', 'Eaton', 'Bridgestone', 'Continental', 'Manuli', 'Alfagomma', 'Semperit', 'Dunlop', 'Goodyear'],
-            'tractor_valvula_hidraulica' => ['Parker', 'Bosch Rexroth', 'Eaton', 'Danfoss', 'Sun Hydraulics', 'Hydac', 'Walvoil', 'Prince', 'Cross', 'Brand'],
-
-            // Repuestos para Cosechadoras
-            'cosechadora_cuchilla_trigo' => ['John Deere', 'Case IH', 'New Holland', 'Claas', 'MacDon', 'Massey Ferguson', 'Deutz-Fahr', 'Laverda', 'Gleaner', 'Fendt'],
-            'cosechadora_cuchilla_maiz' => ['John Deere', 'Case IH', 'New Holland', 'Claas', 'Capello', 'Olimac', 'Geringhoff', 'Drago', 'MacDon', 'Fantini'],
-            'cosechadora_cuchilla_arroz' => ['John Deere', 'Case IH', 'New Holland', 'Claas', 'MacDon', 'Massey Ferguson', 'Kubota', 'Yanmar', 'ISEKI', 'Mitsubishi'],
-            'cosechadora_tamiz' => ['John Deere', 'Case IH', 'New Holland', 'Claas', 'Massey Ferguson', 'Deutz-Fahr', 'AGCO', 'Laverda', 'Gleaner', 'Challenger'],
-            'cosechadora_zaranda' => ['John Deere', 'Case IH', 'New Holland', 'Claas', 'Massey Ferguson', 'Deutz-Fahr', 'AGCO', 'Laverda', 'Gleaner', 'Challenger'],
-            'cosechadora_correa' => ['Gates', 'Optibelt', 'Continental', 'Dayco', 'Goodyear', 'Mitsuboshi', 'Bando', 'SKF', 'Jason', 'PIX'],
-            'cosechadora_cadena' => ['Regina', 'Diamond Chain', 'Renold', 'Tsubaki', 'IWIS', 'RK', 'DID', 'KMC', 'Donghua', 'Timken'],
-            'cosechadora_rotor' => ['John Deere', 'Case IH', 'New Holland', 'Claas', 'Massey Ferguson', 'Deutz-Fahr', 'AGCO', 'Laverda', 'Gleaner', 'Challenger'],
-            'cosechadora_sacudidor' => ['John Deere', 'Case IH', 'New Holland', 'Claas', 'Massey Ferguson', 'Deutz-Fahr', 'AGCO', 'Laverda', 'Gleaner', 'Challenger'],
-
-            // Repuestos para Equipos de Siembra
-            'siembra_disco' => ['John Deere', 'Precision Planting', 'Kinze', 'Great Plains', 'Case IH', 'Monosem', 'Amazone', 'Lemken', 'Väderstad', 'Semeato'],
-            'siembra_cuchilla' => ['Bellota Agrisolutions', 'Ingersoll', 'John Deere', 'Case IH', 'Kinze', 'Great Plains', 'Horsch', 'Amazone', 'Kuhn', 'Lemken'],
-            'siembra_dosificador' => ['Precision Planting', 'John Deere', 'Case IH', 'Kinze', 'Great Plains', 'Monosem', 'Amazone', 'Horsch', 'Kuhn', 'MaterMacc'],
-            'siembra_tubo' => ['John Deere', 'Case IH', 'Kinze', 'Great Plains', 'Monosem', 'Amazone', 'Lemken', 'Horsch', 'Kuhn', 'Semeato'],
-            'siembra_boquilla' => ['TeeJet', 'Hypro', 'Arag', 'Lechler', 'Albuz', 'Hardi', 'John Deere', 'Case IH', 'Amazone', 'Kuhn'],
-            'siembra_rodamiento' => ['SKF', 'Timken', 'NTN', 'NSK', 'FAG', 'INA', 'Koyo', 'NACHI', 'FYH', 'NKE'],
-            'siembra_eje' => ['John Deere', 'Case IH', 'Kinze', 'Great Plains', 'SKF', 'Timken', 'NTN', 'NSK', 'FAG', 'INA'],
-
-            // Repuestos para Equipos de Riego
-            'riego_aspersor' => ['Nelson', 'Rain Bird', 'Hunter', 'Senninger', 'Komet', 'Netafim', 'Valley', 'Lindsay', 'Reinke', 'T-L'],
-            'riego_boquilla' => ['Nelson', 'TeeJet', 'Senninger', 'Rain Bird', 'Hunter', 'Komet', 'Netafim', 'Hypro', 'Arag', 'Lechler'],
-            'riego_manguera' => ['Netafim', 'John Deere Water', 'Rain Bird', 'Hunter', 'Toro', 'Irritec', 'NaanDanJain', 'Rivulis', 'Jain', 'Plastro'],
-            'riego_tuberia' => ['Charlotte Pipe', 'JM Eagle', 'Netafim', 'Rain Bird', 'Hunter', 'Irritec', 'NaanDanJain', 'Rivulis', 'Jain', 'Georg Fischer'],
-            'riego_bomba' => ['Grundfos', 'Xylem', 'KSB', 'Wilo', 'Franklin Electric', 'Berkeley', 'Cornell', 'Pentair', 'Goulds', 'Caprari'],
-            'riego_filtro' => ['Amiad', 'Netafim', 'Arkal', 'Rain Bird', 'Hunter', 'Azud', 'STF', 'Hydro-Flow', 'Spin Klin', 'Sand Master'],
-
-            // Repuestos para Equipos de Forraje
-            'forraje_cuchilla' => ['John Deere', 'New Holland', 'Case IH', 'Claas', 'Krone', 'Kuhn', 'Pöttinger', 'Vicon', 'Deutz-Fahr', 'Fella'],
-            'forraje_martillo' => ['John Deere', 'New Holland', 'Case IH', 'Claas', 'Krone', 'Kuhn', 'Maschio', 'Pöttinger', 'Vogel & Noot', 'Seppi'],
-            'forraje_barra' => ['John Deere', 'New Holland', 'Case IH', 'Claas', 'Krone', 'Kuhn', 'Pöttinger', 'Vicon', 'Deutz-Fahr', 'Fella'],
-            'forraje_pua_segadora' => ['John Deere', 'New Holland', 'Case IH', 'Claas', 'Krone', 'Kuhn', 'Pöttinger', 'Vicon', 'Deutz-Fahr', 'Fella'],
-            'forraje_pua_empacadora' => ['John Deere', 'New Holland', 'Case IH', 'Claas', 'Krone', 'Kuhn', 'Massey Ferguson', 'Deutz-Fahr', 'Welger', 'Vicon'],
-            'forraje_cadena' => ['Regina', 'Diamond Chain', 'Renold', 'Tsubaki', 'IWIS', 'RK', 'DID', 'KMC', 'Donghua', 'Timken'],
-            'forraje_engranaje' => ['Martin Sprocket', 'Boston Gear', 'QTC Metric Gears', 'Browning', 'Hub City', 'Rexnord', 'Dodge', 'Baldor', 'SEW-Eurodrive', 'Nord']
+        $allBrands = [
+            'Mann+Hummel',
+            'Fleetguard',
+            'Donaldson',
+            'Baldwin',
+            'WIX',
+            'FRAM',
+            'Mahle',
+            'Luber-finer',
+            'Parker Filtration',
+            'K&N',
+            'Bosch',
+            'ACDelco',
+            'Delphi',
+            'Parker',
+            'Hydac',
+            'Bosch Rexroth',
+            'MP Filtri',
+            'Pall',
+            'Gates',
+            'Continental',
+            'Dayco',
+            'Goodyear',
+            'Mitsuboshi',
+            'Optibelt',
+            'Bando',
+            'SKF',
+            'Jason',
+            'PIX',
+            'Varta',
+            'Exide',
+            'Optima',
+            'Interstate',
+            'Deka',
+            'Yuasa',
+            'Banner',
+            'Odyssey',
+            'Denso',
+            'Delco Remy',
+            'Prestolite',
+            'Valeo',
+            'Mitsubishi Electric',
+            'Hitachi',
+            'Lucas',
+            'Nikko',
+            'Sawafuji',
+            'WAI',
+            'Littelfuse',
+            'Bussmann',
+            'Cooper Bussmann',
+            'Ferraz Shawmut',
+            'Schneider Electric',
+            'ABB',
+            'Siemens',
+            'Phoenix Contact',
+            'TE Connectivity',
+            'Mersen',
+            'Firestone',
+            'Michelin',
+            'BKT',
+            'Alliance',
+            'Trelleborg',
+            'Titan',
+            'Mitas',
+            'Bridgestone',
+            'GKN Wheels',
+            'Accuride',
+            'Maxion Wheels',
+            'Pronar',
+            'Birrana',
+            'Stalker',
+            'Grasdorf',
+            'Starco',
+            'Wheel Works',
+            'Federal-Mogul',
+            'NPR',
+            'Nural',
+            'Sealed Power',
+            'DNJ Engine Components',
+            'IPD',
+            'United Engine & Machine',
+            'Wiseco',
+            'Ross Racing Pistons',
+            'NGK',
+            'Champion',
+            'Motorcraft',
+            'Autolite',
+            'BERU',
+            'Splitfire',
+            'E3',
+            'Continental/VDO',
+            'Siemens/VDO',
+            'Stanadyne',
+            'Yanmar',
+            'Zexel',
+            'Caterpillar',
+            'Modine',
+            'Nissens',
+            'Behr',
+            'CSF',
+            'TYC',
+            'APDI',
+            'Spectra Premium',
+            'Vista-Pro',
+            'Eaton',
+            'Danfoss',
+            'Casappa',
+            'Bondioli & Pavesi',
+            'Sauer-Danfoss',
+            'Commercial',
+            'Prince',
+            'Cross',
+            'Manuli',
+            'Alfagomma',
+            'Semperit',
+            'Dunlop',
+            'Sun Hydraulics',
+            'Hydac',
+            'Walvoil',
+            'Brand',
+            'John Deere',
+            'Case IH',
+            'New Holland',
+            'Claas',
+            'MacDon',
+            'Massey Ferguson',
+            'Deutz-Fahr',
+            'Laverda',
+            'Gleaner',
+            'Fendt',
+            'Capello',
+            'Olimac',
+            'Geringhoff',
+            'Drago',
+            'Fantini',
+            'Kubota',
+            'Yanmar',
+            'ISEKI',
+            'Mitsubishi',
+            'AGCO',
+            'Challenger',
+            'Regina',
+            'Diamond Chain',
+            'Renold',
+            'Tsubaki',
+            'IWIS',
+            'RK',
+            'DID',
+            'KMC',
+            'Donghua',
+            'Timken',
+            'Precision Planting',
+            'Kinze',
+            'Great Plains',
+            'Monosem',
+            'Amazone',
+            'Lemken',
+            'Väderstad',
+            'Semeato',
+            'Bellota Agrisolutions',
+            'Ingersoll',
+            'Horsch',
+            'Kuhn',
+            'MaterMacc',
+            'TeeJet',
+            'Hypro',
+            'Arag',
+            'Lechler',
+            'Albuz',
+            'Hardi',
+            'NTN',
+            'NSK',
+            'FAG',
+            'INA',
+            'Koyo',
+            'NACHI',
+            'FYH',
+            'NKE',
+            'Nelson',
+            'Rain Bird',
+            'Hunter',
+            'Senninger',
+            'Komet',
+            'Netafim',
+            'Valley',
+            'Lindsay',
+            'Reinke',
+            'T-L',
+            'John Deere Water',
+            'Toro',
+            'Irritec',
+            'NaanDanJain',
+            'Rivulis',
+            'Jain',
+            'Plastro',
+            'Charlotte Pipe',
+            'JM Eagle',
+            'Georg Fischer',
+            'Grundfos',
+            'Xylem',
+            'KSB',
+            'Wilo',
+            'Franklin Electric',
+            'Berkeley',
+            'Cornell',
+            'Pentair',
+            'Goulds',
+            'Caprari',
+            'Amiad',
+            'Arkal',
+            'Azud',
+            'STF',
+            'Hydro-Flow',
+            'Spin Klin',
+            'Sand Master',
+            'Krone',
+            'Pöttinger',
+            'Vicon',
+            'Fella',
+            'Maschio',
+            'Vogel & Noot',
+            'Seppi',
+            'Welger',
+            'Martin Sprocket',
+            'Boston Gear',
+            'QTC Metric Gears',
+            'Browning',
+            'Hub City',
+            'Rexnord',
+            'Dodge',
+            'Baldor',
+            'SEW-Eurodrive',
+            'Nord'
         ];
+
+        // Eliminar duplicados y ordenar alfabéticamente
+        $uniqueBrands = array_unique($allBrands);
+        sort($uniqueBrands);
+
+        return $uniqueBrands;
     }
 
     #[Route('/api/search-products', name: 'search_products', methods: ['GET'])]
@@ -250,37 +464,102 @@ class ProductController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager
     ): JsonResponse {
-        $term = $request->query->get('term', '');
+        $searchTerm = $request->query->get('search');
+        $brand = $request->query->get('brand');
 
-        if (empty($term)) {
-            return new JsonResponse([]);
+        if (empty($searchTerm)) {
+            return new JsonResponse([
+                'success' => true,
+                'results' => []
+            ]);
         }
 
-        $queryBuilder = $entityManager->createQueryBuilder();
+        // Crear el QueryBuilder
+        $queryBuilder = $entityManager->getRepository(Product::class)->createQueryBuilder('p');
+
+        // Construir la consulta
         $queryBuilder
-            ->select('p')
-            ->from(Product::class, 'p')
-            ->where('LOWER(p.name) LIKE LOWER(:term)')
-            ->orWhere('LOWER(p.description) LIKE LOWER(:term)')
-            ->orWhere('LOWER(p.brand) LIKE LOWER(:term)')
-            ->orWhere('LOWER(p.partNumber) LIKE LOWER(:term)')
-            ->setParameter('term', '%' . $term . '%')
+            ->where('p.isDeleted = :isDeleted')
+            ->andWhere('p.isEnabled = :isEnabled')
+            ->andWhere(
+                $queryBuilder->expr()->orX(
+                    'LOWER(p.name) LIKE LOWER(:searchTerm)',
+                    'LOWER(p.description) LIKE LOWER(:searchTerm)',
+                    'LOWER(p.partNumber) LIKE LOWER(:searchTerm)'
+                )
+            )
+            ->setParameter('isDeleted', false)
+            ->setParameter('isEnabled', true)
+            ->setParameter('searchTerm', '%' . $searchTerm . '%');
+
+        // Aplicar filtro de marca si existe
+        if ($brand) {
+            $queryBuilder->andWhere('p.brand = :brand')
+                ->setParameter('brand', $brand);
+        }
+
+        // Ejecutar la consulta
+        $products = $queryBuilder
+            ->orderBy('p.name', 'ASC')
             ->setMaxResults(10)
-            ->orderBy('p.name', 'ASC');
+            ->getQuery()
+            ->getResult();
 
-        $products = $queryBuilder->getQuery()->getResult();
-
+        // Mapear los resultados
         $results = array_map(function ($product) {
             return [
                 'id' => $product->getId(),
                 'name' => $product->getName(),
                 'description' => $product->getDescription(),
                 'brand' => $product->getBrand(),
-                'partNumber' => $product->getPartNumber()
+                'partNumber' => $product->getPartNumber(),
+                'image' => $product->getImage()
             ];
         }, $products);
 
-        return new JsonResponse($results);
+        return new JsonResponse([
+            'success' => true,
+            'results' => $results
+        ]);
+    }
+
+    /**
+     * Calcula la relevancia del resultado basado en dónde se encontró el término
+     * @param Product $product El producto a evaluar
+     * @param string $searchTerm El término de búsqueda normalizado
+     * @return int Puntuación de relevancia
+     */
+    private function getMatchType(Product $product, string $searchTerm): int
+    {
+        $matches = 0;
+
+        // Normalizar los valores del producto para la comparación
+        $partNumber = strtolower($product->getPartNumber() ?? '');
+        $name = strtolower($product->getName() ?? '');
+        $brand = strtolower($product->getBrand() ?? '');
+        $description = strtolower($product->getDescription() ?? '');
+
+        // Coincidencia exacta en número de parte (prioridad más alta)
+        if (!empty($partNumber) && stripos($partNumber, $searchTerm) !== false) {
+            $matches += 4;
+        }
+
+        // Coincidencia en nombre
+        if (!empty($name) && stripos($name, $searchTerm) !== false) {
+            $matches += 3;
+        }
+
+        // Coincidencia en marca
+        if (!empty($brand) && stripos($brand, $searchTerm) !== false) {
+            $matches += 2;
+        }
+
+        // Coincidencia en descripción
+        if (!empty($description) && stripos($description, $searchTerm) !== false) {
+            $matches += 1;
+        }
+
+        return $matches;
     }
 
     #[Route('/product/{id}', name: 'product_detail')]
@@ -291,14 +570,14 @@ class ProductController extends AbstractController
     ): Response {
         $user = $this->getUser();
         $product = $entityManager->getRepository(Product::class)->find($id);
-        
+
         if (!$product) {
             throw $this->createNotFoundException('El producto no existe');
         }
-    
+
         // Determinar el estado del stock y su información
         $stockInfo = $this->getStockInfo($product->getQuantity());
-    
+
         $favoriteProductIds = [];
         if ($user && !in_array('ROLE_INVITADO', $user->getRoles())) {
             $favorites = $userFavoriteProductRepository->findBy(['user' => $user]);
@@ -306,7 +585,7 @@ class ProductController extends AbstractController
                 return $favorite->getProduct()->getId();
             }, $favorites);
         }
-    
+
         return $this->render('product/detail.html.twig', [
             'product' => $product,
             'favoriteProductIds' => $favoriteProductIds,
@@ -314,7 +593,7 @@ class ProductController extends AbstractController
             'stockInfo' => $stockInfo
         ]);
     }
-    
+
     private function getStockInfo(int $quantity): array
     {
         if ($quantity <= 0) {
@@ -402,10 +681,8 @@ class ProductController extends AbstractController
 
         if ($this->isCsrfTokenValid('delete' . $product->getId(), $request->request->get('_token'))) {
             // Registrar el movimiento de eliminación antes de eliminar el producto
-            $this->productMovementService->recordMovement(
+            $this->productMovementService->recordDeletion(
                 $product,
-                ProductMovement::TYPE_DELETION,
-                $product->getQuantity(),
                 'Eliminación del producto'
             );
 
@@ -454,16 +731,23 @@ class ProductController extends AbstractController
         if ($request->request->has('quantity')) {
             $newQuantity = (int) $request->request->get('quantity');
             $difference = $newQuantity - $oldQuantity;
-            
+
             if ($difference !== 0) {
-                $this->productMovementService->recordMovement(
-                    $product,
-                    $difference > 0 ? ProductMovement::TYPE_ENTRY : ProductMovement::TYPE_DELETION,
-                    abs($difference),
-                    'Ajuste manual de stock'
-                );
+                if ($difference > 0) {
+                    $this->productMovementService->recordEntry(
+                        $product,
+                        abs($difference),
+                        'Incremento manual de stock'
+                    );
+                } else {
+                    $this->productMovementService->recordSale(
+                        $product,
+                        abs($difference),
+                        'Decremento manual de stock'
+                    );
+                }
             }
-            
+
             $product->setQuantity($newQuantity);
         }
 

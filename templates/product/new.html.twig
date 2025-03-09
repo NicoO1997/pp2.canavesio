@@ -35,20 +35,20 @@
 					</div>
 				</div>
 			</div>
-			
-			<div class="form-group">
-				<div class="input-wrapper">
-					{{ form_label(form.partType, 'Tipo de repuesto', {'label_attr': {'class': 'form-label'}}) }}
-					{{ form_widget(form.partType) }}
-					{{ form_errors(form.partType) }}
-				</div>
-			</div>
+
+			{# <div class="form-group">
+																																								<div class="input-wrapper">
+																																									{{ form_label(form.partType, 'Tipo de repuesto', {'label_attr': {'class': 'form-label'}}) }}
+																																									{{ form_widget(form.partType) }}
+																																									{{ form_errors(form.partType) }}
+																																								</div>
+																																							</div> #}
 
 			<div class="form-row">
 				<div class="form-group">
 					<div class="input-wrapper">
 						{{ form_label(form.brand, 'Marca', {'label_attr': {'class': 'form-label required'}}) }}
-						{{ form_widget(form.brand) }}
+						{{ form_widget(form.brand, {'attr': {'class': 'form-control brand-input', 'autocomplete': 'off'}}) }}
 						{{ form_errors(form.brand) }}
 					</div>
 				</div>
@@ -68,8 +68,14 @@
 				</div>
 				<div class="form-group">
 					<div class="input-wrapper">
-						{{ form_label(form.material, 'Material',  {'label_attr': {'class': 'form-label required'}})}}
-						{{ form_widget(form.material) }}
+						{{ form_label(form.material, 'Material',  {'label_attr': {'class': 'form-label required'}}) }}
+						{{ form_widget(form.material, {
+							'attr': {
+								'class': 'form-control material-input',
+								'autocomplete': 'off',
+								'placeholder': 'Ingrese el material'
+							}
+						}) }}
 						{{ form_errors(form.material) }}
 					</div>
 				</div>
@@ -163,7 +169,7 @@
 							{{ form_label(form.minStock, 'Stock Mínimo', {'label_attr': {'class': 'form-label required'}}) }}
 							{{ form_widget(form.minStock) }}
 							{{ form_errors(form.minStock) }}
-						<small class="help-text">Indique cual es la cantidad minima de este repuesto en el stock</small>
+							<small class="help-text">Indique cual es la cantidad minima de este repuesto en el stock</small>
 						</div>
 					</div>
 				{% elseif form.minStock is defined %}
@@ -226,433 +232,418 @@
 		{{ form_end(form) }}
 	</div>
 
+	 <script src="{{ asset('js/autocomplete.js') }}"></script>
 	 <script>
-												
-								const form = document.querySelector('.product-form');
-								const inputs = form.querySelectorAll('.form-control:not(.d-none), .form-control-file, textarea');
-								const toggleSwitch = document.querySelector('input[type="checkbox"]');
-								const statusText = document.getElementById('statusText');
-								const fileInput = document.querySelector('.form-control-file');
-								const fileInfo = document.querySelector('.file-upload-info');
-								const submitButton = document.querySelector('.btn-submit');
-								const userRole = "{{ app.user.roles[0] }}";
-								const dimensionsInput = document.querySelector('.dimensions-input');
-								const sparePartsBrands = {{ sparePartsBrands|json_encode|raw }};
-								const partTypeSelect = document.querySelector('#product_partType');
-								const brandSelect = document.querySelector('#product_brand');
-							if (dimensionsInput) {
-		    // Función para formatear las dimensiones
-		    function formatDimensions(value) {
-		        if (!value) return '';
-		        const parts = value.split(/[x\s]+/).filter(part => part.trim() !== '');
-		        // Solo tomar las primeras 3 dimensiones
-		        return parts.slice(0, 3).join(' x ');
-		    }
-		
-		    function handleDimensionsInput(e) {
-		        // Prevenir el pegado de texto
-		        if (e.inputType === "insertFromPaste") {
-		            e.preventDefault();
-		            return;
-		        }
-		
-		        let value = e.target.value;
-		        let parts = value.split(/[x\s]+/).filter(part => part.trim() !== '');
-		
-		        // Si ya hay 3 dimensiones y no es un borrado, prevenir más entrada
-		        if (parts.length > 3 && e.inputType !== "deleteContentBackward" && e.inputType !== "deleteContentForward") {
-		            e.preventDefault();
-		            return;
-		        }
-		
-		        // Si se presiona espacio, agregar una 'x'
-		        if (e.inputType === "insertText" && e.data === " ") {
-		            e.preventDefault();
-		            
-		            // Solo agregar 'x' si no estamos al máximo de dimensiones
-		            if (parts.length < 3) {
-		                const formattedValue = formatDimensions(value) + " x ";
-		                e.target.value = formattedValue;
-		            }
-		        }
-		    }
-		
-		    function handleDimensionsKeydown(e) {
-		        // Permitir teclas de control
-		        if (e.key === "Backspace" || e.key === "Delete" || e.key === "ArrowLeft" || 
-		            e.key === "ArrowRight" || e.key === "Tab") {
-		            return;
-		        }
-		
-		        const parts = e.target.value.split(/[x\s]+/).filter(part => part.trim() !== '');
-		
-		        // Si ya hay 3 dimensiones y no es un número, prevenir la entrada
-		        if (parts.length >= 3 && !/^\d$/.test(e.key) && e.key !== " ") {
-		            e.preventDefault();
-		        }
-		
-		        // Solo permitir números y espacio
-		        if (!/^\d$/.test(e.key) && e.key !== " ") {
-		            e.preventDefault();
-		        }
-		    }
-		
-		    function handleDimensionsBlur(e) {
-		        let value = e.target.value.trim();
-		        if (value) {
-		            // Formatear al perder el foco
-		            e.target.value = formatDimensions(value);
-		        }
-		    }
-					
-		dimensionsInput.addEventListener('beforeinput', handleDimensionsInput);
-	    dimensionsInput.addEventListener('keydown', handleDimensionsKeydown);
-	    dimensionsInput.addEventListener('blur', handleDimensionsBlur);
-					
-						if (dimensionsInput.value) {
-        						dimensionsInput.value = formatDimensions(dimensionsInput.value);
-    						}
-
-							dimensionsInput.placeholder = "Ejemplo: 100 x 50 x 25";
+	 
+																								
+	const form = document.querySelector('.product-form');
+	const inputs = form.querySelectorAll('.form-control:not(.d-none), .form-control-file, textarea');
+	const toggleSwitch = document.querySelector('input[type="checkbox"]');
+	const statusText = document.getElementById('statusText');
+	const fileInput = document.querySelector('.form-control-file');
+	const fileInfo = document.querySelector('.file-upload-info');
+	const submitButton = document.querySelector('.btn-submit');
+	const userRole = "{{ app.user.roles[0] }}";
+	const dimensionsInput = document.querySelector('.dimensions-input');
+	const sparePartsBrands = {{ sparePartsBrands|json_encode|raw }};
+	{# const partTypeSelect = document.querySelector('#product_partType');
+	const brandSelect = document.querySelector('#product_brand'); #}
+	if (dimensionsInput) {
+				// Función para formatear las dimensiones
+				function formatDimensions(value) {
+					if (!value) return '';
+					const parts = value.split(/[x\s]+/).filter(part => part.trim() !== '');
+					// Solo tomar las primeras 3 dimensiones
+					return parts.slice(0, 3).join(' x ');
+				}
+			
+				function handleDimensionsInput(e) {
+					// Prevenir el pegado de texto
+					if (e.inputType === "insertFromPaste") {
+						e.preventDefault();
+						return;
 					}
-							document.addEventListener('DOMContentLoaded', function() {
-								const form = document.querySelector('.product-form');
-								const inputs = form.querySelectorAll('.form-control:not(.d-none), .form-control-file, textarea');
-								const toggleSwitch = document.querySelector('input[type="checkbox"]');
-								const statusText = document.getElementById('statusText');
-								const fileInput = document.querySelector('.form-control-file');
-								const fileInfo = document.querySelector('.file-upload-info');
-								const submitButton = document.querySelector('.btn-submit');
-								const userRole = "{{ app.user.roles[0] }}";
-								
-					
-									if (partTypeSelect && brandSelect) {
-										if (partTypeSelect && brandSelect) {
-									// Guardar todas las opciones originales
-									const originalOptions = Array.from(brandSelect.options);
-							
-									partTypeSelect.addEventListener('change', function() {
-										const selectedPartType = this.value;
+			
+					let value = e.target.value;
+					let parts = value.split(/[x\s]+/).filter(part => part.trim() !== '');
+			
+					// Si ya hay 3 dimensiones y no es un borrado, prevenir más entrada
+					if (parts.length > 3 && e.inputType !== "deleteContentBackward" && e.inputType !== "deleteContentForward") {
+						e.preventDefault();
+						return;
+					}
+			
+					// Si se presiona espacio, agregar una 'x'
+					if (e.inputType === "insertText" && e.data === " ") {
+						e.preventDefault();
+						
+						// Solo agregar 'x' si no estamos al máximo de dimensiones
+						if (parts.length < 3) {
+							const formattedValue = formatDimensions(value) + " x ";
+							e.target.value = formattedValue;
+						}
+					}
+				}
+			
+				function handleDimensionsKeydown(e) {
+					// Permitir teclas de control
+					if (e.key === "Backspace" || e.key === "Delete" || e.key === "ArrowLeft" || 
+						e.key === "ArrowRight" || e.key === "Tab") {
+						return;
+					}
+			
+					const parts = e.target.value.split(/[x\s]+/).filter(part => part.trim() !== '');
+			
+					// Si ya hay 3 dimensiones y no es un número, prevenir la entrada
+					if (parts.length >= 3 && !/^\d$/.test(e.key) && e.key !== " ") {
+						e.preventDefault();
+					}
+			
+					// Solo permitir números y espacio
+					if (!/^\d$/.test(e.key) && e.key !== " ") {
+						e.preventDefault();
+					}
+				}
+			
+				function handleDimensionsBlur(e) {
+					let value = e.target.value.trim();
+					if (value) {
+						// Formatear al perder el foco
+						e.target.value = formatDimensions(value);
+					}
+				}
+						
+			dimensionsInput.addEventListener('beforeinput', handleDimensionsInput);
+			dimensionsInput.addEventListener('keydown', handleDimensionsKeydown);
+			dimensionsInput.addEventListener('blur', handleDimensionsBlur);
+						
+							if (dimensionsInput.value) {
+									dimensionsInput.value = formatDimensions(dimensionsInput.value);
+								}
+	
+								dimensionsInput.placeholder = "Ejemplo: 100 x 50 x 25";
+						}
+								document.addEventListener('DOMContentLoaded', function() {
+									const form = document.querySelector('.product-form');
+									const inputs = form.querySelectorAll('.form-control:not(.d-none), .form-control-file, textarea');
+									const toggleSwitch = document.querySelector('input[type="checkbox"]');
+									const statusText = document.getElementById('statusText');
+									const fileInput = document.querySelector('.form-control-file');
+									const fileInfo = document.querySelector('.file-upload-info');
+									const submitButton = document.querySelector('.btn-submit');
+									const userRole = "{{ app.user.roles[0] }}";
+									const brandInput = document.querySelector('.brand-input');
+    								const materialInput = document.querySelector('.material-input');
+																				
+									let brandsList = Array.from(new Set({{ sparePartsBrands|json_encode|raw }}));
+									brandsList.sort();
+									console.log(brandsList);
+									let materialsList = [
+										'Acero inoxidable', 'Hierro fundido', 'Caucho', 
+										'Plástico reforzado', 'Aluminio', 'Bronce',
+										'Acero al carbono', 'Polietileno', 'PVC',
+										'Titanio', 'Cobre', 'Latón', 'Cerámica',
+										'Fibra de carbono', 'Poliuretano'
+									];
+													
+												
+										try {
+										const savedBrands = JSON.parse(localStorage.getItem('customBrands') || '[]');
+										const savedMaterials = JSON.parse(localStorage.getItem('customMaterials') || '[]');
 										
-										// Restaurar todas las opciones originales primero
-										brandSelect.innerHTML = '';
-										originalOptions.forEach(option => {
-											brandSelect.appendChild(option.cloneNode(true));
-										});
+										brandsList = Array.from(new Set([...brandsList, ...savedBrands])).sort();
+										materialsList = Array.from(new Set([...materialsList, ...savedMaterials])).sort();
+									} catch (e) {
+										console.error('Error loading saved items:', e);
+									}
+									    setupAutocomplete(brandInput, brandsList, 'customBrands');
+    								setupAutocomplete(materialInput, materialsList, 'customMaterials');
+												
+									function filterBrands(query) {
+										query = query.toLowerCase();
 										
-										if (selectedPartType && sparePartsBrands[selectedPartType]) {
-											const validBrands = sparePartsBrands[selectedPartType];
-											
-											// Filtrar las opciones para mostrar solo las marcas válidas
-											Array.from(brandSelect.options).forEach(option => {
-												if (option.value && !validBrands.includes(option.value)) {
-													option.remove();
-												}
-											});
+										// Si es la primera letra, filtrar solo por coincidencia exacta al inicio
+										if (query.length === 1) {
+											return brandsList.filter(brand => 
+												brand.toLowerCase().startsWith(query)
+											);
 										}
-							
-										// Restablecer la selección
-										brandSelect.value = '';
-										
-										// Aplicar animación
-										brandSelect.style.animation = 'none';
-										brandSelect.offsetHeight; // Trigger reflow
-										brandSelect.style.animation = 'fadeIn 0.3s ease-in-out';
-									});
-								}
-									}
-							});
-				function updateBrandOptions() {
-					            const selectedPartType = partTypeSelect.value;
-					            
-					            // Limpiar las opciones actuales
-					            brandSelect.innerHTML = '<option value="">Seleccione una marca</option>';
-					            
-					            if (selectedPartType && sparePartsBrands[selectedPartType]) {
-					                const brands = sparePartsBrands[selectedPartType];
-					                
-					                brands.forEach(brand => {
-					                    const option = document.createElement('option');
-					                    option.value = brand;
-					                    option.textContent = brand;
-					                    brandSelect.appendChild(option);
-					                });
-					
-					                // Aplicar animación
-					                brandSelect.style.animation = 'none';
-					                brandSelect.offsetHeight; // Trigger reflow
-					                brandSelect.style.animation = 'fadeIn 0.3s ease-in-out';
-					            }
-					        }
-					
-					        // Event listener para el cambio de tipo de repuesto
-					        partTypeSelect.addEventListener('change', function() {
-					            updateBrandOptions();
-					            
-					            // Animar el cambio
-					            brandSelect.style.transform = 'translateX(10px)';
-					            setTimeout(() => {
-					                brandSelect.style.transform = 'translateX(0)';
-					            }, 200);
-					        });
-					
-					        // Inicializar las marcas si hay un tipo de repuesto seleccionado
-					        if (partTypeSelect.value) {
-					            updateBrandOptions();
-					        }
-					
-					        // Agregar estilos para la animación
-					        const styleSheet = document.createElement('style');
-					        styleSheet.textContent = `
-					            @keyframes fadeIn {
-					                from { opacity: 0; transform: translateY(-10px); }
-					                to { opacity: 1; transform: translateY(0); }
-					            }
-					
-					            #product_brand {
-					                transition: transform 0.2s ease-in-out;
-					            }
-					
-					            #product_brand option {
-					                padding: 8px;
-					            }
-					        `;
-					        document.head.appendChild(styleSheet);
-								
-								if (userRole === "ROLE_GESTORSTOCK") {
-									const statusContainer = document.querySelector('.status-container');
-									statusContainer.style.display = 'none';
-									const statusToggle = document.querySelector('input[name="{{ form.isEnabled.vars.full_name }}"]');
-									statusToggle.disabled = true;
-								}
-								
-								{% if is_granted('ROLE_GESTORSTOCK') %}
-								const priceInput = form.querySelector('input[name$="[price]"]');
-								if (priceInput) {
-									priceInput.value = '0';
-								}
-								{% endif %}
-								
-								{% if not is_granted('ROLE_GESTORSTOCK') and form.minStock is defined %}
-								const minStockInput = form.querySelector('input[name$="[minStock]"]');
-								if (minStockInput) {
-									minStockInput.value = '0';
-								}
-								{% endif %}
-								
-								toggleSwitch.checked = false;
-								updateStatusText();
-								
-								animateFormElements();
-								
-								toggleSwitch.addEventListener('change', updateStatusText);
-								fileInput.addEventListener('change', handleFileSelection);
-								
-								inputs.forEach(input => {
-									input.addEventListener('focus', handleInputFocus);
-									input.addEventListener('blur', handleInputBlur);
-									
-									checkInputValue(input);
-								});
-								
-								form.addEventListener('submit', handleFormSubmit);
-										
-								function updateStatusText() {
-									statusText.textContent = toggleSwitch.checked ? 'Habilitado' : 'Deshabilitado';
-									statusText.className = 'status-text ' + (toggleSwitch.checked ? 'status-enabled' : 'status-disabled');
-									
-									statusText.style.animation = 'none';
-									setTimeout(() => {
-										statusText.style.animation = 'pulse 0.5s ease-in-out';
-									}, 10);
-								}
-								
-								function handleFileSelection() {
-									if (this.files && this.files[0]) {
-										const fileName = this.files[0].name;
-										const fileSize = (this.files[0].size / 1024).toFixed(2) + ' KB';
-										fileInfo.innerHTML = `Archivo seleccionado: <strong>${fileName}</strong> (${fileSize})`;
-										fileInfo.classList.add('file-selected');
-										
-										const fileType = this.files[0].type;
-										const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
-										
-										if (!validTypes.includes(fileType)) {
-											addValidationMessage(this, 'El tipo de archivo no es válido. Usa JPG, PNG o GIF.', false);
-										} else {
-											addValidationMessage(this, 'Archivo válido', true);
-										}
-									} else {
-										fileInfo.textContent = 'Formatos permitidos: JPG, PNG, GIF';
-										fileInfo.classList.remove('file-selected');
-										removeValidationMessage(this);
-									}
-								}
-								
-								function handleInputFocus() {
-									const wrapper = this.closest('.input-wrapper');
-									wrapper.classList.add('focused');
-									
-									this.style.transform = 'translateX(5px)';
-									setTimeout(() => {
-										this.style.transform = 'translateX(0)';
-									}, 200);
-									
-									removeValidationMessage(this);
-								}
-								
-								function handleInputBlur() {
-									const wrapper = this.closest('.input-wrapper');
-									wrapper.classList.remove('focused');
-									checkInputValue(this);
-									
-									validateInput.call(this);
-								}
-								
-								function checkInputValue(input) {
-									const wrapper = input.closest('.input-wrapper');
-									if (input.value.trim() !== '') {
-										wrapper.classList.add('has-value');
-									} else {
-										wrapper.classList.remove('has-value');
-									}
-								}
-								
-								function validateInput() {
-									const field = this;
-									const value = field.value.trim();
-									
-									removeValidationMessage(field);
-									
-									if (value === '') {
-										return;
-									}
-									
-									if (field.id.includes('name')) {
-										if (value.length < 3) {
-											addValidationMessage(field, 'El nombre debe tener al menos 3 caracteres', false);
-										} else {
-											addValidationMessage(field, 'Nombre válido', true);
-										}
-									} else if (field.id.includes('quantity') || field.id.includes('minStock')) {
-										if (parseInt(value) <= 0) {
-											addValidationMessage(field, 'El valor debe ser mayor que cero', false);
-										} else {
-											addValidationMessage(field, 'Cantidad válida', true);
-										}
-									} else if (field.id.includes('price')) {
-										if (parseFloat(value) <= 0) {
-											addValidationMessage(field, 'El precio debe ser mayor que cero', false);
-										} else {
-											addValidationMessage(field, 'Precio válido', true);
-										}
-									} else if (field.id.includes('description')) {
-										if (value.length < 10) {
-											addValidationMessage(field, 'La descripción debe tener al menos 10 caracteres', false);
-										} else {
-											addValidationMessage(field, 'Descripción válida', true);
-										}
-									}
-								}
-								
-								function addValidationMessage(field, message, isValid) {
-									removeValidationMessage(field);
-									
-									const validationMsg = document.createElement('div');
-									validationMsg.className = `field-validation ${isValid ? 'valid' : 'invalid'}`;
-									validationMsg.innerHTML = `
-										<span>${isValid ? '✓' : '✗'}</span>
-										<span>${message}</span>
-									`;
-									
-									const wrapper = field.closest('.input-wrapper');
-									wrapper.appendChild(validationMsg);
-									
-									setTimeout(() => {
-										validationMsg.classList.add('show');
-									}, 10);
-								}
-								
-								function removeValidationMessage(field) {
-									const wrapper = field.closest('.input-wrapper');
-									const existingMsg = wrapper.querySelector('.field-validation');
-									if (existingMsg) {
-										existingMsg.classList.remove('show');
-										setTimeout(() => {
-											existingMsg.remove();
-										}, 300);
-									}
-								}
-								
-								function handleFormSubmit(event) {
-									let hasErrors = false;
-									inputs.forEach(input => {
-										if (input.required && input.value.trim() === '') {
-											const wrapper = input.closest('.input-wrapper');
-											wrapper.classList.add('shake-error');
-											hasErrors = true;
-											
-											setTimeout(() => {
-												wrapper.classList.remove('shake-error');
-											}, 500);
-										}
-									});
-									
-									if (hasErrors) {
-										event.preventDefault();
-										return;
-									}
-									
-									submitButton.innerHTML = '<span class="btn-text">Guardando...</span>';
-									submitButton.classList.add('submitting');
-								}
-								
-								function animateFormElements() {
-									const groups = document.querySelectorAll('.form-group, .status-container, .form-actions');
-									groups.forEach((group, index) => {
-										group.style.opacity = '0';
-										group.style.transform = 'translateY(20px)';
-										
-										setTimeout(() => {
-											group.style.transition = 'all 0.5s ease-out';
-											group.style.opacity = '1';
-											group.style.transform = 'translateY(0)';
-										}, 100 + (index * 80));
-									});
-								}
-								
-								const style = document.createElement('style');
-								style.textContent = `
-									.d-none {
-										display: none !important;
-									}
-									
-									@keyframes shake-error {
-										0%, 100% { transform: translateX(0); }
-										10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-										20%, 40%, 60%, 80% { transform: translateX(5px); }
-									}
-									
-									.shake-error {
-										animation: shake-error 0.5s ease-in-out;
-										border-color: var(--error-color) !important;
-									}
-									
-									.submitting {
-										position: relative;
-										pointer-events: none;
-										background: linear-gradient(90deg, var(--secondary-color), var(--accent-color), var(--secondary-color)) !important;
-										background-size: 200% 100% !important;
-										animation: gradient-animation 1.5s infinite !important;
-									}
-									
-									@keyframes gradient-animation {
-										0% { background-position: 0% 50%; }
-										50% { background-position: 100% 50%; }
-										100% { background-position: 0% 50%; }
-									}
-								`;
-								document.head.appendChild(style);
-							
-							</script>
+			    
+			    // Si hay más de una letra, primero filtrar por la primera letra
+			    // y luego por coincidencia parcial en el resto del texto
+			    const firstChar = query.charAt(0);
+			    const restOfQuery = query.slice(1);
+			    
+			    return brandsList.filter(brand => {
+			        const brandLower = brand.toLowerCase();
+			        // Primero verifica si comienza con la primera letra
+			        if (!brandLower.startsWith(firstChar)) {
+			            return false;
+			        }
+			        
+			        // Si hay más caracteres, busca coincidencias en el resto del texto
+			        if (restOfQuery) {
+			            const restOfBrand = brandLower.slice(1);
+			            return restOfBrand.includes(restOfQuery);
+			        }
+			        
+			        return true;
+			    });
+			}
+			// Agregar estilos para la animación
+			const styleSheet = document.createElement('style');
+			styleSheet.textContent = `
+				@keyframes fadeIn {
+					from { opacity: 0; transform: translateY(-10px); }
+					to { opacity: 1; transform: translateY(0); }
+				}
+	
+				#product_brand {
+					transition: transform 0.2s ease-in-out;
+				}
+	
+				#product_brand option {
+					padding: 8px;
+				}
+			`;
+			document.head.appendChild(styleSheet);
+				
+				if (userRole === "ROLE_GESTORSTOCK") {
+					const statusContainer = document.querySelector('.status-container');
+					statusContainer.style.display = 'none';
+					const statusToggle = document.querySelector('input[name="{{ form.isEnabled.vars.full_name }}"]');
+					statusToggle.disabled = true;
+				}
+
+	{% if is_granted('ROLE_GESTORSTOCK') %}
+		const priceInput = form.querySelector('input[name$="[price]"]');
+	if (priceInput) {
+		priceInput.value = '0';
+	}
+	{% endif %}
+
+	{% if not is_granted('ROLE_GESTORSTOCK') and form.minStock is defined %}
+		const minStockInput = form.querySelector('input[name$="[minStock]"]');
+	if (minStockInput) {
+		minStockInput.value = '0';
+	}
+	{% endif %}
+
+	toggleSwitch.checked = false;
+	updateStatusText();
+	
+	animateFormElements();
+	
+	toggleSwitch.addEventListener('change', updateStatusText);
+	fileInput.addEventListener('change', handleFileSelection);
+	
+	inputs.forEach(input => {
+		input.addEventListener('focus', handleInputFocus);
+		input.addEventListener('blur', handleInputBlur);
+		
+		checkInputValue(input);
+	});
+	
+	form.addEventListener('submit', handleFormSubmit);
+			
+	function updateStatusText() {
+		statusText.textContent = toggleSwitch.checked ? 'Habilitado' : 'Deshabilitado';
+		statusText.className = 'status-text ' + (toggleSwitch.checked ? 'status-enabled' : 'status-disabled');
+		
+		statusText.style.animation = 'none';
+		setTimeout(() => {
+			statusText.style.animation = 'pulse 0.5s ease-in-out';
+		}, 10);
+	}
+	
+	function handleFileSelection() {
+		if (this.files && this.files[0]) {
+			const fileName = this.files[0].name;
+			const fileSize = (this.files[0].size / 1024).toFixed(2) + ' KB';
+			fileInfo.innerHTML = `Archivo seleccionado:
+	<strong>${fileName}</strong>
+	(${fileSize})`;
+		fileInfo.classList.add('file-selected');
+		
+		const fileType = this.files[0].type;
+		const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+		
+		if (!validTypes.includes(fileType)) {
+			addValidationMessage(this, 'El tipo de archivo no es válido. Usa JPG, PNG o GIF.', false);
+		} else {
+			addValidationMessage(this, 'Archivo válido', true);
+		}
+	} else {
+		fileInfo.textContent = 'Formatos permitidos: JPG, PNG, GIF';
+		fileInfo.classList.remove('file-selected');
+		removeValidationMessage(this);
+	}
+	}
+
+	function handleInputFocus() {
+	const wrapper = this.closest('.input-wrapper');
+	wrapper.classList.add('focused');
+
+	this.style.transform = 'translateX(5px)';
+	setTimeout(() => {
+		this.style.transform = 'translateX(0)';
+	}, 200);
+
+	removeValidationMessage(this);
+	}
+
+	function handleInputBlur() {
+	const wrapper = this.closest('.input-wrapper');
+	wrapper.classList.remove('focused');
+	checkInputValue(this);
+
+	validateInput.call(this);
+	}
+
+	function checkInputValue(input) {
+	const wrapper = input.closest('.input-wrapper');
+	if (input.value.trim() !== '') {
+		wrapper.classList.add('has-value');
+	} else {
+		wrapper.classList.remove('has-value');
+	}
+	}
+
+	function validateInput() {
+	const field = this;
+	const value = field.value.trim();
+
+	removeValidationMessage(field);
+
+	if (value === '') {
+		return;
+	}
+
+	if (field.id.includes('name')) {
+		if (value.length < 3) {
+			addValidationMessage(field, 'El nombre debe tener al menos 3 caracteres', false);
+		} else {
+			addValidationMessage(field, 'Nombre válido', true);
+		}
+	} else if (field.id.includes('quantity') || field.id.includes('minStock')) {
+		if (parseInt(value) <= 0) {
+			addValidationMessage(field, 'El valor debe ser mayor que cero', false);
+		} else {
+			addValidationMessage(field, 'Cantidad válida', true);
+		}
+	} else if (field.id.includes('price')) {
+		if (parseFloat(value) <= 0) {
+			addValidationMessage(field, 'El precio debe ser mayor que cero', false);
+		} else {
+			addValidationMessage(field, 'Precio válido', true);
+		}
+	} else if (field.id.includes('description')) {
+		if (value.length < 10) {
+			addValidationMessage(field, 'La descripción debe tener al menos 10 caracteres', false);
+		} else {
+			addValidationMessage(field, 'Descripción válida', true);
+		}
+	}
+	}
+
+	function addValidationMessage(field, message, isValid) {
+	removeValidationMessage(field);
+
+	const validationMsg = document.createElement('div');
+	validationMsg.className = `field-validation ${isValid ? 'valid' : 'invalid'}`;
+	validationMsg.innerHTML = `
+	<span>${isValid ? '✓' : '✗'}</span>
+	<span>${message}</span>
+	`;
+	
+	const wrapper = field.closest('.input-wrapper');
+	wrapper.appendChild(validationMsg);
+	
+	setTimeout(() => {
+		validationMsg.classList.add('show');
+	}, 10);
+}
+
+function removeValidationMessage(field) {
+	const wrapper = field.closest('.input-wrapper');
+	const existingMsg = wrapper.querySelector('.field-validation');
+	if (existingMsg) {
+		existingMsg.classList.remove('show');
+		setTimeout(() => {
+			existingMsg.remove();
+		}, 300);
+	}
+}
+																				
+	function handleFormSubmit(event) {
+		let hasErrors = false;
+		inputs.forEach(input => {
+			if (input.required && input.value.trim() === '') {
+				const wrapper = input.closest('.input-wrapper');
+				wrapper.classList.add('shake-error');
+				hasErrors = true;
+				
+				setTimeout(() => {
+					wrapper.classList.remove('shake-error');
+				}, 500);
+			}
+		});
+		
+		if (hasErrors) {
+			event.preventDefault();
+			return;
+		}
+		
+		submitButton.innerHTML = '<span class="btn-text">Guardando...</span>';
+				submitButton.classList.add('submitting');
+			}
+			
+		function animateFormElements() {
+			const groups = document.querySelectorAll('.form-group, .status-container, .form-actions');
+			groups.forEach((group, index) => {
+				group.style.opacity = '0';
+				group.style.transform = 'translateY(20px)';
+				
+				setTimeout(() => {
+					group.style.transition = 'all 0.5s ease-out';
+					group.style.opacity = '1';
+					group.style.transform = 'translateY(0)';
+				}, 100 + (index * 80));
+			});
+		}
+		
+		const style = document.createElement('style');
+		style.textContent = `
+			.d-none {
+				display: none !important;
+			}
+			
+			@keyframes shake-error {
+				0%, 100% { transform: translateX(0); }
+				10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+				20%, 40%, 60%, 80% { transform: translateX(5px); }
+			}
+			
+			.shake-error {
+				animation: shake-error 0.5s ease-in-out;
+				border-color: var(--error-color) !important;
+			}
+			
+			.submitting {
+				position: relative;
+				pointer-events: none;
+				background: linear-gradient(90deg, var(--secondary-color), var(--accent-color), var(--secondary-color)) !important;
+				background-size: 200% 100% !important;
+				animation: gradient-animation 1.5s infinite !important;
+			}
+			
+			@keyframes gradient-animation {
+			0% { background-position: 0% 50%; }
+			50% { background-position: 100% 50%; }
+			100% { background-position: 0% 50%; }
+		}
+	`;
+	document.head.appendChild(style);
+}); // Cierre del DOMContentLoaded
+</script>
 {% endblock %}

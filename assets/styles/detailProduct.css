@@ -844,3 +844,152 @@
       max-height: 300px;
   }
 }
+
+.btn-pago-simulado {
+  background: linear-gradient(135deg, #2d9346, #45b15c);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-pago-simulado:hover {
+  background: linear-gradient(135deg, #45b15c, #2d9346);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-pago-simulado i {
+  font-size: 1.1rem;
+}
+
+/* Animación para el botón de pago */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.btn-pago-simulado:active {
+  animation: pulse 0.3s ease-in-out;
+}
+    .stock-information {
+        margin: 1.5rem 0;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+    }
+
+    .stock-status {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .stock-status i {
+        font-size: 1.25rem;
+    }
+
+    .stock-empty i { color: #dc3545; }
+    .stock-low i { color: #ffc107; }
+    .stock-available i { color: #28a745; }
+
+    .status-text {
+        font-weight: 600;
+    }
+
+    .stock-quantity {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+
+    .quantity-controls {
+        display: flex;
+        align-items: center;
+        border: 2px solid #dee2e6;
+        border-radius: 6px;
+        overflow: hidden;
+        width: fit-content;
+    }
+
+    .qty-btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        background: #f8f9fa;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.2s;
+    }
+
+    .qty-btn:hover {
+        background: #e9ecef;
+    }
+
+    #quantity {
+        width: 60px;
+        text-align: center;
+        border: none;
+        border-left: 2px solid #dee2e6;
+        border-right: 2px solid #dee2e6;
+        padding: 0.5rem;
+    }
+
+    .stock-max {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-left: 0.5rem;
+    }
+
+    .out-of-stock-message {
+        background: #dc3545;
+        color: white;
+        padding: 1rem;
+        border-radius: 6px;
+        text-align: center;
+        margin-top: 1rem;
+    }
+
+    .out-of-stock-message i {
+        margin-right: 0.5rem;
+    }
+
+    .alerta-carrito {
+        display: none;
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 25px;
+        border-radius: 5px;
+        color: white;
+        font-weight: 500;
+        z-index: 1000;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }

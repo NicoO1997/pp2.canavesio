@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\CategoryRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use Doctrine\DBAL\Types\Types;
 
 #[ORM\Entity(repositoryClass: CategoryRepository::class)]
 class Category
@@ -21,6 +22,22 @@ class Category
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: "El código de la categoría no puede estar vacío")]
     private ?string $code = null;
+
+    // #[ORM\Column(type: Types::TEXT, nullable: true)]
+    // private ?string $image = null;
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    private ?string $image = null;
+
+    public function getImage(): ?string
+    {
+        return $this->image;
+    }
+
+    public function setImage(?string $image): self
+    {
+        $this->image = $image;
+        return $this;
+    }
 
     public function getId(): ?int
     {

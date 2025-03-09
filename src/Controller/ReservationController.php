@@ -255,6 +255,7 @@ class ReservationController extends AbstractController
             $cartProductOrder->setProduct($product);
             $cartProductOrder->setCart($cart);
             $cartProductOrder->setQuantity($quantity);
+            $cartProductOrder->setIsFromReservation(true);
             $cartProductOrder->setDate(new \DateTime('2025-03-05 15:28:46'));
             $cartProductOrder->setTime(new \DateTime('2025-03-05 15:28:46'));
 

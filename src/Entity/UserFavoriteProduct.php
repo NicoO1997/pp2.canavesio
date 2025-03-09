@@ -22,7 +22,7 @@ class UserFavoriteProduct
     private ?Favorite $favorite = null;
 
     #[ORM\ManyToOne(inversedBy: 'userFavoriteProduct')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: "CASCADE")]
     private ?Product $product = null;
 
     #[ORM\ManyToOne(inversedBy: 'userFavoriteProduct')]

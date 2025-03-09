@@ -42,6 +42,13 @@
                                     Restaurar
                                 </button>
                             </form>
+                            
+                            <form method="post" action="{{ path('product_permanent_delete', {id: product.id}) }}" style="display: inline;">
+                                <input type="hidden" name="_token" value="{{ csrf_token('permanent_delete' ~ product.id) }}">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que quieres eliminar permanentemente este producto? Esta acción no se puede deshacer.');">
+                                    Eliminar permanentemente
+                                </button>
+                            </form>
                         </td>
                     </tr>
                 {% else %}

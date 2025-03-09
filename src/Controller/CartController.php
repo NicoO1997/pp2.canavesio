@@ -62,7 +62,15 @@ class CartController extends AbstractController
         $cartProductOrder = $cart->getCartProductOrders()->filter(fn($cpo) => $cpo->getProduct() === $product)->first();
 
         if ($cartProductOrder) {
-            $cartProductOrder->setQuantity($cartProductOrder->getQuantity() + $quantity);
+            // Verificar que la nueva cantidad total no exceda el stock disponible
+            $newTotalQuantity = $cartProductOrder->getQuantity() + $quantity;
+            if ($newTotalQuantity > $product->getQuantity()) {
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => 'No hay suficiente stock disponible.'
+                ], 400);
+            }
+            $cartProductOrder->setQuantity($newTotalQuantity);
         } else {
             $cartProductOrder = new CartProductOrder();
             $cartProductOrder->setProduct($product);
@@ -74,30 +82,36 @@ class CartController extends AbstractController
             $entityManager->persist($cartProductOrder);
         }
 
-        $product->setQuantity($product->getQuantity() - $quantity);
-        $entityManager->persist($product);
-
-        $this->productMovementService->recordMovement(
-            $product,
-            ProductMovement::TYPE_SALE,
-            $quantity,
-            'Venta a través del carrito'
-        );
-
+        // Ya no modificamos la cantidad del producto aquí
+        // Solo registramos el movimiento como "reservado"
+        // $this->productMovementService->recordAdjustment(
+        //     $product,
+        //     $quantity,
+        //     'Producto reservado en carrito'
+        // );
         $entityManager->flush();
 
         return new JsonResponse(['success' => true, 'message' => 'Producto agregado al carrito.']);
     }
 
     #[Route('/cart', name: 'cart_view')]
-    public function viewCart(CartRepository $cartRepository, Security $security): Response {
+    public function viewCart(CartRepository $cartRepository, Security $security): Response
+    {
         $user = $security->getUser();
         if (!$user) {
             return $this->redirectToRoute('app_login');
         }
-
+    
         $cart = $cartRepository->findOneBy(['user' => $user]);
-
+        
+        // Calcular el stock disponible para cada producto
+        if ($cart) {
+            foreach ($cart->getCartProductOrders() as $cartProductOrder) {
+                $product = $cartProductOrder->getProduct();
+                $product->totalAvailable = $product->getQuantity(); // Stock actual
+            }
+        }
+    
         return $this->render('cart/view.html.twig', [
             'cart' => $cart,
         ]);
@@ -126,96 +140,136 @@ class CartController extends AbstractController
         }
 
         $cart->removeCartProductOrder($cartProductOrder);
-        
-        $product = $cartProductOrder->getProduct();
-        if ($product) {
-            $quantity = $cartProductOrder->getQuantity();
-            $product->setQuantity($product->getQuantity() + $quantity);
-            $entityManager->persist($product);
 
-            $this->productMovementService->recordMovement(
-                $product,
-                ProductMovement::TYPE_ENTRY,
-                $quantity,
-                'Devolución al stock por eliminación del carrito'
-            );
-        }
+        $product = $cartProductOrder->getProduct();
+        // if ($product) {
+        //     $quantity = $cartProductOrder->getQuantity();
+
+        //     // Solo registramos el movimiento de cancelación de reserva
+        //     $this->productMovementService->recordAdjustment(
+        //         $product,
+        //         $quantity,
+        //         'Reserva cancelada - Producto eliminado del carrito'
+        //     );
+        // }
 
         $entityManager->remove($cartProductOrder);
         $entityManager->flush();
 
         $this->addFlash('success', 'Producto eliminado del carrito');
-
         return $this->redirectToRoute('cart_view');
     }
 
     #[Route('/cart/update-quantity', name: 'cart_update_quantity', methods: ['POST'])]
-    public function updateQuantity(
-        Request $request,
-        EntityManagerInterface $entityManager,
-        Security $security
-    ): JsonResponse {
-        $user = $security->getUser();
-        if (!$user) {
-            return new JsonResponse(['success' => false, 'message' => 'Debes iniciar sesión.'], 403);
-        }
+public function updateQuantity(
+    Request $request,
+    EntityManagerInterface $entityManager,
+    Security $security
+): JsonResponse {
+    $user = $security->getUser();
+    if (!$user) {
+        return new JsonResponse(['success' => false, 'message' => 'Debes iniciar sesión.'], 403);
+    }
 
-        $id = (int) $request->request->get('id');
-        $quantity = (int) $request->request->get('quantity');
+    $id = (int) $request->request->get('id');
+    $newQuantity = (int) $request->request->get('quantity');
+    
+    $cartProductOrder = $entityManager->getRepository(CartProductOrder::class)->find($id);
 
-        if ($quantity < 1) {
-            return new JsonResponse(['success' => false, 'message' => 'La cantidad debe ser al menos 1.'], 400);
-        }
+    if (!$cartProductOrder) {
+        return new JsonResponse([
+            'success' => false, 
+            'message' => 'Producto no encontrado en el carrito.'
+        ], 404);
+    }
 
-        $cartProductOrder = $entityManager->getRepository(CartProductOrder::class)->find($id);
-
-        if (!$cartProductOrder) {
-            return new JsonResponse(['success' => false, 'message' => 'Producto no encontrado en el carrito.'], 404);
-        }
-
+    // Verificación estricta para productos reservados
+    if ($cartProductOrder->isFromReservation()) {
+        return new JsonResponse([
+            'success' => false,
+            'message' => 'Este producto proviene de una reserva y no puede ser modificado.',
+            'subtotal' => $cartProductOrder->getProduct()->getPrice() * $cartProductOrder->getQuantity(),
+            'total' => $this->calculateCartTotal($cartProductOrder->getCart()),
+            'availableStock' => $cartProductOrder->getProduct()->getQuantity(),
+            'reservedQuantity' => $cartProductOrder->getQuantity(),
+            'isReserved' => true
+        ], 400);
+    }
+    
         $cart = $cartProductOrder->getCart();
         if ($cart->getUser() !== $user) {
-            return new JsonResponse(['success' => false, 'message' => 'No tienes permiso para modificar este carrito.'], 403);
+            return new JsonResponse([
+                'success' => false, 
+                'message' => 'No tienes permiso para modificar este carrito.'
+            ], 403);
         }
-
+    
         $product = $cartProductOrder->getProduct();
-        $quantityDiff = $quantity - $cartProductOrder->getQuantity();
-
-        if ($quantityDiff > 0 && $product->getQuantity() < $quantityDiff) {
+        $currentQuantity = $cartProductOrder->getQuantity();
+        $quantityDiff = $newQuantity - $currentQuantity;
+    
+        // Verificar si hay suficiente stock disponible
+        if ($quantityDiff > 0 && $product->getQuantity() < $newQuantity) {
             return new JsonResponse([
                 'success' => false, 
                 'message' => 'No hay suficiente stock disponible.'
             ], 400);
         }
-
-        $cartProductOrder->setQuantity($quantity);
-        $product->setQuantity($product->getQuantity() - $quantityDiff);
-
-        if ($quantityDiff !== 0) {
-            $this->productMovementService->recordMovement(
-                $product,
-                $quantityDiff > 0 ? ProductMovement::TYPE_SALE : ProductMovement::TYPE_ENTRY,
-                abs($quantityDiff),
-                $quantityDiff > 0 ? 'Aumento de cantidad en carrito' : 'Disminución de cantidad en carrito'
-            );
-        }
-
-        $entityManager->persist($cartProductOrder);
-        $entityManager->persist($product);
+    
+        // Actualizar la cantidad en el carrito
+        $cartProductOrder->setQuantity($newQuantity);
+    
+        // Registrar el movimiento según si aumentó o disminuyó la cantidad
+        // if ($quantityDiff > 0) {
+        //     // Si aumentó la cantidad, registrar una nueva reserva por la diferencia
+        //     $this->productMovementService->recordSale(
+        //         $product,
+        //         abs($quantityDiff),
+        //         sprintf(
+        //             'Disminución de cantidad reservada en carrito de %d a %d unidades',
+        //             $currentQuantity,
+        //             $newQuantity
+        //         )
+        //     );
+        // } elseif ($quantityDiff < 0) {
+        //     // Si disminuyó la cantidad, registrar una cancelación de reserva por la diferencia
+        //     $this->productMovementService->recordSale(
+        //         $product,
+        //         abs($quantityDiff),
+        //         sprintf(
+        //             'Disminución de cantidad reservada en carrito de %d a %d unidades',
+        //             $currentQuantity,
+        //             $newQuantity
+        //         )
+        //     );
+        // }
+    
         $entityManager->flush();
-
-        $subtotal = $product->getPrice() * $quantity;
-
+    
+        // Calcular subtotal y total
+        $subtotal = $product->getPrice() * $newQuantity;
+        
         $total = 0;
         foreach ($cart->getCartProductOrders() as $item) {
             $total += $item->getProduct()->getPrice() * $item->getQuantity();
         }
-
+    
         return new JsonResponse([
             'success' => true, 
-            'message' => 'Cantidad actualizada.',
+            'message' => 'Cantidad actualizada correctamente.',
             'subtotal' => $subtotal,
-            'total' => $total
+            'total' => $total,
+            'availableStock' => $product->getQuantity(),
+            'reservedQuantity' => $newQuantity
         ]);
+    }
+
+    private function calculateCartTotal(Cart $cart): float
+    {
+        $total = 0;
+        foreach ($cart->getCartProductOrders() as $item) {
+            $total += $item->getProduct()->getPrice() * $item->getQuantity();
+        }
+        return $total;
     }
 }

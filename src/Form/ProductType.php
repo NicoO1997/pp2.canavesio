@@ -92,18 +92,17 @@ class ProductType extends AbstractType
                     'class' => 'form-control dimensions-input',
                 ]
             ])
-            ->add('material', ChoiceType::class, [
+            ->add('material', TextType::class, [
                 'label' => 'Material',
-                'choices' => [
-                    'Seleccione el material' => '',
-                    'Acero inoxidable' => 'Acero inoxidable',
-                    'Hierro fundido' => 'Hierro fundido',
-                    'Caucho' => 'Caucho',
-                    'Plástico reforzado' => 'Plástico reforzado',
-                    'Aluminio' => 'Aluminio',
-                    'Otro' => 'Otro'
-                ],
                 'required' => true,
+                'attr' => [
+                    'class' => 'form-control material-input',
+                    'placeholder' => 'Ingrese el material',
+                    'autocomplete' => 'off'
+                ],
+                'constraints' => [
+                    new NotBlank(['message' => 'El material no puede estar vacío']),
+                ]
             ])
             ->add('weight', NumberType::class, [
                 'label' => 'Peso (kg)',
@@ -134,83 +133,83 @@ class ProductType extends AbstractType
                 ]
             ])
 
-            ->add('partType', ChoiceType::class, [
-                'label' => 'Tipo de Repuesto',
-                'choices' => [
-                    'Seleccione el tipo de repuesto' => '',
-                    'Repuestos para Tractores' => [
-                        'Filtros de aire' => 'tractor_filtro_aire',
-                        'Filtros de aceite' => 'tractor_filtro_aceite',
-                        'Filtros de combustible' => 'tractor_filtro_combustible',
-                        'Filtros hidráulicos' => 'tractor_filtro_hidraulico',
-                        'Correas de transmisión' => 'tractor_correa_transmision',
-                        'Correas de alternador' => 'tractor_correa_alternador',
-                        'Baterías' => 'tractor_bateria',
-                        'Alternadores' => 'tractor_alternador',
-                        'Motores de arranque' => 'tractor_motor_arranque',
-                        'Fusibles' => 'tractor_fusible',
-                        'Neumáticos' => 'tractor_neumatico',
-                        'Llantas' => 'tractor_llanta',
-                        'Pistones' => 'tractor_piston',
-                        'Bujías' => 'tractor_bujia',
-                        'Inyectores' => 'tractor_inyector',
-                        'Radiadores' => 'tractor_radiador',
-                        'Bombas hidráulicas' => 'tractor_bomba_hidraulica',
-                        'Mangueras hidráulicas' => 'tractor_manguera_hidraulica',
-                        'Válvulas hidráulicas' => 'tractor_valvula_hidraulica'
-                    ],
-                    'Repuestos para Cosechadoras' => [
-                        'Cuchillas para trigo' => 'cosechadora_cuchilla_trigo',
-                        'Cuchillas para maíz' => 'cosechadora_cuchilla_maiz',
-                        'Cuchillas para arroz' => 'cosechadora_cuchilla_arroz',
-                        'Tamices' => 'cosechadora_tamiz',
-                        'Zarandas' => 'cosechadora_zaranda',
-                        'Correas de transmisión' => 'cosechadora_correa',
-                        'Cadenas de transmisión' => 'cosechadora_cadena',
-                        'Rotores' => 'cosechadora_rotor',
-                        'Sacudidores' => 'cosechadora_sacudidor'
-                    ],
-                    'Repuestos para Equipos de Siembra' => [
-                        'Discos de siembra' => 'siembra_disco',
-                        'Cuchillas de siembra' => 'siembra_cuchilla',
-                        'Dosificadores de semillas' => 'siembra_dosificador',
-                        'Tubos de fertilización' => 'siembra_tubo',
-                        'Boquillas de fertilización' => 'siembra_boquilla',
-                        'Rodamientos' => 'siembra_rodamiento',
-                        'Ejes' => 'siembra_eje'
-                    ],
-                    'Repuestos para Equipos de Riego' => [
-                        'Aspersores' => 'riego_aspersor',
-                        'Boquillas de riego' => 'riego_boquilla',
-                        'Mangueras' => 'riego_manguera',
-                        'Tuberías' => 'riego_tuberia',
-                        'Bombas de agua' => 'riego_bomba',
-                        'Filtros de riego' => 'riego_filtro'
-                    ],
-                    'Repuestos para Equipos de Forraje' => [
-                        'Cuchillas para forraje' => 'forraje_cuchilla',
-                        'Martillos picadores' => 'forraje_martillo',
-                        'Barras de corte' => 'forraje_barra',
-                        'Púas para segadoras' => 'forraje_pua_segadora',
-                        'Púas para empacadoras' => 'forraje_pua_empacadora',
-                        'Cadenas' => 'forraje_cadena',
-                        'Engranajes' => 'forraje_engranaje'
-                    ]
-                ],
-                'required' => true,
-                'attr' => [
-                    'class' => 'form-control part-type-select',
-                    'data-live-search' => 'true'
-                ],
-                'group_by' => function($choice, $key, $value) {
-                    if (strpos($value, 'tractor_') === 0) return 'Repuestos para Tractores';
-                    if (strpos($value, 'cosechadora_') === 0) return 'Repuestos para Cosechadoras';
-                    if (strpos($value, 'siembra_') === 0) return 'Repuestos para Equipos de Siembra';
-                    if (strpos($value, 'riego_') === 0) return 'Repuestos para Equipos de Riego';
-                    if (strpos($value, 'forraje_') === 0) return 'Repuestos para Equipos de Forraje';
-                    return 'Otros';
-                }
-            ])
+            // ->add('partType', ChoiceType::class, [
+            //     'label' => 'Tipo de Repuesto',
+            //     'choices' => [
+            //         'Seleccione el tipo de repuesto' => '',
+            //         'Repuestos para Tractores' => [
+            //             'Filtros de aire' => 'tractor_filtro_aire',
+            //             'Filtros de aceite' => 'tractor_filtro_aceite',
+            //             'Filtros de combustible' => 'tractor_filtro_combustible',
+            //             'Filtros hidráulicos' => 'tractor_filtro_hidraulico',
+            //             'Correas de transmisión' => 'tractor_correa_transmision',
+            //             'Correas de alternador' => 'tractor_correa_alternador',
+            //             'Baterías' => 'tractor_bateria',
+            //             'Alternadores' => 'tractor_alternador',
+            //             'Motores de arranque' => 'tractor_motor_arranque',
+            //             'Fusibles' => 'tractor_fusible',
+            //             'Neumáticos' => 'tractor_neumatico',
+            //             'Llantas' => 'tractor_llanta',
+            //             'Pistones' => 'tractor_piston',
+            //             'Bujías' => 'tractor_bujia',
+            //             'Inyectores' => 'tractor_inyector',
+            //             'Radiadores' => 'tractor_radiador',
+            //             'Bombas hidráulicas' => 'tractor_bomba_hidraulica',
+            //             'Mangueras hidráulicas' => 'tractor_manguera_hidraulica',
+            //             'Válvulas hidráulicas' => 'tractor_valvula_hidraulica'
+            //         ],
+            //         'Repuestos para Cosechadoras' => [
+            //             'Cuchillas para trigo' => 'cosechadora_cuchilla_trigo',
+            //             'Cuchillas para maíz' => 'cosechadora_cuchilla_maiz',
+            //             'Cuchillas para arroz' => 'cosechadora_cuchilla_arroz',
+            //             'Tamices' => 'cosechadora_tamiz',
+            //             'Zarandas' => 'cosechadora_zaranda',
+            //             'Correas de transmisión' => 'cosechadora_correa',
+            //             'Cadenas de transmisión' => 'cosechadora_cadena',
+            //             'Rotores' => 'cosechadora_rotor',
+            //             'Sacudidores' => 'cosechadora_sacudidor'
+            //         ],
+            //         'Repuestos para Equipos de Siembra' => [
+            //             'Discos de siembra' => 'siembra_disco',
+            //             'Cuchillas de siembra' => 'siembra_cuchilla',
+            //             'Dosificadores de semillas' => 'siembra_dosificador',
+            //             'Tubos de fertilización' => 'siembra_tubo',
+            //             'Boquillas de fertilización' => 'siembra_boquilla',
+            //             'Rodamientos' => 'siembra_rodamiento',
+            //             'Ejes' => 'siembra_eje'
+            //         ],
+            //         'Repuestos para Equipos de Riego' => [
+            //             'Aspersores' => 'riego_aspersor',
+            //             'Boquillas de riego' => 'riego_boquilla',
+            //             'Mangueras' => 'riego_manguera',
+            //             'Tuberías' => 'riego_tuberia',
+            //             'Bombas de agua' => 'riego_bomba',
+            //             'Filtros de riego' => 'riego_filtro'
+            //         ],
+            //         'Repuestos para Equipos de Forraje' => [
+            //             'Cuchillas para forraje' => 'forraje_cuchilla',
+            //             'Martillos picadores' => 'forraje_martillo',
+            //             'Barras de corte' => 'forraje_barra',
+            //             'Púas para segadoras' => 'forraje_pua_segadora',
+            //             'Púas para empacadoras' => 'forraje_pua_empacadora',
+            //             'Cadenas' => 'forraje_cadena',
+            //             'Engranajes' => 'forraje_engranaje'
+            //         ]
+            //     ],
+            //     'required' => true,
+            //     'attr' => [
+            //         'class' => 'form-control part-type-select',
+            //         'data-live-search' => 'true'
+            //     ],
+            //     'group_by' => function($choice, $key, $value) {
+            //         if (strpos($value, 'tractor_') === 0) return 'Repuestos para Tractores';
+            //         if (strpos($value, 'cosechadora_') === 0) return 'Repuestos para Cosechadoras';
+            //         if (strpos($value, 'siembra_') === 0) return 'Repuestos para Equipos de Siembra';
+            //         if (strpos($value, 'riego_') === 0) return 'Repuestos para Equipos de Riego';
+            //         if (strpos($value, 'forraje_') === 0) return 'Repuestos para Equipos de Forraje';
+            //         return 'Otros';
+            //     }
+            // ])
             ->add('installationRequirements', TextareaType::class, [
                 'label' => 'Requisitos de instalación',
                 'required' => false,
@@ -275,13 +274,13 @@ class ProductType extends AbstractType
                 ]
             ])
 
-            ->add('brand', ChoiceType::class, [
+            ->add('brand', TextType::class, [
                 'label' => 'Marca',
                 'required' => true,
-                'choices' => array_combine($allBrands, $allBrands),
-                'placeholder' => 'Seleccione una marca',
                 'attr' => [
-                    'class' => 'form-control brand-select'
+                    'class' => 'form-control brand-input',
+                    'placeholder' => 'Ingrese la marca del repuesto',
+                    'autocomplete' => 'off'
                 ],
                 'constraints' => [
                     new NotBlank(['message' => 'La marca no puede estar vacía']),

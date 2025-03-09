@@ -254,3 +254,83 @@ h2::after {
 .btn-back i {
     margin-right: 5px;
 }
+
+.quantity-input {
+    width: 80px !important;
+    text-align: center;
+}
+
+.stock-info {
+    color: #6c757d;
+    font-size: 0.9em;
+    white-space: nowrap;
+}
+
+.quantity-input::-webkit-inner-spin-button,
+.quantity-input::-webkit-outer-spin-button {
+    opacity: 1;
+}
+
+td .d-flex {
+    gap: 10px;
+}
+
+.quantity-input {
+    width: 80px !important;
+    text-align: center;
+}
+
+.stock-info {
+    color: #6c757d;
+    font-size: 0.9em;
+    white-space: nowrap;
+}
+
+td .d-flex {
+    gap: 10px;
+}
+
+.btn-danger {
+    padding: 0.375rem 0.75rem;
+}
+
+.stock-info {
+    margin-left: 8px;
+    color: #6c757d;
+    font-size: 0.9em;
+}
+
+td .d-flex {
+    display: flex;
+    align-items: center;
+}
+
+.quantity-input {
+    width: 80px !important;
+    text-align: center;
+}
+
+.quantity-input:disabled {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+}
+
+.stock-info {
+    color: #6c757d;
+    font-size: 0.9em;
+    white-space: nowrap;
+}
+
+.stock-info.reserved {
+    color: #28a745;
+    font-weight: bold;
+}
+
+td .d-flex {
+    gap: 10px;
+    align-items: center;
+}
+
+.btn-danger {
+    padding: 0.375rem 0.75rem;
+}

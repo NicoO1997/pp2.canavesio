@@ -26,12 +26,12 @@ class ProductMovementController extends AbstractController
     ): Response {
         $form = $this->createForm(MovementFilterType::class);
         $form->handleRequest($request);
-
+    
         $queryBuilder = $movementRepository->createQueryBuilder('m')
             ->leftJoin('m.product', 'p')
             ->addSelect('p')
             ->orderBy('m.createdAt', 'DESC');
-
+    
         if ($form->isSubmitted() && $form->isValid()) {
             $filters = $form->getData();
             
@@ -39,19 +39,19 @@ class ProductMovementController extends AbstractController
                 $queryBuilder->andWhere('m.product = :product')
                     ->setParameter('product', $filters['product']);
             }
-
+    
             if ($filters['type']) {
                 $queryBuilder->andWhere('m.movementType = :type')
                     ->setParameter('type', $filters['type']);
             }
-
+    
             if ($filters['dateFrom']) {
                 $dateFrom = $filters['dateFrom'];
                 $dateFrom->setTime(0, 0, 0);
                 $queryBuilder->andWhere('m.createdAt >= :dateFrom')
                     ->setParameter('dateFrom', $dateFrom);
             }
-
+    
             if ($filters['dateTo']) {
                 $dateTo = $filters['dateTo'];
                 $dateTo->setTime(23, 59, 59);
@@ -59,16 +59,15 @@ class ProductMovementController extends AbstractController
                     ->setParameter('dateTo', $dateTo);
             }
         }
-
+    
         $movements = $queryBuilder->getQuery()->getResult();
-        $products = $productRepository->findAll();
-
+    
         return $this->render('product/movements.html.twig', [
             'movements' => $movements,
-            'products' => $products,
             'form' => $form->createView(),
             'currentDateTime' => new DateTime('now', new DateTimeZone('America/Argentina/Buenos_Aires')),
-            'currentUser' => 'NicoO1997'
+            'currentUser' => 'SantiAragon'
         ]);
     }
 }
+

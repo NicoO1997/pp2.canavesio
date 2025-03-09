@@ -14,7 +14,8 @@ class CartProductOrder
     #[ORM\Column]
     private ?int $id = null;
 
-    
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $isFromReservation = false;
 
     #[ORM\Column]
     private ?int $quantity = null;
@@ -36,6 +37,17 @@ class CartProductOrder
     #[ORM\ManyToOne(targetEntity: Product::class, inversedBy: 'cartProductOrder')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Product $product = null;
+
+    public function isFromReservation(): bool
+    {
+        return $this->isFromReservation;
+    }
+
+    public function setIsFromReservation(bool $isFromReservation): self
+    {
+        $this->isFromReservation = $isFromReservation;
+        return $this;
+    }
 
     public function getId(): ?int
     {

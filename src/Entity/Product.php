@@ -82,7 +82,7 @@ class Product
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $installationRequirements = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $partType = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]

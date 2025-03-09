@@ -20,6 +20,7 @@ use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Positive;
 use Symfony\Component\Validator\Constraints\All;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 
 class UsedMachineryType extends AbstractType
 {
@@ -32,12 +33,6 @@ class UsedMachineryType extends AbstractType
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        $categories = $this->entityManager->getRepository(Category::class)->findAll();
-        $categoryChoices = [];
-        foreach ($categories as $category) {
-            $categoryChoices[$category->getName()] = $category->getCode();
-        }
-
         $builder
             ->add('isNew', ChoiceType::class, [
                 'label' => 'Estado',
@@ -50,9 +45,9 @@ class UsedMachineryType extends AbstractType
                 'required' => true,
                 'attr' => ['class' => 'isNew-radio-group']
             ])
-            ->add('category', ChoiceType::class, [
-                'label' => 'Categoría',
-                'choices' => $categoryChoices,
+            ->add('category', EntityType::class, [
+                'class' => Category::class,
+                'choice_label' => 'name',
                 'placeholder' => 'Seleccione una categoría',
                 'required' => true,
                 'attr' => ['class' => 'form-control']

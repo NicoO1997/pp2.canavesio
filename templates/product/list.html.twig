@@ -4,163 +4,6 @@
 	{{ parent() }}
 	<link href="{{ asset('styles/listaproductos.css') }}" rel="stylesheet"/>
 	<link href="https://fonts.googleapis.com/css2?family=Krub:wght@400;600;700&display=swap" rel="stylesheet">
-	<style>
-		.filtros-container {
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            position: relative;
-            z-index: 1; /* Reducimos el z-index */
-        }
-
-		.filtros-form {
-			display: flex;
-			gap: 20px;
-			flex-wrap: wrap;
-			justify-content: center;
-			align-items: center;
-		}
-
-		.filtro-grupo {
-			flex: 1;
-			min-width: 200px;
-		}
-
-		.filtro-select {
-			width: 100%;
-			padding: 8px;
-			border: 1px solid #ddd;
-			border-radius: 4px;
-			background-color: white;
-			font-family: 'Krub', sans-serif;
-		}
-
-		.filtro-btn {
-			padding: 8px 16px;
-			background-color: #4CAF50;
-			color: white;
-			border: none;
-			border-radius: 4px;
-			cursor: pointer;
-			transition: background-color 0.3s;
-			font-family: 'Krub', sans-serif;
-			font-weight: 600;
-		}
-
-		.filtro-btn:hover {
-			background-color: #45a049;
-		}
-
-		.limpiar-filtros {
-			padding: 8px 16px;
-			background-color: #f44336;
-			color: white;
-			border: none;
-			border-radius: 4px;
-			cursor: pointer;
-			transition: background-color 0.3s;
-			font-family: 'Krub', sans-serif;
-			font-weight: 600;
-		}
-
-		.limpiar-filtros:hover {
-			background-color: #da190b;
-		}
-
-		.filtros-titulo {
-			text-align: center;
-			margin-bottom: 15px;
-			font-family: 'Krub', sans-serif;
-			font-weight: 600;
-			color: #333;
-		}
-
-    .search-container {
-            margin: 20px auto;
-            max-width: 600px;
-            padding: 0 20px;
-            position: relative;
-            z-index: 1000; /* Z-index alto para el contenedor de búsqueda */
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 4px;
-            font-family: 'Krub', sans-serif;
-            font-size: 16px;
-            transition: border-color 0.3s ease;
-            position: relative;
-            z-index: 1000; /* Z-index alto para el input */
-        }
-
-        .search-input:focus {
-            border-color: #4CAF50;
-            outline: none;
-        }
-
-        /* Estilos para el autocompletado */
-        .ui-autocomplete {
-            max-height: 300px;
-            overflow-y: auto;
-            overflow-x: hidden;
-            font-family: 'Krub', sans-serif;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            z-index: 1001 !important; /* Forzar z-index alto para el dropdown */
-            position: absolute !important;
-            background-color: white;
-            border: 1px solid #ddd;
-            color: black;
-        }
-
-        .ui-menu {
-            z-index: 1001 !important; /* Asegurar que el menú esté por encima */
-        }
-
-        .ui-menu-item {
-            padding: 8px 12px;
-            border-bottom: 1px solid #f0f0f0;
-            background-color: white;
-            position: relative;
-        }
-
-        .ui-menu-item:hover {
-            background-color: #f5f5f5;
-        }
-
-        .ui-state-active {
-            background-color: #4CAF50 !important;
-            border: none !important;
-            color: white !important;
-            cursor: pointer;
-        }
-
-        .highlight {
-            background-color: #e8f5e9;
-            font-weight: bold;
-        }
-
-        /* Asegurar que los resultados estén por encima */
-        .ui-front {
-            z-index: 1001 !important;
-        }
-
-        /* Ajustar el fondo de las sugerencias */
-        .ui-menu-item-wrapper {
-            background-color: white;
-            padding: 8px;
-        }
-
-        /* Asegurar que las imágenes de fondo no interfieran */
-        .imagen-fondo {
-            z-index: 0;
-        }
-	</style>
 {% endblock %}
 
 {% block title %}
@@ -175,30 +18,18 @@
 			<h2 class="productos-titulo">Nuevas Maquinarias</h2>
 		</div>
 		<div class="secciones-grid">
-			<a href="{{ path('used_machinery_section', { section: 'Tractores' }) }}" class="seccion-link">
-				<div class="seccion">
-					<img src="{{ asset('images/tractor_5090e_campo4_large_94dccff5e815fc6a0861f22279f8ae407d335310.jpg') }}" alt="Tractores"/>
-					<h3 class="image-text">Tractores</h3>
-				</div>
-			</a>
-			<a href="{{ path('used_machinery_section', { section: 'Embutidoras' }) }}" class="seccion-link">
-				<div class="seccion">
-					<img src="{{ asset('images/Picadora-John-Deere-8600-1.jpg') }}" alt="Embutidoras"/>
-					<h3 class="image-text">Embutidoras</h3>
-				</div>
-			</a>
-			<a href="{{ path('used_machinery_section', { section: 'Sembradoras' }) }}" class="seccion-link">
-				<div class="seccion">
-					<img src="{{ asset('images/sembradora_1035_campo2_large_940a6b5a5172a72b45a3dff635ad9346fc558dae.jpg') }}" alt="Sembradoras"/>
-					<h3 class="image-text">Sembradoras</h3>
-				</div>
-			</a>
-			<a href="{{ path('used_machinery_section', { section: 'Equipos de Forraje' }) }}" class="seccion-link">
-				<div class="seccion">
-					<img src="{{ asset('images/Getreideernte_in_Sachsen_2H1A7879WI.jpg') }}" alt="Equipos de Forraje"/>
-					<h3 class="image-text">Equipos de Forraje</h3>
-				</div>
-			</a>
+			{% for category in categories %}
+				<a href="{{ path('used_machinery_section', { section: category.name }) }}" class="seccion-link">
+					<div class="seccion">
+						{% if category.image %}
+							<img src="{{ asset('images/' ~ category.image) }}" alt="{{ category.name }}" class="seccion-imagen"/>
+						{% else %}
+							<img src="{{ asset('images/default-category.png') }}" alt="Imagen por defecto" class="seccion-imagen"/>
+						{% endif %}
+						<h3 class="image-text">{{ category.name }}</h3>
+					</div>
+				</a>
+			{% endfor %}
 		</div>
 	</div>
 
@@ -206,27 +37,24 @@
 		<h1 class="productos-titulo">Nuestros Productos</h1>
 	</div>
 
-<div class="search-container">
-    <input type="text" 
-           id="search-products" 
-           class="search-input" 
-           placeholder="Buscar repuestos..."
-           autocomplete="off">
-</div>
+	<div class="search-container">
+		<input type="text" id="search-products" class="search-input" placeholder="Buscar repuestos..." autocomplete="off" value="{{ app.request.query.get('search') }}">
+	</div>
 	{# Sección de filtros #}
 	<div class="filtros-container">
 		<h3 class="filtros-titulo">Filtrar Repuestos</h3>
-		<form class="filtros-form" method="get" action="{{ path('product_list') }}">
-			<div class="filtro-grupo">
-				<select name="partType" class="filtro-select" id="partType-select">
-					<option value="">Seleccionar Tipo de Repuesto</option>
-					{% for type, brands in sparePartsBrands %}
-						<option value="{{ type }}" {% if app.request.query.get('partType') == type %} selected {% endif %}>
-							{{ type|replace({'_': ' '})|title }}
-						</option>
-					{% endfor %}
-				</select>
-			</div>
+		<form
+			class="filtros-form" method="get" action="{{ path('product_list') }}">
+			{# <div class="filtro-grupo">
+																<select name="partType" class="filtro-select" id="partType-select">
+																	<option value="">Seleccionar Tipo de Repuesto</option>
+																	{% for type, brands in sparePartsBrands %}
+																		<option value="{{ type }}" {% if app.request.query.get('partType') == type %} selected {% endif %}>
+																			{{ type|replace({'_': ' '})|title }}
+																		</option>
+																	{% endfor %}
+																</select>
+															</div> #}
 
 			<div class="filtro-grupo">
 				<select name="brand" class="filtro-select" id="brand-select">
@@ -268,111 +96,292 @@
 
 {% block javascripts %}
 	{{ parent() }}
-   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+	 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 	 <script>
-	    const sparePartsBrands = {{ sparePartsBrands|json_encode|raw }};
-	    
-	    function updateBrands() {
-	        const partType = document.getElementById('partType-select').value;
-	        const brandSelect = document.getElementById('brand-select');
-	        const currentBrand = '{{ app.request.query.get('brand') }}';
-	        
-	        // Limpiar el select de marcas
-	        brandSelect.innerHTML = '<option value="">Seleccionar Marca</option>';
-	        
-	        if (partType === '') {
-	            // Si no hay tipo de repuesto seleccionado, mostrar todas las marcas disponibles
-	            const allBrands = new Set();
-	            Object.values(sparePartsBrands).forEach(brands => {
-	                brands.forEach(brand => allBrands.add(brand));
-	            });
-	            
-	            Array.from(allBrands).sort().forEach(brand => {
-	                const option = document.createElement('option');
-	                option.value = brand;
-	                option.textContent = brand;
-	                if (brand === currentBrand) {
-	                    option.selected = true;
-	                }
-	                brandSelect.appendChild(option);
-	            });
-	        } else if (sparePartsBrands[partType]) {
-	            // Mostrar solo las marcas del tipo de repuesto seleccionado
-	            sparePartsBrands[partType].sort().forEach(brand => {
-	                const option = document.createElement('option');
-	                option.value = brand;
-	                option.textContent = brand;
-	                if (brand === currentBrand) {
-	                    option.selected = true;
-	                }
-	                brandSelect.appendChild(option);
-	            });
-	        }
-	        
-	        // Habilitar/deshabilitar el select de marcas
-	        brandSelect.disabled = false;
-	    }
-	
-	    function limpiarFiltros() {
-	        document.getElementById('partType-select').value = '';
-	        document.getElementById('brand-select').innerHTML = '<option value="">Seleccionar Marca</option>';
-	        window.location.href = '{{ path('product_list') }}';
-	    }
-	
-	    // Event Listeners
-	    document.addEventListener('DOMContentLoaded', () => {
-	        // Inicializar el select de marcas
-	        updateBrands();
-	        
-	        // Agregar el event listener para el cambio de tipo de repuesto
-	        document.getElementById('partType-select').addEventListener('change', updateBrands);
-	    });
+			        let brandsList = Array.from(new Set({{ sparePartsBrands|json_encode|raw }}));
+			        brandsList.sort();
+			        
+			        function updateBrands() {
+			            const brandSelect = document.getElementById('brand-select');
+			            const currentBrand = '{{ app.request.query.get('brand') }}';
+			            
+			            brandSelect.innerHTML = '<option value="">Seleccionar Marca</option>';
+			            
+			            brandsList.sort().forEach(brand => {
+			                if (brand) {
+			                    const option = document.createElement('option');
+			                    option.value = brand;
+			                    option.textContent = brand;
+			                    if (brand === currentBrand) {
+			                        option.selected = true;
+			                    }
+			                    brandSelect.appendChild(option);
+			                }
+			            });
+			        }
+			        
+			        function limpiarFiltros() {
+			            document.getElementById('brand-select').value = '';
+			            document.getElementById('search-products').value = '';
+			            window.location.href = '{{ path('product_list') }}';
+			        }
+			
+			       function aplicarFiltros(searchTerm = '', brand = '') {
+			    let url = new URL(window.location.href);
+			    
+			    // Aplicar filtro de búsqueda si existe
+			    if (searchTerm) {
+			        // Usar 'search' en lugar de 'term' para mantener consistencia con el backend
+			        url.searchParams.set('search', searchTerm);
+			    } else {
+			        url.searchParams.delete('search');
+			    }
+			    
+			    // Aplicar filtro de marca si existe
+			    if (brand) {
+			        url.searchParams.set('brand', brand);
+			    } else {
+			        url.searchParams.delete('brand');
+			    }
+			    
+			    window.location.href = url.toString();
+			}
+			        
+			        // Event Listeners
+			      document.addEventListener('DOMContentLoaded', () => {
+		    updateBrands();
+		    
+		    const searchInput = document.getElementById('search-products');
+		    const brandSelect = document.getElementById('brand-select');
+		
+		    // Obtener valores iniciales de la URL
+		    const urlParams = new URLSearchParams(window.location.search);
+		    const initialSearch = urlParams.get('search') || '';
+		    const initialBrand = urlParams.get('brand') || '';
+		
+		    // Establecer valores iniciales en los campos
+		    searchInput.value = initialSearch;
+		    if (initialBrand) {
+		        brandSelect.value = initialBrand;
+		    }
+		
+		    // Manejar el envío del formulario de filtros
+		    document.querySelector('.filtros-form').addEventListener('submit', function(e) {
+		        e.preventDefault();
+		        
+		        // Obtener el valor actual del input de búsqueda
+		        const searchTerm = searchInput.value.trim();
+		        const selectedBrand = brandSelect.value;
+		
+		        // Aplicar ambos filtros
+		        aplicarFiltros(searchTerm, selectedBrand);
+		    });
+		});
+		
+		$(document).ready(function() {
+		    const $searchInput = $('#search-products');
+		    const $brandSelect = $('#brand-select');
+		    
+		    $searchInput.autocomplete({
+		        source: function(request, response) {
+		            const selectedBrand = $brandSelect.val();
+		            
+		            $.ajax({
+		                url: '{{ path('search_products') }}',
+		                dataType: 'json',
+		                data: {
+		                    search: request.term, // Cambiar 'term' por 'search' para consistencia
+		                    brand: selectedBrand
+		                },
+		                success: function(data) {
+			                            if (!data.success) {
+			                                response([{
+			                                    label: 'Error en la búsqueda',
+			                                    value: '',
+			                                    noResults: true
+			                                }]);
+			                                return;
+			                            }
+			
+			                            const results = data.results;
+			                            
+			                            if (results.length === 0) {
+			                                response([{
+			                                    label: 'No se encontraron productos',
+			                                    value: '',
+			                                    noResults: true
+			                                }]);
+			                            } else if (results.length === 1) {
+			                                // Solo si no hay filtro de marca aplicado
+			                                if (!selectedBrand) {
+			                                    window.location.href = '{{ path('product_detail', {'id': 'PRODUCT_ID'}) }}'.replace('PRODUCT_ID', results[0].id);
+			                                } else {
+			                                    response([{
+			                                        label: results[0].name,
+			                                        value: results[0].name,
+			                                        id: results[0].id,
+			                                        description: results[0].description,
+			                                        brand: results[0].brand,
+			                                        partNumber: results[0].partNumber,
+			                                        image: results[0].image
+			                                    }]);
+			                                }
+			                            } else {
+			                                const mappedResults = results.map(item => ({
+			                                    label: item.name,
+			                                    value: item.name,
+			                                    id: item.id,
+			                                    description: item.description,
+			                                    brand: item.brand,
+			                                    partNumber: item.partNumber,
+			                                    image: item.image
+			                                }));
+			                                
+			                                // Si hay una marca seleccionada, filtrar los resultados
+			                                if (selectedBrand) {
+			                                    const filteredResults = mappedResults.filter(item => 
+			                                        item.brand.toLowerCase() === selectedBrand.toLowerCase()
+			                                    );
+			                                    response(filteredResults.length > 0 ? filteredResults : [{
+			                                        label: 'No se encontraron productos de esta marca',
+			                                        value: '',
+			                                        noResults: true
+			                                    }]);
+			                                } else {
+			                                    response(mappedResults);
+			                                }
+			                            }
+			                        },
+			                        error: function(jqXHR, textStatus, errorThrown) {
+			                            console.error('Error en la búsqueda:', textStatus, errorThrown);
+			                            response([{
+			                                label: 'Error en la búsqueda',
+			                                value: '',
+			                                noResults: true
+			                            }]);
+			                        }
+			                    });
+			                },
+			                minLength: 2,
+			                select: function(event, ui) {
+			                    if (!ui.item.noResults) {
+			                        // Al seleccionar un item, establecer el término de búsqueda
+			                        $searchInput.val(ui.item.value);
+			                        // Si hay múltiples resultados y una marca seleccionada, aplicar los filtros
+			                        const selectedBrand = $brandSelect.val();
+			                        if (selectedBrand) {
+			                            aplicarFiltros(ui.item.value, selectedBrand);
+			                            return false;
+			                        }
+			                        // Si no hay marca seleccionada, ir al detalle del producto
+			                        window.location.href = '{{ path('product_detail', {'id': 'PRODUCT_ID'}) }}'.replace('PRODUCT_ID', ui.item.id);
+			                    }
+			                    return false;
+			                },
+			                focus: function(event, ui) {
+			                    return false;
+			                }
+			            }).data('ui-autocomplete')._renderItem = function(ul, item) {
+			                if (item.noResults) {
+			                    return $('<li>')
+			                        .append($('<div class="ui-menu-item-wrapper">').text(item.label))
+			                        .appendTo(ul);
+			                }
+			
+			                const searchTerm = $.trim(this.term).toLowerCase();
+			                const name = item.label;
+			                const highlightedName = name.replace(
+			                    new RegExp(searchTerm, 'gi'),
+			                    match => `<span class="highlight">${match}</span>`
+			                );
+			                
+			                const $li = $('<li>').addClass('ui-menu-item-wrapper');
+			                const $content = $('<div>')
+			                    .append($('<strong>').html(highlightedName));
+			
+			                if (item.partNumber) {
+			                    $content.append(`<br><small>Número de parte: ${item.partNumber}</small>`);
+			                }
+			                if (item.brand) {
+			                    $content.append(`<br><small>Marca: ${item.brand}</small>`);
+			                }
+			                if (item.description) {
+			                    $content.append(`<br><small>${item.description.substring(0, 100)}...</small>`);
+			                }
+			
+			                if (item.image) {
+			                    const $img = $('<img>')
+			                        .attr('src', '/assets/imagenes/' + item.image)
+			                        .addClass('search-result-thumbnail')
+			                        .css({
+			                            'max-width': '50px',
+			                            'max-height': '50px',
+			                            'margin-right': '10px'
+			                        });
+			                    
+			                    $content.prepend($img);
+			                }
+			                
+			                $li.append($content);
+			                return $li.appendTo(ul);
+			            };
+			
+			            // Actualizar la búsqueda cuando cambie el filtro de marca
+			            $brandSelect.on('change', function() {
+			                const searchTerm = $searchInput.val();
+			                if (searchTerm.length >= 2) {
+			                    $searchInput.autocomplete('search', searchTerm);
+			                }
+			            });
+			        });
+			    </script>
 
-      $(document).ready(function() {
-            const $searchInput = $('#search-products');
-            
-            $searchInput.autocomplete({
-                source: function(request, response) {
-                    $.ajax({
-                        url: '{{ path('search_products') }}',
-                        dataType: 'json',
-                        data: {
-                            term: request.term
-                        },
-                        success: function(data) {
-                            response(data.map(item => ({
-                                label: item.name,
-                                value: item.name,
-                                id: item.id,
-                                description: item.description,
-                                brand: item.brand
-                            })));
-                        }
-                    });
-                },
-                minLength: 2,
-                select: function(event, ui) {
-                    window.location.href = '{{ path('product_detail', {'id': 'PRODUCT_ID'}) }}'.replace('PRODUCT_ID', ui.item.id);
-                },
-                focus: function(event, ui) {
-                    return false; // Previene que el input se llene al navegar con las flechas
-                }
-            }).data('ui-autocomplete')._renderItem = function(ul, item) {
-                const searchTerm = $.trim(this.term).toLowerCase();
-                const name = item.label;
-                const highlightedName = name.replace(
-                    new RegExp(searchTerm, 'gi'),
-                    match => `<span class="highlight">${match}</span>`
-                );
-                
-                const $li = $('<li>').addClass('ui-menu-item-wrapper');
-                $li.append($('<div>')
-                    .append($('<strong>').html(highlightedName))
-                    .append(`<br><small>${item.brand} - ${item.description.substring(0, 100)}...</small>`));
-                
-                return $li.appendTo(ul);
-            };
-        });
-	</script>
-{% endblock %}
+		<style>
+.ui-autocomplete {
+	max-height: 300px;
+	overflow-y: auto;
+	overflow-x: hidden;
+	z-index: 1000;
+	background: white;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.ui-menu-item-wrapper {
+	padding: 8px;
+	border-bottom: 1px solid #eee;
+	display: flex;
+	align-items: start;
+}
+
+.ui-menu-item-wrapper:hover {
+	background-color: #f5f5f5;
+	cursor: pointer;
+}
+
+.highlight {
+	background-color: #fff3cd;
+	padding: 0 2px;
+}
+
+.search-result-thumbnail {
+	object-fit: contain;
+	background: #f8f9fa;
+}
+
+.ui-menu-item {
+	list-style: none;
+}
+
+.ui-menu-item div {
+	padding: 8px;
+}
+
+.ui-menu-item small {
+	color: #6c757d;
+	display: block;
+	margin-top: 4px;
+}
+</style>{% endblock %}

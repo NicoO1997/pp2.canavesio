@@ -54,7 +54,7 @@
                         </tr>
                         <tr>
                             <th>Categoría:</th>
-                            <td>{{ machinery.category|capitalize }}</td>
+                            <td>{{ machinery.category ? machinery.category.name|capitalize : 'Sin categoría' }}</td>
                         </tr>
                         <tr>
                             <th>Ubicación:</th>

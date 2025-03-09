@@ -558,3 +558,70 @@ tr.low-stock:hover {
     height: 100%;
     box-sizing: border-box;
 }
+
+.brand-suggestions {
+    position: absolute;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    display: none;
+    margin-top: 1px;
+}
+
+.suggestion-item {
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestion-item:hover, 
+.suggestion-item.selected {
+    background-color: var(--hover-color);
+    color: var(--primary-color);
+}
+
+.input-wrapper {
+    position: relative;
+}
+
+.brand-input-wrapper {
+    position: relative !important;
+    width: 100% !important;
+}
+
+.brand-suggestions {
+    position: absolute !important;
+    width: 100% !important;
+    top: 100% !important;
+    left: 0 !important;
+    z-index: 1050 !important;
+    background-color: white !important;
+    border: 1px solid #ced4da !important;
+    border-top: none !important;
+    border-radius: 0 0 4px 4px !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+}
+
+.suggestion-item {
+    padding: 8px 12px !important;
+    cursor: pointer !important;
+    border-bottom: 1px solid #eee !important;
+}
+
+.suggestion-item:hover {
+    background-color: #f8f9fa !important;
+}
+
+.suggestion-item.selected {
+    background-color: #e9ecef !important;
+}

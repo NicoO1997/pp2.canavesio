@@ -9,11 +9,20 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: ProductMovementRepository::class)]
 class ProductMovement
 {
+    // Tipos de movimiento existentes
     public const TYPE_ENTRY = 'entry';
     public const TYPE_SALE = 'sale';
     public const TYPE_DELETION = 'deletion';
     public const TYPE_ADJUSTMENT = 'adjustment';
     public const TYPE_EDIT = 'edit';
+    public const TYPE_PERMANENT_DELETE = 'permanent_delete';
+
+    // Tipos de movimiento para el carrito
+    public const TYPE_RESERVED = 'reserved';
+    public const TYPE_RESERVATION_CANCELLED = 'reservation_cancelled';
+    public const TYPE_PURCHASE_COMPLETED = 'purchase_completed';
+    public const TYPE_PURCHASE_CANCELLED = 'purchase_cancelled';
+    public const TYPE_RESERVED_SALE = 'reserved_sale';
 
     /**
      * Mapa de tipos de movimiento a sus descripciones en español
@@ -21,9 +30,15 @@ class ProductMovement
     public const TYPE_DESCRIPTIONS = [
         self::TYPE_ENTRY => 'Entrada',
         self::TYPE_SALE => 'Venta',
-        self::TYPE_DELETION => 'Eliminación',
+        self::TYPE_DELETION => 'Eliminación Lógica',
         self::TYPE_ADJUSTMENT => 'Ajuste',
-        self::TYPE_EDIT => 'Editado'
+        self::TYPE_EDIT => 'Editado',
+        self::TYPE_PERMANENT_DELETE => 'Eliminación Permanente',
+        self::TYPE_RESERVED => 'Reservado en Carrito',
+        self::TYPE_RESERVATION_CANCELLED => 'Reserva Cancelada',
+        self::TYPE_PURCHASE_COMPLETED => 'Compra Completada',
+        self::TYPE_PURCHASE_CANCELLED => 'Compra Cancelada',
+        self::TYPE_RESERVED_SALE => 'Venta de Producto Reservado'
     ];
 
     #[ORM\Id]
@@ -35,7 +50,7 @@ class ProductMovement
     #[ORM\JoinColumn(nullable: false)]
     private ?Product $product = null;
 
-    #[ORM\Column(length: 20)]
+    #[ORM\Column(length: 25)]
     private ?string $movementType = null;
 
     #[ORM\Column]
@@ -56,11 +71,14 @@ class ProductMovement
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $createdAt = null;
 
+    #[ORM\Column(type: Types::STRING, length: 50, nullable: true)]
+    private ?string $orderId = null;
+
     public function __construct()
     {
-        // Establecer la fecha actual en UTC
         $this->createdAt = new \DateTime('now', new \DateTimeZone('UTC'));
     }
+
 
     /**
      * Crea un nuevo movimiento de producto
@@ -72,7 +90,8 @@ class ProductMovement
         int $previousStock,
         int $newStock,
         string $performedBy = 'SantiAragon',
-        ?string $description = null
+        ?string $description = null,
+        ?string $orderId = null
     ): self {
         $movement = new self();
         $movement->setProduct($product);
@@ -82,7 +101,8 @@ class ProductMovement
         $movement->setNewStock($newStock);
         $movement->setPerformedBy($performedBy);
         $movement->setDescription($description);
-        
+        $movement->setOrderId($orderId);
+
         return $movement;
     }
 
@@ -124,15 +144,10 @@ class ProductMovement
         return $this;
     }
 
+
     public function getQuantity(): ?int
     {
         return $this->quantity;
-    }
-
-    public function setQuantity(int $quantity): self
-    {
-        $this->quantity = $quantity;
-        return $this;
     }
 
     public function getPreviousStock(): ?int
@@ -149,12 +164,6 @@ class ProductMovement
     public function getNewStock(): ?int
     {
         return $this->newStock;
-    }
-
-    public function setNewStock(int $newStock): self
-    {
-        $this->newStock = $newStock;
-        return $this;
     }
 
     public function getDescription(): ?string
@@ -220,5 +229,102 @@ class ProductMovement
     public function isStockDecrease(): bool
     {
         return $this->getStockDifference() < 0;
+    }
+
+    public function getOrderId(): ?string
+    {
+        return $this->orderId;
+    }
+
+    public function setOrderId(?string $orderId): self
+    {
+        $this->orderId = $orderId;
+        return $this;
+    }
+
+    /**
+     * Indica si el movimiento está relacionado con el carrito
+     */
+    public function isCartRelated(): bool
+    {
+        return in_array($this->movementType, [
+            self::TYPE_RESERVED,
+            self::TYPE_RESERVATION_CANCELLED,
+            self::TYPE_PURCHASE_COMPLETED,
+            self::TYPE_PURCHASE_CANCELLED
+        ]);
+    }
+
+    /**
+     * Obtiene el estado de la reserva
+     */
+    public function getReservationStatus(): string
+    {
+        if ($this->movementType === self::TYPE_RESERVED) {
+            return 'Reservado';
+        } elseif ($this->movementType === self::TYPE_PURCHASE_COMPLETED) {
+            return 'Compra Completada';
+        } elseif ($this->movementType === self::TYPE_RESERVATION_CANCELLED) {
+            return 'Reserva Cancelada';
+        } elseif ($this->movementType === self::TYPE_PURCHASE_CANCELLED) {
+            return 'Compra Cancelada';
+        }
+        return 'No Aplica';
+    }
+
+    public function setNewStock(int $newStock): self
+    {
+        $this->newStock = $newStock;
+        return $this;
+    }
+
+    public function setQuantity(int $quantity): self
+    {
+        $this->quantity = $quantity;
+        return $this;
+    }
+
+    public function isPermanentDeletion(): bool
+    {
+        return $this->movementType === self::TYPE_PERMANENT_DELETE;
+    }
+
+    /**
+     * Indica si el movimiento afecta al stock físico
+     */
+    public function affectsPhysicalStock(): bool
+    {
+        return in_array($this->movementType, [
+            self::TYPE_ENTRY,
+            self::TYPE_SALE,
+            self::TYPE_ADJUSTMENT,
+            self::TYPE_EDIT,
+            self::TYPE_PERMANENT_DELETE
+        ]);
+    }
+
+    /**
+     * Obtiene un mensaje descriptivo del movimiento
+     */
+    public function getMovementDescription(): string
+    {
+        $baseDescription = $this->getMovementTypeDescription();
+
+        if ($this->isPermanentDeletion()) {
+            return sprintf(
+                "%s - Producto: %s (Eliminado permanentemente por %s)",
+                $baseDescription,
+                $this->product->getName(),
+                $this->performedBy
+            );
+        }
+
+        return sprintf(
+            "%s - Cantidad: %d - Stock anterior: %d - Nuevo stock: %d",
+            $baseDescription,
+            $this->quantity,
+            $this->previousStock,
+            $this->newStock
+        );
     }
 }

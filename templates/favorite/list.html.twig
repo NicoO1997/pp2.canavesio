@@ -45,7 +45,7 @@
                             <td>{{ favorite.product.brand }}</td>
                             <td>
                                 {% if favorite.product.image %}
-                                    <img src="data:image/jpeg;base64,{{ favorite.product.image }}" alt="{{ favorite.product.name }}">
+                                    <img src="{{ asset('assets/imagenes/' ~ favorite.product.image) }}" alt="{{ favorite.product.name }}" class="product-image">
                                 {% endif %}
                             </td>
                             <td>

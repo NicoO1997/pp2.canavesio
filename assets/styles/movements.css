@@ -336,3 +336,57 @@ td.user-column {
     opacity: 1;
     visibility: visible;
 }
+
+.quantity-positive {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.quantity-negative {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.quantity-neutral {
+    color: #6c757d;
+    font-weight: bold;
+}
+
+.badge {
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.badge.entry {
+    background-color: #28a745;
+    color: white;
+}
+
+.badge.sale {
+    background-color: #dc3545;
+    color: white;
+}
+
+.badge.deletion {
+    background-color: #dc3545;
+    color: white;
+}
+
+.badge.edit {
+    background-color: #ffc107;
+    color: black;
+}
+
+.badge.adjustment {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.badge.permanent_delete {
+    background-color: #dc3545;
+    color: white;
+}

@@ -9,19 +9,22 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Entity\Category;
 
 class UsedMachineryController extends AbstractController
 {
     #[Route('/view-used-machinery', name: 'app_view_used_machinery')]
     public function index(EntityManagerInterface $entityManager): Response
     {
-        $queryBuilder = $entityManager->getRepository(UsedMachinery::class)->createQueryBuilder('m');
+        $queryBuilder = $entityManager->getRepository(UsedMachinery::class)
+            ->createQueryBuilder('m')
+            ->leftJoin('m.category', 'c')
+            ->addSelect('c')
+            ->where('m.category IS NOT NULL')
+            ->orderBy('m.id', 'DESC');
         
-        $usedMachineries = $queryBuilder
-            ->orderBy('m.id', 'DESC')
-            ->getQuery()
-            ->getResult();
-    
+        $usedMachineries = $queryBuilder->getQuery()->getResult();
+
         return $this->render('used_machinery/view.html.twig', [
             'usedMachineries' => $usedMachineries,
             'isVendedor' => $this->isGranted('ROLE_VENDEDOR'),
@@ -265,27 +268,29 @@ class UsedMachineryController extends AbstractController
     {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
         
-        $categoryMap = [
-            'Tractores' => 'tractor',
-            'Embutidoras' => 'embutidora',
-            'Sembradoras' => 'sembradora',
-            'Equipos de Forraje' => 'equipo de forraje',
-        ];
-
-        $category = $categoryMap[$section] ?? null;
-
+        $category = $entityManager->getRepository(Category::class)
+            ->findOneBy(['name' => $section]);
+    
         if (!$category) {
             throw $this->createNotFoundException('Sección no encontrada');
         }
-
-        $usedMachineries = $entityManager->getRepository(UsedMachinery::class)->findBy(['category' => $category]);
+    
+        $queryBuilder = $entityManager->getRepository(UsedMachinery::class)
+            ->createQueryBuilder('m')
+            ->leftJoin('m.category', 'c')
+            ->addSelect('c')
+            ->where('m.category = :category')
+            ->setParameter('category', $category)
+            ->orderBy('m.id', 'DESC');
+    
+        $usedMachineries = $queryBuilder->getQuery()->getResult();
         
         if (!$this->isGranted('ROLE_VENDEDOR') && !$this->isGranted('ROLE_GESTORSTOCK')) {
             $usedMachineries = array_filter($usedMachineries, function($machinery) {
                 return $machinery->getIsEnabled();
             });
         }
-
+    
         return $this->render('used_machinery/view.html.twig', [
             'usedMachineries' => $usedMachineries,
             'section' => $section,

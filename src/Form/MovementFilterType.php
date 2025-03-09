@@ -40,6 +40,7 @@ class MovementFilterType extends AbstractType
                     'Entrada' => ProductMovement::TYPE_ENTRY,
                     'Venta' => ProductMovement::TYPE_SALE,
                     'Eliminación' => ProductMovement::TYPE_DELETION,
+                    'Eliminación Permanente' => ProductMovement::TYPE_PERMANENT_DELETE,
                     'Ajuste' => ProductMovement::TYPE_ADJUSTMENT,
                     'Editado' => ProductMovement::TYPE_EDIT
                 ],

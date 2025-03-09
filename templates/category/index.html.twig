@@ -8,6 +8,7 @@
 {% endblock %}
 
 {% block body %}
+    
     <div class="category-container fade-in">
         <h1 class="category-title">Categorías</h1>
         
@@ -27,6 +28,10 @@
             <a href="{{ path('app_category_new') }}" class="btn-new-category">
                 <i class="fas fa-plus"></i> Nueva Categoría
             </a>
+
+            <a href="{{ path('app_home_page') }}" style="margin-left: 10px; font-size: 1.2rem; color: #3498db; text-decoration: none; display: inline-block; transition: all 0.3s ease; position: relative; overflow: hidden;">
+                Volver
+            </a>
         {% endif %}
 
         {% if categories is empty %}
@@ -37,6 +42,7 @@
             <table class="category-table">
                 <thead>
                     <tr>
+                        <th>Imagen</th>
                         <th>Nombre</th>
                         <th>Código</th>
                         {% if is_granted('ROLE_VENDEDOR') %}
@@ -47,6 +53,17 @@
                 <tbody>
                     {% for category in categories %}
                         <tr data-id="{{ category.id }}">
+                            <td class="category-image-cell">
+                                {% if category.image %}
+                                    <img src="{{ asset('images/' ~ category.image) }}" 
+                                         alt="{{ category.name }}" 
+                                         class="category-image">
+                                {% else %}
+                                    <img src="{{ asset('images/default-category.png') }}" 
+                                         alt="Imagen por defecto" 
+                                         class="category-image">
+                                {% endif %}
+                            </td>
                             <td>
                                 <span class="category-text">{{ category.name }}</span>
                                 <input type="text" class="category-input hidden" value="{{ category.name }}" data-field="name">

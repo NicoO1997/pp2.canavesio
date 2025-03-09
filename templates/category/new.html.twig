@@ -31,6 +31,15 @@
                     {{ form_errors(form.code) }}
                 </div>
 
+                <div class="form-group">
+                    {{ form_label(form.image) }}
+                    {{ form_widget(form.image) }}
+                    {{ form_errors(form.image) }}
+                    <small class="form-text text-muted">
+                        Formatos permitidos: JPG, PNG, WEBP. Tamaño máximo: 5MB
+                    </small>
+                </div>
+
                 <button type="submit" class="btn-submit">
                     <i class="fas fa-save"></i> Guardar
                 </button>

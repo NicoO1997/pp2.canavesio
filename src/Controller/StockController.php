@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Product;
 use App\Entity\ProductMovement;
+use App\Entity\CartProductOrder;
 use App\Repository\ProductRepository;
 use App\Service\ProductMovementService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -26,9 +27,11 @@ class StockController extends AbstractController
     public function viewStock(EntityManagerInterface $entityManager): Response
     {
         $products = $entityManager->getRepository(Product::class)->findAllActive();
+        $sparePartsBrands = $this->getSparePartsBrands();
 
         return $this->render('stock/view_stock.html.twig', [
-            'products' => $products
+            'products' => $products,
+            'sparePartsBrands' => $sparePartsBrands
         ]);
     }
 
@@ -48,16 +51,29 @@ class StockController extends AbstractController
         }
 
         try {
-            $previousQuantity = $product->getQuantity();
-
             if ($isVendedor || $isAdmin) {
-                // Actualizar solo los campos que se enviaron en el request
+                // Guardar el stock original ANTES de cualquier cambio
+                $originalQuantity = $product->getQuantity();
+
+                // Procesar los cambios
                 foreach ($request->request->all() as $field => $value) {
                     if ($field !== '_token' && $field !== 'isEnabled' && !str_ends_with($field, '_text')) {
                         $setter = 'set' . ucfirst($field);
                         if (method_exists($product, $setter)) {
                             if (in_array($field, ['quantity', 'minStock', 'estimatedLifeHours'])) {
-                                $product->$setter((int) $value);
+                                $value = (int) $value;
+                                if ($field === 'quantity' && $value !== $originalQuantity) {
+                                    // Registrar el movimiento antes de actualizar la cantidad
+                                    $this->productMovementService->recordMovement(
+                                        $product,
+                                        ProductMovement::TYPE_EDIT,
+                                        $value - $originalQuantity, // Diferencia como cantidad
+                                        $originalQuantity,         // Stock original
+                                        $value,                    // Stock nuevo
+                                        sprintf('Modificación manual de stock de %d a %d', $originalQuantity, $value)
+                                    );
+                                }
+                                $product->$setter($value);
                             } elseif ($field === 'price' || $field === 'weight') {
                                 $product->$setter((float) $value);
                             } else {
@@ -66,27 +82,10 @@ class StockController extends AbstractController
                         }
                     }
                 }
-
-                if ($request->request->has('isEnabled')) {
-                    $product->setIsEnabled($request->request->get('isEnabled') == '1');
-                }
             }
 
-            if ($isGestorStock || $isAdmin) {
-                if ($request->request->has('quantity')) {
-                    $newQuantity = (int) $request->request->get('quantity');
-                    if ($newQuantity !== $previousQuantity) {
-                        $quantityChange = $newQuantity - $previousQuantity;
-                        $this->productMovementService->recordEdit(
-                            $product,
-                            $quantityChange,
-                            'Modificación manual de stock'
-                        );
-                    }
-                }
-                if ($request->request->has('minStock')) {
-                    $product->setMinStock((int) $request->request->get('minStock'));
-                }
+            if ($request->request->has('isEnabled')) {
+                $product->setIsEnabled($request->request->get('isEnabled') == '1');
             }
 
             $entityManager->flush();
@@ -119,7 +118,7 @@ class StockController extends AbstractController
         try {
             $newStatus = $request->request->get('isEnabled') == '1';
             $product->setIsEnabled($newStatus);
-            
+
             // Registrar el cambio de estado como un movimiento de ajuste
             $this->productMovementService->recordAdjustment(
                 $product,
@@ -150,13 +149,17 @@ class StockController extends AbstractController
                 // Registrar el movimiento antes de la eliminación suave
                 $this->productMovementService->recordDeletion(
                     $product,
-                    'Eliminación del producto'
+                    sprintf(
+                        'Eliminación lógica del producto %s realizada por %s', 
+                        $product->getName(),
+                        'SantiAragon'
+                    )
                 );
-
+    
                 // Realizar la eliminación suave
                 $product->softDelete();
                 $entityManager->flush();
-                
+    
                 $this->addFlash('success', 'Producto eliminado correctamente.');
             } catch (\Exception $e) {
                 $this->addFlash('error', 'Error al eliminar el producto: ' . $e->getMessage());
@@ -165,9 +168,10 @@ class StockController extends AbstractController
         } else {
             $this->addFlash('error', 'Token CSRF inválido');
         }
-        
+    
         return $this->redirect($this->generateUrl('view_stock'));
     }
+    
 
     #[Route('/stock/deleted', name: 'view_deleted_stock')]
     public function viewDeletedStock(ProductRepository $productRepository): Response
@@ -179,13 +183,88 @@ class StockController extends AbstractController
         ]);
     }
 
+   #[Route('/product/{id}/permanent-delete', name: 'product_permanent_delete', methods: ['POST'])]
+public function permanentDelete(
+    Request $request, 
+    Product $product, 
+    EntityManagerInterface $entityManager
+): Response {
+    // Verificar el token CSRF
+    if (!$this->isCsrfTokenValid('permanent_delete' . $product->getId(), $request->request->get('_token'))) {
+        $this->addFlash('error', 'Token CSRF inválido');
+        return $this->redirectToRoute('view_deleted_stock');
+    }
+
+    // Verificar permisos
+    if (!$this->isGranted('ROLE_ADMIN') && 
+        !$this->isGranted('ROLE_VENDEDOR') && 
+        !$this->isGranted('ROLE_GESTORSTOCK')) {
+        $this->addFlash('error', 'No tienes permisos para eliminar permanentemente productos');
+        return $this->redirectToRoute('view_deleted_stock');
+    }
+
+    try {
+        $entityManager->beginTransaction();
+
+        try {
+            // 1. Crear el movimiento de eliminación permanente
+            $this->productMovementService->recordPermanentDeletion(
+                $product,
+                sprintf(
+                    'Eliminación permanente del producto %s realizada por %s (%s)', 
+                    $product->getName(),
+                    'SantiAragon',
+                    $this->getUserRole($this->getUser())
+                )
+            );
+
+            // 2. Eliminar solo las referencias en cart_product_order
+            foreach ($product->getCartProductOrder() as $cartOrder) {
+                $entityManager->remove($cartOrder);
+            }
+
+            // 3. Eliminar el producto
+            $product->setIsEnabled(false);
+            $product->softDelete();  // Marcar como eliminado lógicamente
+            $entityManager->remove($product);  // Eliminar físicamente
+            
+            $entityManager->flush();
+            $entityManager->commit();
+
+            $this->addFlash('success', 'Producto eliminado permanentemente con éxito.');
+        } catch (\Exception $e) {
+            $entityManager->rollback();
+            throw $e;
+        }
+    } catch (\Exception $e) {
+        $this->addFlash('error', 'Error al eliminar permanentemente el producto: ' . $e->getMessage());
+        error_log('Error en eliminación permanente de producto: ' . $e->getMessage());
+    }
+
+    return $this->redirectToRoute('view_deleted_stock');
+}
+    
+    private function getUserRole($user): string
+    {
+        if ($this->isGranted('ROLE_ADMIN')) {
+            return 'Administrador';
+        }
+        if ($this->isGranted('ROLE_GESTORSTOCK')) {
+            return 'Gestor de Stock';
+        }
+        if ($this->isGranted('ROLE_VENDEDOR')) {
+            return 'Vendedor';
+        }
+        return 'Usuario';
+    }
+
     #[Route('/product/{id}/restore', name: 'product_restore', methods: ['POST'])]
     public function restore(Request $request, Product $product, EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('restore' . $product->getId(), $request->request->get('_token'))) {
             try {
                 $product->restore();
-                
+
                 // Registrar la restauración como un movimiento de entrada
                 $this->productMovementService->recordEntry(
                     $product,
@@ -194,7 +273,7 @@ class StockController extends AbstractController
                 );
 
                 $entityManager->flush();
-                
+
                 $this->addFlash('success', 'Producto restaurado correctamente.');
             } catch (\Exception $e) {
                 $this->addFlash('error', 'Error al restaurar el producto: ' . $e->getMessage());
@@ -202,7 +281,251 @@ class StockController extends AbstractController
         } else {
             $this->addFlash('error', 'Token CSRF inválido');
         }
-        
+
         return $this->redirect($this->generateUrl('view_deleted_stock'));
+    }
+
+    private function getSparePartsBrands(): array
+    {
+        $allBrands = [
+            'Mann+Hummel',
+            'Fleetguard',
+            'Donaldson',
+            'Baldwin',
+            'WIX',
+            'FRAM',
+            'Mahle',
+            'Luber-finer',
+            'Parker Filtration',
+            'K&N',
+            'Bosch',
+            'ACDelco',
+            'Delphi',
+            'Parker',
+            'Hydac',
+            'Bosch Rexroth',
+            'MP Filtri',
+            'Pall',
+            'Gates',
+            'Continental',
+            'Dayco',
+            'Goodyear',
+            'Mitsuboshi',
+            'Optibelt',
+            'Bando',
+            'SKF',
+            'Jason',
+            'PIX',
+            'Varta',
+            'Exide',
+            'Optima',
+            'Interstate',
+            'Deka',
+            'Yuasa',
+            'Banner',
+            'Odyssey',
+            'Denso',
+            'Delco Remy',
+            'Prestolite',
+            'Valeo',
+            'Mitsubishi Electric',
+            'Hitachi',
+            'Lucas',
+            'Nikko',
+            'Sawafuji',
+            'WAI',
+            'Littelfuse',
+            'Bussmann',
+            'Cooper Bussmann',
+            'Ferraz Shawmut',
+            'Schneider Electric',
+            'ABB',
+            'Siemens',
+            'Phoenix Contact',
+            'TE Connectivity',
+            'Mersen',
+            'Firestone',
+            'Michelin',
+            'BKT',
+            'Alliance',
+            'Trelleborg',
+            'Titan',
+            'Mitas',
+            'Bridgestone',
+            'GKN Wheels',
+            'Accuride',
+            'Maxion Wheels',
+            'Pronar',
+            'Birrana',
+            'Stalker',
+            'Grasdorf',
+            'Starco',
+            'Wheel Works',
+            'Federal-Mogul',
+            'NPR',
+            'Nural',
+            'Sealed Power',
+            'DNJ Engine Components',
+            'IPD',
+            'United Engine & Machine',
+            'Wiseco',
+            'Ross Racing Pistons',
+            'NGK',
+            'Champion',
+            'Motorcraft',
+            'Autolite',
+            'BERU',
+            'Splitfire',
+            'E3',
+            'Continental/VDO',
+            'Siemens/VDO',
+            'Stanadyne',
+            'Yanmar',
+            'Zexel',
+            'Caterpillar',
+            'Modine',
+            'Nissens',
+            'Behr',
+            'CSF',
+            'TYC',
+            'APDI',
+            'Spectra Premium',
+            'Vista-Pro',
+            'Eaton',
+            'Danfoss',
+            'Casappa',
+            'Bondioli & Pavesi',
+            'Sauer-Danfoss',
+            'Commercial',
+            'Prince',
+            'Cross',
+            'Manuli',
+            'Alfagomma',
+            'Semperit',
+            'Dunlop',
+            'Sun Hydraulics',
+            'Hydac',
+            'Walvoil',
+            'Brand',
+            'John Deere',
+            'Case IH',
+            'New Holland',
+            'Claas',
+            'MacDon',
+            'Massey Ferguson',
+            'Deutz-Fahr',
+            'Laverda',
+            'Gleaner',
+            'Fendt',
+            'Capello',
+            'Olimac',
+            'Geringhoff',
+            'Drago',
+            'Fantini',
+            'Kubota',
+            'Yanmar',
+            'ISEKI',
+            'Mitsubishi',
+            'AGCO',
+            'Challenger',
+            'Regina',
+            'Diamond Chain',
+            'Renold',
+            'Tsubaki',
+            'IWIS',
+            'RK',
+            'DID',
+            'KMC',
+            'Donghua',
+            'Timken',
+            'Precision Planting',
+            'Kinze',
+            'Great Plains',
+            'Monosem',
+            'Amazone',
+            'Lemken',
+            'Väderstad',
+            'Semeato',
+            'Bellota Agrisolutions',
+            'Ingersoll',
+            'Horsch',
+            'Kuhn',
+            'MaterMacc',
+            'TeeJet',
+            'Hypro',
+            'Arag',
+            'Lechler',
+            'Albuz',
+            'Hardi',
+            'NTN',
+            'NSK',
+            'FAG',
+            'INA',
+            'Koyo',
+            'NACHI',
+            'FYH',
+            'NKE',
+            'Nelson',
+            'Rain Bird',
+            'Hunter',
+            'Senninger',
+            'Komet',
+            'Netafim',
+            'Valley',
+            'Lindsay',
+            'Reinke',
+            'T-L',
+            'John Deere Water',
+            'Toro',
+            'Irritec',
+            'NaanDanJain',
+            'Rivulis',
+            'Jain',
+            'Plastro',
+            'Charlotte Pipe',
+            'JM Eagle',
+            'Georg Fischer',
+            'Grundfos',
+            'Xylem',
+            'KSB',
+            'Wilo',
+            'Franklin Electric',
+            'Berkeley',
+            'Cornell',
+            'Pentair',
+            'Goulds',
+            'Caprari',
+            'Amiad',
+            'Arkal',
+            'Azud',
+            'STF',
+            'Hydro-Flow',
+            'Spin Klin',
+            'Sand Master',
+            'Krone',
+            'Pöttinger',
+            'Vicon',
+            'Fella',
+            'Maschio',
+            'Vogel & Noot',
+            'Seppi',
+            'Welger',
+            'Martin Sprocket',
+            'Boston Gear',
+            'QTC Metric Gears',
+            'Browning',
+            'Hub City',
+            'Rexnord',
+            'Dodge',
+            'Baldor',
+            'SEW-Eurodrive',
+            'Nord'
+        ];
+
+        // Eliminar duplicados y ordenar alfabéticamente
+        $uniqueBrands = array_unique($allBrands);
+        sort($uniqueBrands);
+
+        return $uniqueBrands;
     }
 }

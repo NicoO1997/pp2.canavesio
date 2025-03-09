@@ -50,9 +50,9 @@ class UsedMachinery
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true)]
     private ?float $price = null;
 
-    #[ORM\Column(length: 255)]
-    #[Assert\NotBlank(message: "La categoría es obligatoria")]
-    private ?string $category = null;
+    #[ORM\ManyToOne(targetEntity: Category::class)]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Category $category = null;
     
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: "La ubicación es obligatoria")]
@@ -215,12 +215,17 @@ class UsedMachinery
         return $this;
     }
 
-    public function getCategory(): ?string
+    public function getCategory(): ?Category
     {
         return $this->category;
     }
 
-    public function setCategory(string $category): self
+    public function getCategoryName(): string
+    {
+        return $this->category ? $this->category->getName() : 'Sin categoría';
+    }
+
+    public function setCategory(?Category $category): self
     {
         $this->category = $category;
         return $this;

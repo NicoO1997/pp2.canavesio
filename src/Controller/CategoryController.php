@@ -12,6 +12,9 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
+
 
 class CategoryController extends AbstractController
 {
@@ -37,30 +40,54 @@ class CategoryController extends AbstractController
     }
 
     #[Route('/category/new', name: 'app_category_new', methods: ['GET', 'POST'])]
-    public function new(Request $request): Response
-    {
-        $this->denyAccessUnlessGranted('ROLE_VENDEDOR');
+public function new(Request $request): Response
+{
+    $this->denyAccessUnlessGranted('ROLE_VENDEDOR');
 
-        $category = new Category();
-        $form = $this->createForm(CategoryType::class, $category);
-        $form->handleRequest($request);
+    $category = new Category();
+    $form = $this->createForm(CategoryType::class, $category);
+    $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            try {
-                $this->entityManager->persist($category);
-                $this->entityManager->flush();
+    if ($form->isSubmitted() && $form->isValid()) {
+        try {
+            /** @var UploadedFile $imageFile */
+            $imageFile = $form->get('image')->getData();
 
-                $this->addFlash('success', 'Categoría creada exitosamente.');
-                return $this->redirectToRoute('app_category_list');
-            } catch (\Exception $e) {
-                $this->addFlash('error', 'Error al crear la categoría: ' . $e->getMessage());
+            if ($imageFile) {
+                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                // Sanitizar el nombre del archivo
+                $safeFilename = transliterator_transliterate('Any-Latin; Latin-ASCII; [^A-Za-z0-9_] remove; Lower()', $originalFilename);
+                $newFilename = $safeFilename.'-'.uniqid().'.'.$imageFile->guessExtension();
+
+                try {
+                    $imageFile->move(
+                        $this->getParameter('images_directory'), // Usar images_directory en lugar de categories_directory
+                        $newFilename
+                    );
+                } catch (FileException $e) {
+                    $this->addFlash('error', 'Error al subir la imagen: ' . $e->getMessage());
+                    return $this->render('category/new.html.twig', [
+                        'form' => $form->createView(),
+                    ]);
+                }
+
+                $category->setImage($newFilename);
             }
-        }
 
-        return $this->render('category/new.html.twig', [
-            'form' => $form->createView(),
-        ]);
+            $this->entityManager->persist($category);
+            $this->entityManager->flush();
+
+            $this->addFlash('success', 'Categoría creada exitosamente.');
+            return $this->redirectToRoute('app_category_list');
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Error al crear la categoría: ' . $e->getMessage());
+        }
     }
+
+    return $this->render('category/new.html.twig', [
+        'form' => $form->createView(),
+    ]);
+}
 
     #[Route('/category/update/{id}', name: 'app_category_update', methods: ['POST'])]
     public function update(Request $request, int $id): JsonResponse
@@ -101,15 +128,15 @@ class CategoryController extends AbstractController
                     $errors[$field] = $violation->getMessage();
                 }
                 return $this->json([
-                    'success' => false, 
-                    'message' => 'Error de validación', 
+                    'success' => false,
+                    'message' => 'Error de validación',
                     'errors' => $errors
                 ], 400);
             }
 
             $name = trim($data['name']);
             $code = trim($data['code']);
-            
+
             if (empty($name) || empty($code)) {
                 $errors = [];
                 if (empty($name)) {
@@ -118,19 +145,19 @@ class CategoryController extends AbstractController
                 if (empty($code)) {
                     $errors['code'] = 'El código no puede estar vacío';
                 }
-                
+
                 return $this->json([
-                    'success' => false, 
-                    'message' => 'Error de validación', 
+                    'success' => false,
+                    'message' => 'Error de validación',
                     'errors' => $errors
                 ], 400);
             }
 
             $category->setName($name);
             $category->setCode($code);
-            
+
             $this->entityManager->flush();
-            
+
             return $this->json(['success' => true, 'message' => 'Categoría actualizada exitosamente']);
         } catch (\Exception $e) {
             return $this->json(['success' => false, 'message' => $e->getMessage()], 500);
@@ -151,7 +178,7 @@ class CategoryController extends AbstractController
         try {
             $this->entityManager->remove($category);
             $this->entityManager->flush();
-            
+
             return $this->json(['success' => true, 'message' => 'Categoría eliminada exitosamente']);
         } catch (\Exception $e) {
             return $this->json(['success' => false, 'message' => $e->getMessage()], 500);

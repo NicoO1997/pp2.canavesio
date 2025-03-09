@@ -5,6 +5,7 @@ parameters:
     app.timezone: 'America/Argentina/Buenos_Aires'
     images_directory: '%kernel.project_dir%/public/images'
     mercado_pago_access_token: '%env(MERCADO_PAGO_ACCESS_TOKEN)%'
+    
 
 # Configuración por defecto para servicios
 services:
