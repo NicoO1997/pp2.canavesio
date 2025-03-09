@@ -83,9 +83,10 @@ class UsedMachineryType extends AbstractType
                     'Manual' => 'manual',
                     'Automática' => 'automatica',
                     'Hidrostática' => 'hidrostatica',
+                    'Hidráulica' => 'hidraulica',
                     'Mecánica' => 'mecanica',
                     'CVT' => 'cvt',
-                    'Otra' => 'otra'
+                    'Mecánica con asistencia hidráulica' => 'mecanicaHD'
                 ],
                 'placeholder' => 'Seleccione un sistema',
                 'required' => true,

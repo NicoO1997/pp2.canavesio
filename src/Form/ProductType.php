@@ -114,7 +114,6 @@ class ProductType extends AbstractType
                 ]
             ])
 
-            // Sección de Características Mecánicas
             ->add('loadCapacity', TextareaType::class, [
                 'label' => 'Resistencia a la carga',
                 'required' => false,

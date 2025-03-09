@@ -5,7 +5,6 @@
 {% block stylesheets %}
     {{ parent() }}
     <link href="{{ asset('styles/add_machinery.css') }}" rel="stylesheet" />
-    <link href="{{ asset('styles/machinery_brands.css') }}" rel="stylesheet" />
 {% endblock %}
 
 {% block body %}
@@ -91,7 +90,7 @@
             {{ form_label(form.imageFilenames) }}
             {{ form_widget(form.imageFilenames) }}
             {{ form_errors(form.imageFilenames, {'attr': {'class': 'form-error'}}) }}
-            <small class="form-text text-muted">Puedes seleccionar hasta 5 imágenes</small>
+            <small class="form-text text-muted">Puedes seleccionar hasta 5 imÃ¡genes</small>
         </div>
 
         <div class="used-fields-container">
