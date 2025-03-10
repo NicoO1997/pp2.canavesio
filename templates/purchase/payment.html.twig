@@ -6,155 +6,341 @@
 {% block stylesheets %}
 	{{ parent() }}
 	<style>
-		.payment-container {
-			max-width: 800px;
-			margin: 2rem auto;
-			padding: 2rem;
-			background: white;
-			border-radius: 12px;
-			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-		}
+        :root {
+        --primary-color: #3b82f6;
+        --primary-hover: #2563eb;
+        --secondary-color: #f3f4f6;
+        --text-color: #1f2937;
+        --text-light: #6b7280;
+        --border-color: #e5e7eb;
+        --success-color: #10b981;
+        --error-color: #ef4444;
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --radius-sm: 0.375rem;
+        --radius-md: 0.5rem;
+        --radius-lg: 0.75rem;
+        --transition: all 0.2s ease;
+        --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
 
-		.payment-header {
-			text-align: center;
-			margin-bottom: 2rem;
-			padding-bottom: 1rem;
-			border-bottom: 2px solid #f0f0f0;
-		}
+        .payment-container {
+        max-width: 1000px;
+        margin: 3rem auto;
+        padding: 0;
+        font-family: var(--font-sans);
+        color: var(--text-color);
+        background: white;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+        overflow: hidden;
+        animation: slideUp 0.4s ease-out;
+        }
 
-		.payment-grid {
-			display: grid;
-			grid-template-columns: 1fr 1fr;
-			gap: 2rem;
-		}
+        .payment-header {
+        text-align: center;
+        padding: 2rem 2rem 1.5rem;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+        color: white;
+        margin-bottom: 0;
+        border-bottom: none;
+        }
 
-		.order-summary {
-			background: #f8f9fa;
-			padding: 1.5rem;
-			border-radius: 8px;
-			border: 1px solid #e9ecef;
-		}
+        .payment-header h1 {
+        margin: 0;
+        font-weight: 600;
+        font-size: 1.75rem;
+        letter-spacing: -0.01em;
+        }
 
-		.card-form {
-			padding: 1.5rem;
-			background: #fff;
-			border: 1px solid #e9ecef;
-			border-radius: 8px;
-		}
+        .payment-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+        }
 
-		.form-group {
-			margin-bottom: 1.5rem;
-		}
+        .order-summary {
+        background: var(--secondary-color);
+        padding: 2rem;
+        border-radius: 0;
+        border: none;
+        border-right: 1px solid var(--border-color);
+        }
 
-		.form-group label {
-			display: block;
-			margin-bottom: 0.5rem;
-			font-weight: 500;
-			color: #495057;
-		}
+        .order-summary h3 {
+        margin-top: 0;
+        margin-bottom: 1.5rem;
+        font-weight: 600;
+        color: var(--text-color);
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid var(--border-color);
+        font-size: 1.25rem;
+        }
 
-		.form-control {
-			width: 100%;
-			padding: 0.75rem;
-			border: 2px solid #ddd;
-			border-radius: 6px;
-			transition: all 0.3s ease;
-		}
+        .cart-details table, 
+        .product-details {
+        width: 100%;
+        margin-bottom: 0;
+        font-size: 0.95rem;
+        }
 
-		.form-control:focus {
-			border-color: #80bdff;
-			box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-			outline: none;
-		}
+        .cart-details table {
+        border-collapse: separate;
+        border-spacing: 0;
+        }
 
-		.card-header {
-			position: relative;
-			margin-bottom: 2rem;
-		}
+        .cart-details th {
+        text-align: left;
+        padding: 0.75rem 0.5rem;
+        border-bottom: 2px solid var(--border-color);
+        font-weight: 600;
+        color: var(--text-color);
+        }
 
-		.card-type {
-			position: absolute;
-			right: 1rem;
-			top: 50%;
-			transform: translateY(-50%);
-			font-size: 1.5rem;
-			color: #6c757d;
-		}
+        .cart-details td {
+        padding: 0.75rem 0.5rem;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-light);
+        }
 
-		.expiry-cvv-grid {
-			display: grid;
-			grid-template-columns: 2fr 1fr;
-			gap: 1rem;
-		}
+        .cart-details tfoot td {
+        padding-top: 1rem;
+        font-weight: 600;
+        border-bottom: none;
+        color: var(--text-color);
+        }
 
-		.btn-submit {
-			width: 100%;
-			padding: 1rem;
-			background: linear-gradient(135deg, #2d9346, #45b15c);
-			color: white;
-			border: none;
-			border-radius: 6px;
-			font-weight: 600;
-			cursor: pointer;
-			transition: all 0.3s ease;
-		}
+        .product-details p {
+        margin: 0.75rem 0;
+        display: flex;
+        justify-content: space-between;
+        }
 
-		.btn-submit:hover {
-			background: linear-gradient(135deg, #45b15c, #2d9346);
-			transform: translateY(-2px);
-		}
+        .product-details p:last-child {
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border-color);
+        font-weight: 600;
+        font-size: 1.1rem;
+        }
 
-		.error-message {
-			color: #dc3545;
-			font-size: 0.875rem;
-			margin-top: 0.5rem;
-		}
+        .card-form {
+        padding: 2rem;
+        background: white;
+        border: none;
+        border-radius: 0;
+        }
 
-		.card-icon {
-			font-size: 2rem;
-			margin-right: 0.5rem;
-		}
+        .form-group {
+        margin-bottom: 1.5rem;
+        }
 
-		.visa {
-			color: #1a1f71;
-		}
-		.mastercard {
-			color: #eb001b;
-		}
-		.amex {
-			color: #006fcf;
-		}
-		.discover {
-			color: #ff6000;
-		}
+        .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: var(--text-color);
+        font-size: 0.95rem;
+        }
 
-		/* Animaciones */
-		@keyframes fadeIn {
-			from {
-				opacity: 0;
-				transform: translateY(-10px);
-			}
-			to {
-				opacity: 1;
-				transform: translateY(0);
-			}
-		}
+        .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        transition: var(--transition);
+        font-size: 1rem;
+        color: var(--text-color);
+        background-color: white;
+        appearance: none;
+        }
 
-		.animate-in {
-			animation: fadeIn 0.3s ease-out;
-		}
+        .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        outline: none;
+        }
 
-		/* Responsive */
-		@media(max-width: 768px) {
-			.payment-grid {
-				grid-template-columns: 1fr;
-			}
+        .form-control::placeholder {
+        color: #cbd5e0;
+        }
 
-			.payment-container {
-				margin: 1rem;
-				padding: 1rem;
-			}
-		}
+        .card-header {
+        position: relative;
+        }
+
+        .card-type {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 1.5rem;
+        color: var(--text-light);
+        transition: var(--transition);
+        }
+
+        .expiry-cvv-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+        }
+
+        /* Corrección para los campos de fecha de vencimiento */
+        .expiry-date-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+        height: 100%;
+        }
+        
+        .expiry-date-grid .form-control {
+        height: 60%;
+        box-sizing: border-box;
+        }
+
+        .btn-submit {
+        width: 100%;
+        padding: 0.875rem;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        letter-spacing: 0.01em;
+        text-transform: uppercase;
+        }
+
+        .btn-submit i {
+        font-size: 0.875rem;
+        }
+
+        .btn-submit:hover {
+        background: var(--primary-hover);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+        }
+
+        .btn-submit:active {
+        transform: translateY(0);
+        box-shadow: var(--shadow-sm);
+        }
+
+        .btn-submit:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: translateY(0);
+        box-shadow: none;
+        }
+
+        .error-message {
+        color: var(--error-color);
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        display: none;
+        animation: fadeIn 0.2s ease-out;
+        }
+
+        .fab.fa-cc-visa {
+        color: #1a1f71;
+        }
+
+        .fab.fa-cc-mastercard {
+        color: #eb001b;
+        }
+
+        .fab.fa-cc-amex {
+        color: #006fcf;
+        }
+
+        .fab.fa-cc-discover {
+        color: #ff6000;
+        }
+
+        @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        }
+
+        @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+        }
+
+        select.form-control {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 0.2rem center;
+        background-repeat: no-repeat;
+        background-size: 1.5em 1.5em;
+        padding-right: 2.5rem;
+        }
+
+        @media (max-width: 768px) {
+        .payment-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .payment-container {
+            margin: 1rem;
+            border-radius: var(--radius-md);
+        }
+
+        .order-summary {
+            border-right: none;
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.5rem;
+        }
+
+        .card-form {
+            padding: 1.5rem;
+        }
+
+        .expiry-cvv-grid {
+            gap: 1rem;
+        }
+        
+        .payment-header {
+            padding: 1.5rem;
+        }
+        }
+
+        .form-control.is-valid {
+        border-color: var(--success-color);
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2310b981' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 8.5l2.5 2.5 5.5-5.5'/%3e%3c/svg%3e");
+        background-position: right 0.5rem center;
+        background-repeat: no-repeat;
+        background-size: 1.25em;
+        }
+
+        .form-control.is-invalid {
+        border-color: var(--error-color);
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3ccircle cx='8' cy='8' r='7.5' fill='none' stroke='%23ef4444' stroke-width='1.5'/%3e%3cpath d='M8 5v4' stroke='%23ef4444' stroke-width='1.5' stroke-linecap='round'/%3e%3ccircle cx='8' cy='11.5' r='.5' fill='%23ef4444'/%3e%3c/svg%3e");
+        background-position: right 0.5rem center;
+        background-repeat: no-repeat;
+        background-size: 1.25em;
+        }
+
+        .text-end {
+        text-align: right;
+        }
 	</style>
 {% endblock %}
 
@@ -231,7 +417,7 @@
                     <div class="expiry-cvv-grid">
                         <div class="form-group">
                             <label>Fecha de Vencimiento</label>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                            <div class="expiry-date-grid">
                                 <select name="expiry_month" class="form-control" required>
                                     {% for i in 1..12 %}
                                         <option value="{{ i }}">{{ "%02d"|format(i) }}</option>

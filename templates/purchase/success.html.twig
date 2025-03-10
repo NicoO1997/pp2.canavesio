@@ -8,98 +8,172 @@
 	{{ parent() }}
 	<style>
 		.success-container {
-			max-width: 600px;
-			margin: 2rem auto;
-			padding: 2rem;
+			max-width: 800px;
+			margin: 3rem auto;
+			padding: 2.5rem;
 			background: white;
-			border-radius: 8px;
-			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+			border-radius: 12px;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 			text-align: center;
+			font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
 		}
 
 		.success-icon {
 			color: #28a745;
-			font-size: 4rem;
+			font-size: 5rem;
+			margin-bottom: 1.5rem;
+			animation: pulseIn 0.8s ease-out;
+		}
+
+		.success-container h1 {
+			font-size: 2.2rem;
+			color: #1e3a8a;
 			margin-bottom: 1rem;
-			animation: scaleIn 0.5s ease-out;
+		}
+
+		.success-container > p {
+			font-size: 1.1rem;
+			color: #64748b;
+			margin-bottom: 2rem;
 		}
 
 		.purchase-details {
-			margin-top: 2rem;
+			margin-top: 2.5rem;
 			text-align: left;
-			padding: 1.5rem;
-			background: #f8f9fa;
-			border-radius: 8px;
-			border: 1px solid #e9ecef;
+			padding: 2rem;
+			background: #f9fafb;
+			border-radius: 10px;
+			border: 1px solid #e2e8f0;
+			box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 		}
 
 		.purchase-details h3 {
-			color: #2c3e50;
-			margin-bottom: 1rem;
-			padding-bottom: 0.5rem;
-			border-bottom: 2px solid #e9ecef;
+			color: #1e3a8a;
+			margin-bottom: 1.2rem;
+			padding-bottom: 0.8rem;
+			border-bottom: 2px solid #e2e8f0;
+			font-size: 1.5rem;
+		}
+
+		.purchase-details h4 {
+			color: #334155;
+			margin: 1.5rem 0 1rem 0;
+			font-size: 1.2rem;
 		}
 
 		.purchase-details p {
-			margin: 0.5rem 0;
-			color: #495057;
+			margin: 0.75rem 0;
+			color: #475569;
+			font-size: 1rem;
+		}
+
+		.purchase-details p strong {
+			color: #334155;
+		}
+
+		.table {
+			width: 100%;
+			border-collapse: collapse;
+			margin: 1rem 0;
+		}
+
+		.table thead th {
+			background-color: #f1f5f9;
+			padding: 0.8rem;
+			border-bottom: 2px solid #e2e8f0;
+			text-align: left;
+			color: #334155;
+			font-weight: 600;
+		}
+
+		.table tbody td {
+			padding: 0.8rem;
+			border-bottom: 1px solid #e2e8f0;
+			color: #475569;
+		}
+
+		.table tbody tr:last-child td {
+			border-bottom: none;
+		}
+
+		.table tbody tr:hover {
+			background-color: #f8fafc;
+		}
+
+		.btn-container {
+			display: flex;
+			justify-content: center;
+			gap: 1rem;
+			margin-top: 2rem;
 		}
 
 		.btn-download {
 			display: inline-flex;
 			align-items: center;
 			gap: 0.5rem;
-			margin-top: 1.5rem;
-			padding: 0.75rem 1.5rem;
-			background: linear-gradient(135deg, #2d9346, #45b15c);
+			padding: 0.9rem 1.8rem;
+			background: linear-gradient(135deg, #1d803b, #36a04d);
 			color: white;
 			text-decoration: none;
-			border-radius: 6px;
+			border-radius: 8px;
 			font-weight: 600;
+			font-size: 1rem;
 			transition: all 0.3s ease;
 			border: none;
 			cursor: pointer;
+			box-shadow: 0 2px 4px rgba(54, 160, 77, 0.25);
 		}
 
 		.btn-volver {
 			display: inline-flex;
 			align-items: center;
 			gap: 0.5rem;
-			padding: 0.75rem 1rem;
-			background: linear-gradient(135deg, #2d9346, #45b15c);
+			padding: 0.9rem 1.8rem;
+			background: linear-gradient(135deg, #4b5563, #64748b);
 			color: white;
 			text-decoration: none;
-			border-radius: 6px;
+			border-radius: 8px;
 			font-weight: 600;
+			font-size: 1rem;
 			transition: all 0.3s ease;
 			border: none;
 			cursor: pointer;
+			box-shadow: 0 2px 4px rgba(75, 85, 99, 0.25);
 		}
 
-		.btn-volver:hover {
-			background: linear-gradient(135deg, #45b15c, #2d9346);
+		.btn-download:hover, .btn-volver:hover {
 			transform: translateY(-2px);
-			box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+			box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 		}
 
 		.btn-download:hover {
-			background: linear-gradient(135deg, #45b15c, #2d9346);
-			transform: translateY(-2px);
-			box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+			background: linear-gradient(135deg, #36a04d, #1d803b);
 		}
 
-		.btn-download i {
+		.btn-volver:hover {
+			background: linear-gradient(135deg, #64748b, #4b5563);
+		}
+
+		.btn-download:active, .btn-volver:active {
+			transform: translateY(0);
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+		}
+
+		.btn-download i, .btn-volver i {
 			font-size: 1.1rem;
 		}
 
-		@keyframes scaleIn {
-			from {
+		@keyframes pulseIn {
+			0% {
 				transform: scale(0);
 				opacity: 0;
 			}
-			to {
-				transform: scale(1);
+			70% {
+				transform: scale(1.1);
 				opacity: 1;
+			}
+			100% {
+				transform: scale(1);
 			}
 		}
 
@@ -111,18 +185,40 @@
 		.loading:after {
 			content: '';
 			position: absolute;
-			width: 1rem;
-			height: 1rem;
+			width: 1.2rem;
+			height: 1.2rem;
 			border: 2px solid #ffffff;
 			border-radius: 50%;
 			border-top-color: transparent;
 			animation: spin 1s linear infinite;
 			margin-left: 0.5rem;
+			right: 1rem;
 		}
 
 		@keyframes spin {
 			to {
 				transform: rotate(360deg);
+			}
+		}
+
+		@media (max-width: 768px) {
+			.success-container {
+				margin: 1.5rem;
+				padding: 1.5rem;
+			}
+			
+			.purchase-details {
+				padding: 1.5rem;
+			}
+			
+			.btn-container {
+				flex-direction: column;
+			}
+			
+			.btn-download, .btn-volver {
+				width: 100%;
+				justify-content: center;
+				margin-top: 0.5rem;
 			}
 		}
 	</style>
@@ -172,15 +268,17 @@
 			</table>
 		</div>
 
-		<button type="button" class="btn-download" onclick="generatePDF()">
-			<i class="fas fa-download"></i>
-			Descargar Comprobante
-		</button>
+		<div class="btn-container">
+    <button type="button" class="btn-download" onclick="generatePDF()">
+        <i class="fas fa-download"></i>
+        Descargar Comprobante
+    </button>
 
-		<button type="button" class="btn-volver" onclick="location.href='{{ path('product_list') }}'">
-			<i class="fas fa-arrow-left"></i>
-			Volver
-		</button>
+    <button type="button" class="btn-volver" onclick="location.href='{{ path('product_list') }}'">
+        <i class="fas fa-arrow-left"></i>
+        Volver
+    </button>
+</div>
 	</div>
 {% endblock %}
 

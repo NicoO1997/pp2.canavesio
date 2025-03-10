@@ -61,6 +61,36 @@ class ProductMovementController extends AbstractController
         }
     
         $movements = $queryBuilder->getQuery()->getResult();
+        
+        foreach ($movements as $movement) {
+            if ($movement->getNewStock() === $movement->getPreviousStock() && 
+                $movement->getMovementType() !== ProductMovement::TYPE_RESERVED_SALE) {
+                $previousStock = $movement->getPreviousStock();
+                $quantity = $movement->getQuantity();
+                
+                // Actualizar el newStock según el tipo de movimiento
+                switch ($movement->getMovementType()) {
+                    case ProductMovement::TYPE_ENTRY:
+                        $movement->setNewStock($previousStock + abs($quantity));
+                        break;
+                    case ProductMovement::TYPE_SALE:
+                    case ProductMovement::TYPE_DELETION:
+                    case ProductMovement::TYPE_PERMANENT_DELETE:
+                        $movement->setNewStock($previousStock - abs($quantity));
+                        break;
+                    case ProductMovement::TYPE_EDIT:
+                    case ProductMovement::TYPE_ADJUSTMENT:
+                        $movement->setNewStock($previousStock + $quantity);
+                        break;
+                }
+                
+                // Persistir los cambios a la base de datos
+                $entityManager->persist($movement);
+            }
+        }
+        
+        // Aplicar los cambios a la base de datos
+        $entityManager->flush();
     
         return $this->render('product/movements.html.twig', [
             'movements' => $movements,
@@ -70,4 +100,3 @@ class ProductMovementController extends AbstractController
         ]);
     }
 }
-

@@ -30,9 +30,9 @@ class ProductMovementService
         int $newStock,
         ?string $description = null,
         ?string $performedBy = null
-    ): void {
+    ): ProductMovement {
         $argentinaTime = new DateTime('now', new DateTimeZone('America/Argentina/Buenos_Aires'));
-
+    
         $movement = new ProductMovement();
         $movement->setProduct($product);
         $movement->setMovementType($movementType);
@@ -42,9 +42,11 @@ class ProductMovementService
         $movement->setPerformedBy($performedBy ?? 'NicoO1997');
         $movement->setDescription($description);
         $movement->setCreatedAt($argentinaTime);
-
+    
         $this->entityManager->persist($movement);
         $this->entityManager->flush();
+        
+        return $movement;
     }
 
     public function recordEntry(Product $product, int $quantity, ?string $description = null): void
@@ -91,6 +93,32 @@ class ProductMovementService
             $description ?? 'Eliminación del producto'
         );
     }
+    public function recordReservedSale(
+        Product $product,
+        int $quantity,
+        ?string $description = null,
+        ?string $orderId = null
+    ): void {
+        $previousStock = $product->getQuantity();
+        $newStock = $previousStock - $quantity;
+    
+        // Primero actualizar la cantidad del producto ANTES de registrar el movimiento
+        $product->setQuantity($newStock);
+        $this->entityManager->persist($product);
+        $this->entityManager->flush();
+        
+        // Ahora registrar el movimiento después de haber actualizado el producto
+        $this->recordMovement(
+            $product,
+            ProductMovement::TYPE_RESERVED_SALE,
+            -$quantity,
+            $previousStock,  // El stock original antes de la actualización
+            $newStock,       // El nuevo stock después de la actualización
+            $description ?? sprintf('Reserva de %d unidades', $quantity),
+            $orderId ?? 'NicoO1997'
+        );
+    }
+
 
 public function recordPermanentDeletion(Product $product, ?string $description = null): void
 {

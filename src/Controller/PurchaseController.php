@@ -58,6 +58,8 @@ class PurchaseController extends AbstractController
         ]);
     }
 
+    // En PurchaseController.php, modificar el método simulateCartPayment()
+
     #[Route('/purchase/simulate-cart', name: 'purchase_simulate_cart')]
     public function simulateCartPayment(EntityManagerInterface $entityManager): Response
     {
@@ -65,29 +67,29 @@ class PurchaseController extends AbstractController
         if (!$user) {
             throw $this->createAccessDeniedException('Debes iniciar sesión para realizar una compra');
         }
-    
+
         // Obtener el carrito actual del usuario
         $cart = $entityManager->getRepository(Cart::class)->findOneBy(['user' => $user]);
-    
+
         if (!$cart || $cart->getCartProductOrders()->isEmpty()) {
             throw $this->createNotFoundException('El carrito está vacío');
         }
-    
+
         try {
             // Calcular el total primero
             $total = 0;
             $purchaseItems = []; // Array para almacenar los items de la compra
             $cartItems = []; // Array para los detalles de la compra
-    
+
             foreach ($cart->getCartProductOrders() as $cartProductOrder) {
                 $product = $cartProductOrder->getProduct();
                 $quantity = $cartProductOrder->getQuantity();
-    
+
                 // Verificar que la cantidad sea válida
                 if (!$quantity || $quantity <= 0) {
                     throw new \InvalidArgumentException('La cantidad debe ser mayor a 0 para ' . $product->getName());
                 }
-    
+
                 // Solo verificar stock para productos que no son de reserva
                 if (!$cartProductOrder->isFromReservation()) {
                     if ($product->getQuantity() < $quantity) {
@@ -95,10 +97,10 @@ class PurchaseController extends AbstractController
                         return $this->redirectToRoute('cart_view');
                     }
                 }
-    
+
                 // Actualizar el total
                 $total += $product->getPrice() * $quantity;
-    
+
                 // Preparar los items para el detalle de la compra
                 if ($quantity > 0) {
                     $cartItems[] = [
@@ -110,31 +112,53 @@ class PurchaseController extends AbstractController
                     ];
                 }
             }
-    
+
             // Crear y configurar la compra
             $purchase = new Purchase();
             $purchase->setUser($user);
             $purchase->setTotalPrice($total); // Establecer el total antes de persistir
             $purchase->setStatus('completed');
             $purchase->setTransactionId(uniqid('TRX-'));
-            $purchase->setPurchaseDate(new \DateTime('2025-03-09 01:09:04'));
-    
+            $purchase->setPurchaseDate(new \DateTime('now'));
+
             // Persistir la compra primero
             $entityManager->persist($purchase);
             $entityManager->flush(); // Flush para obtener el ID de la compra
-    
+
             // Crear y persistir los items de la compra
             foreach ($cart->getCartProductOrders() as $cartProductOrder) {
                 $product = $cartProductOrder->getProduct();
                 $quantity = $cartProductOrder->getQuantity();
-    
+
                 // Actualizar stock para productos que no son de reserva
                 if (!$cartProductOrder->isFromReservation()) {
-                    $newQuantity = $product->getQuantity() - $quantity;
+                    $previousStock = $product->getQuantity();
+                    $newQuantity = $previousStock - $quantity;
                     $product->setQuantity($newQuantity);
+                    
+                    // Registrar el movimiento
+                    $this->productMovementService->recordMovement(
+                        $product,
+                        ProductMovement::TYPE_SALE,
+                        $quantity,
+                        $previousStock,
+                        $newQuantity,
+                        sprintf('Venta realizada desde carrito. Transacción: %s', $purchase->getTransactionId())
+                    );
+                    
                     $entityManager->persist($product);
+                } else {
+                    // Para productos de reserva, registrar un movimiento especial
+                    $this->productMovementService->recordMovement(
+                        $product,
+                        ProductMovement::TYPE_RESERVED_SALE,
+                        $quantity,
+                        $product->getQuantity(),
+                        $product->getQuantity(), // No cambia el stock pero registra la venta
+                        sprintf('Venta de producto reservado. Transacción: %s', $purchase->getTransactionId())
+                    );
                 }
-    
+
                 // Crear PurchaseItem
                 $purchaseItem = new PurchaseItem();
                 $purchaseItem->setProduct($product);
@@ -143,28 +167,28 @@ class PurchaseController extends AbstractController
                 $purchaseItem->setPurchase($purchase);
                 $entityManager->persist($purchaseItem);
             }
-    
+
             // Configurar detalles de pago
-            $dateArgentina = new \DateTime('2025-03-09 01:09:04', new \DateTimeZone('America/Argentina/Buenos_Aires'));
+            $dateArgentina = new \DateTime('now', new \DateTimeZone('America/Argentina/Buenos_Aires'));
             $purchase->setPaymentDetails([
                 'payment_method' => 'simulated_payment',
                 'payment_date' => $dateArgentina->format('Y-m-d H:i:s'),
                 'cart_items' => $cartItems,
                 'created_by' => 'SantiAragon'
             ]);
-    
+
             // Limpiar el carrito
             foreach ($cart->getCartProductOrders() as $order) {
                 $entityManager->remove($order);
             }
-    
+
             // Flush final para guardar todos los cambios
             $entityManager->flush();
-    
+
             return $this->redirectToRoute('purchase_success', [
                 'transactionId' => $purchase->getTransactionId()
             ]);
-    
+
         } catch (\Exception $e) {
             $this->addFlash('error', 'Ocurrió un error al procesar la compra: ' . $e->getMessage());
             return $this->redirectToRoute('cart_view');
@@ -198,179 +222,189 @@ class PurchaseController extends AbstractController
 
 
     #[Route('/purchase/process', name: 'purchase_process', methods: ['POST'])]
-public function processPurchase(
-    Request $request,
-    EntityManagerInterface $entityManager
-): Response {
-    if (!$this->security->isGranted('ROLE_USUARIO')) {
-        throw $this->createAccessDeniedException('Debes iniciar sesión para realizar una compra');
-    }
+    public function processPurchase(
+        Request $request,
+        EntityManagerInterface $entityManager
+    ): Response {
+        if (!$this->security->isGranted('ROLE_USUARIO')) {
+            throw $this->createAccessDeniedException('Debes iniciar sesión para realizar una compra');
+        }
 
-    $data = $request->request->all();
-    $isCartPurchase = $request->request->has('is_cart_purchase');
+        $data = $request->request->all();
+        $isCartPurchase = $request->request->has('is_cart_purchase');
 
-    // Validar datos de la tarjeta
-    $errors = $this->validateCardData($data);
-    if (!empty($errors)) {
-        return $this->json([
-            'success' => false,
-            'errors' => $errors
-        ], Response::HTTP_BAD_REQUEST);
-    }
+        // Validar datos de la tarjeta
+        $errors = $this->validateCardData($data);
+        if (!empty($errors)) {
+            return $this->json([
+                'success' => false,
+                'errors' => $errors
+            ], Response::HTTP_BAD_REQUEST);
+        }
 
-    try {
-        if ($isCartPurchase) {
-            // Procesar compra del carrito
-            $cart = $entityManager->getRepository(Cart::class)->findOneBy(['user' => $this->getUser()]);
-            if (!$cart || $cart->getCartProductOrders()->isEmpty()) {
-                throw new \Exception('El carrito está vacío');
-            }
-
-            // Calcular el total primero
-            $total = 0;
-            foreach ($cart->getCartProductOrders() as $cartProductOrder) {
-                $total += $cartProductOrder->getProduct()->getPrice() * $cartProductOrder->getQuantity();
-            }
-
-            // Crear y configurar la compra
-            $purchase = new Purchase();
-            $purchase->setUser($this->getUser());
-            $purchase->setStatus('completed');
-            $purchase->setTransactionId(uniqid('TRX-'));
-            $purchase->setTotalPrice($total); // Establecer el total antes de persistir
-            $purchase->setPurchaseDate(new DateTime('2025-03-09 01:13:03'));
-            
-            // Persistir la compra
-            $entityManager->persist($purchase);
-            $entityManager->flush(); // Flush para obtener el ID de la compra
-
-            // Procesar los items
-            foreach ($cart->getCartProductOrders() as $cartProductOrder) {
-                $product = $cartProductOrder->getProduct();
-                $quantity = $cartProductOrder->getQuantity();
-
-                if (!$cartProductOrder->isFromReservation()) {
-                    if ($product->getQuantity() < $quantity) {
-                        throw new \Exception('No hay suficiente stock para ' . $product->getName());
-                    }
-
-                    $previousStock = $product->getQuantity();
-                    $newStock = $previousStock - $quantity;
-
-                    $this->productMovementService->recordMovement(
-                        $product,
-                        ProductMovement::TYPE_SALE,
-                        $quantity,
-                        $previousStock,
-                        $newStock,
-                        sprintf('Venta realizada desde carrito. Transacción: %s', $purchase->getTransactionId())
-                    );
-
-                    $product->setQuantity($newStock);
-                    $entityManager->persist($product);
+        try {
+            if ($isCartPurchase) {
+                // Procesar compra del carrito
+                $cart = $entityManager->getRepository(Cart::class)->findOneBy(['user' => $this->getUser()]);
+                if (!$cart || $cart->getCartProductOrders()->isEmpty()) {
+                    throw new \Exception('El carrito está vacío');
                 }
 
+                // Calcular el total primero
+                $total = 0;
+                foreach ($cart->getCartProductOrders() as $cartProductOrder) {
+                    $total += $cartProductOrder->getProduct()->getPrice() * $cartProductOrder->getQuantity();
+                }
+
+                // Crear y configurar la compra
+                $purchase = new Purchase();
+                $purchase->setUser($this->getUser());
+                $purchase->setStatus('completed');
+                $purchase->setTransactionId(uniqid('TRX-'));
+                $purchase->setTotalPrice($total); // Establecer el total antes de persistir
+                $purchase->setPurchaseDate(new DateTime('now'));
+                
+                // Persistir la compra
+                $entityManager->persist($purchase);
+                $entityManager->flush(); // Flush para obtener el ID de la compra
+
+                // Procesar los items
+                foreach ($cart->getCartProductOrders() as $cartProductOrder) {
+                    $product = $cartProductOrder->getProduct();
+                    $quantity = $cartProductOrder->getQuantity();
+
+                    if (!$cartProductOrder->isFromReservation()) {
+                        if ($product->getQuantity() < $quantity) {
+                            throw new \Exception('No hay suficiente stock para ' . $product->getName());
+                        }
+
+                        $previousStock = $product->getQuantity();
+                        $newStock = $previousStock - $quantity;
+
+                        $this->productMovementService->recordMovement(
+                            $product,
+                            ProductMovement::TYPE_SALE,
+                            $quantity,
+                            $previousStock,
+                            $newStock,
+                            sprintf('Venta realizada desde carrito. Transacción: %s', $purchase->getTransactionId())
+                        );
+
+                        $product->setQuantity($newStock);
+                        $entityManager->persist($product);
+                    } else {
+                        // Para productos de reserva, registrar un movimiento especial
+                        $this->productMovementService->recordMovement(
+                            $product,
+                            ProductMovement::TYPE_RESERVED_SALE,
+                            $quantity,
+                            $product->getQuantity(),
+                            $product->getQuantity(), // No cambia el stock pero registra la venta
+                            sprintf('Venta de producto reservado. Transacción: %s', $purchase->getTransactionId())
+                        );
+                    }
+
+                    $purchaseItem = new PurchaseItem();
+                    $purchaseItem->setProduct($product);
+                    $purchaseItem->setQuantity($quantity);
+                    $purchaseItem->setPrice($product->getPrice());
+                    $purchaseItem->setPurchase($purchase);
+                    $entityManager->persist($purchaseItem);
+                }
+
+                // Configurar detalles de pago
+                $dateArgentina = new DateTime('now', new DateTimeZone('America/Argentina/Buenos_Aires'));
+                $purchase->setPaymentDetails([
+                    'card_last_four' => substr($data['card_number'], -4),
+                    'payment_method' => 'credit_card',
+                    'card_type' => $this->getCardType($data['card_number']),
+                    'payment_date' => $dateArgentina->format('Y-m-d H:i:s'),
+                    'created_by' => 'SantiAragon'
+                ]);
+
+                // Limpiar el carrito
+                foreach ($cart->getCartProductOrders() as $order) {
+                    $entityManager->remove($order);
+                }
+
+            } else {
+                // Procesar compra individual
+                $product = $entityManager->getRepository(Product::class)->find($data['product_id']);
+                if (!$product) {
+                    throw new \Exception('Producto no encontrado');
+                }
+
+                $quantity = (int) $data['quantity'];
+                if ($product->getQuantity() < $quantity) {
+                    throw new \Exception('No hay suficiente stock disponible');
+                }
+
+                $total = $product->getPrice() * $quantity;
+
+                // Crear y configurar la compra
+                $purchase = new Purchase();
+                $purchase->setUser($this->getUser());
+                $purchase->setStatus('completed');
+                $purchase->setTransactionId(uniqid('TRX-'));
+                $purchase->setTotalPrice($total);
+                $purchase->setPurchaseDate(new DateTime('now'));
+
+                $entityManager->persist($purchase);
+                $entityManager->flush();
+
+                // Registrar el movimiento
+                $previousStock = $product->getQuantity();
+                $newStock = $previousStock - $quantity;
+                
+                $this->productMovementService->recordMovement(
+                    $product,
+                    ProductMovement::TYPE_SALE,
+                    $quantity,
+                    $previousStock,
+                    $newStock,
+                    sprintf('Venta individual realizada. Transacción: %s', $purchase->getTransactionId())
+                );
+
+                // Actualizar stock
+                $product->setQuantity($newStock);
+                $entityManager->persist($product);
+
+                // Crear y persistir PurchaseItem
                 $purchaseItem = new PurchaseItem();
                 $purchaseItem->setProduct($product);
                 $purchaseItem->setQuantity($quantity);
                 $purchaseItem->setPrice($product->getPrice());
                 $purchaseItem->setPurchase($purchase);
                 $entityManager->persist($purchaseItem);
+
+                // Configurar detalles de pago
+                $dateArgentina = new DateTime('now', new DateTimeZone('America/Argentina/Buenos_Aires'));
+                $purchase->setPaymentDetails([
+                    'card_last_four' => substr($data['card_number'], -4),
+                    'payment_method' => 'credit_card',
+                    'card_type' => $this->getCardType($data['card_number']),
+                    'payment_date' => $dateArgentina->format('Y-m-d H:i:s'),
+                    'created_by' => 'SantiAragon'
+                ]);
             }
 
-            // Configurar detalles de pago
-            $dateArgentina = new DateTime('2025-03-09 01:13:03', new DateTimeZone('America/Argentina/Buenos_Aires'));
-            $purchase->setPaymentDetails([
-                'card_last_four' => substr($data['card_number'], -4),
-                'payment_method' => 'credit_card',
-                'card_type' => $this->getCardType($data['card_number']),
-                'payment_date' => $dateArgentina->format('Y-m-d H:i:s'),
-                'created_by' => 'SantiAragon'
-            ]);
-
-            // Limpiar el carrito
-            foreach ($cart->getCartProductOrders() as $order) {
-                $entityManager->remove($order);
-            }
-
-        } else {
-            // Procesar compra individual
-            $product = $entityManager->getRepository(Product::class)->find($data['product_id']);
-            if (!$product) {
-                throw new \Exception('Producto no encontrado');
-            }
-
-            $quantity = (int) $data['quantity'];
-            if ($product->getQuantity() < $quantity) {
-                throw new \Exception('No hay suficiente stock disponible');
-            }
-
-            $total = $product->getPrice() * $quantity;
-
-            // Crear y configurar la compra
-            $purchase = new Purchase();
-            $purchase->setUser($this->getUser());
-            $purchase->setStatus('completed');
-            $purchase->setTransactionId(uniqid('TRX-'));
-            $purchase->setTotalPrice($total);
-            $purchase->setPurchaseDate(new DateTime('2025-03-09 01:13:03'));
-
-            $entityManager->persist($purchase);
+            // Flush final para guardar todos los cambios
             $entityManager->flush();
 
-            // Registrar el movimiento
-            $previousStock = $product->getQuantity();
-            $newStock = $previousStock - $quantity;
-            
-            $this->productMovementService->recordMovement(
-                $product,
-                ProductMovement::TYPE_SALE,
-                $quantity,
-                $previousStock,
-                $newStock,
-                sprintf('Venta individual realizada. Transacción: %s', $purchase->getTransactionId())
-            );
-
-            // Actualizar stock
-            $product->setQuantity($newStock);
-            $entityManager->persist($product);
-
-            // Crear y persistir PurchaseItem
-            $purchaseItem = new PurchaseItem();
-            $purchaseItem->setProduct($product);
-            $purchaseItem->setQuantity($quantity);
-            $purchaseItem->setPrice($product->getPrice());
-            $purchaseItem->setPurchase($purchase);
-            $entityManager->persist($purchaseItem);
-
-            // Configurar detalles de pago
-            $dateArgentina = new DateTime('2025-03-09 01:13:03', new DateTimeZone('America/Argentina/Buenos_Aires'));
-            $purchase->setPaymentDetails([
-                'card_last_four' => substr($data['card_number'], -4),
-                'payment_method' => 'credit_card',
-                'card_type' => $this->getCardType($data['card_number']),
-                'payment_date' => $dateArgentina->format('Y-m-d H:i:s'),
-                'created_by' => 'SantiAragon'
+            return $this->json([
+                'success' => true,
+                'redirect' => $this->generateUrl('purchase_success', [
+                    'transactionId' => $purchase->getTransactionId()
+                ])
             ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'errors' => [$e->getMessage()]
+            ], Response::HTTP_BAD_REQUEST);
         }
-
-        // Flush final para guardar todos los cambios
-        $entityManager->flush();
-
-        return $this->json([
-            'success' => true,
-            'redirect' => $this->generateUrl('purchase_success', [
-                'transactionId' => $purchase->getTransactionId()
-            ])
-        ]);
-
-    } catch (\Exception $e) {
-        return $this->json([
-            'success' => false,
-            'errors' => [$e->getMessage()]
-        ], Response::HTTP_BAD_REQUEST);
     }
-}
 
     private function getCardType(string $cardNumber): string
     {

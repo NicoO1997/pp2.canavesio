@@ -56,8 +56,11 @@ class ReservationController extends AbstractController
     }
 
     #[Route('/reservations/store', name: 'reservation_store', methods: ['POST'])]
-    public function store(Request $request, EntityManagerInterface $entityManager): Response
-    {
+    public function store(
+        Request $request, 
+        EntityManagerInterface $entityManager,
+        \App\Service\ProductMovementService $productMovementService
+    ): Response {
         if (!$this->isGranted('ROLE_VENDEDOR')) {
             $this->addFlash('error', 'No tienes permisos para realizar reservas.');
             return $this->redirectToRoute('app_login');
@@ -114,6 +117,15 @@ class ReservationController extends AbstractController
                 continue;
             }
 
+            // Usar el método específico para reservas que maneja todo el proceso
+            $productMovementService->recordReservedSale(
+                $product,
+                $quantity,
+                sprintf('Reserva de %d unidades para %s', $quantity, $user->getEmail())
+            );
+
+            // Ya no actualizamos el producto aquí, pues lo hace recordReservedSale
+
             $reservation = new Reservation();
             $reservation->setProduct($product);
             $reservation->setCustomer($user);
@@ -124,10 +136,7 @@ class ReservationController extends AbstractController
             $reservation->setCreatedAt($now);
             $reservation->setExpiresAt((clone $now)->modify('+48 hours'));
 
-            $product->setQuantity($product->getQuantity() - $quantity);
-
             $entityManager->persist($reservation);
-            $entityManager->persist($product);
         }
 
         if ($success) {
@@ -135,7 +144,7 @@ class ReservationController extends AbstractController
                 $entityManager->flush();
                 $this->addFlash('success', 'Reservas creadas exitosamente.');
             } catch (\Exception $e) {
-                $this->addFlash('error', 'Ocurrió un error al crear las reservas.');
+                $this->addFlash('error', 'Ocurrió un error al crear las reservas: ' . $e->getMessage());
                 return $this->redirectToRoute('reservation_create');
             }
         }

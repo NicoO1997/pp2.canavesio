@@ -284,10 +284,10 @@ class UsedMachineryController extends AbstractController
             ->orderBy('m.id', 'DESC');
     
         $usedMachineries = $queryBuilder->getQuery()->getResult();
-        
+
         if (!$this->isGranted('ROLE_VENDEDOR') && !$this->isGranted('ROLE_GESTORSTOCK')) {
             $usedMachineries = array_filter($usedMachineries, function($machinery) {
-                return $machinery->getIsEnabled();
+                return $machinery->getPrice() !== null;
             });
         }
     

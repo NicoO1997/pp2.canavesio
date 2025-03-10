@@ -115,13 +115,15 @@
 									{% elseif movement.movementType == 'deletion' %}
 										<i class="fas fa-trash-alt"></i>
 										Eliminación Lógica
-
 									{% elseif movement.movementType == 'permanent_delete' %}
 										<i class="fas fa-trash-alt"></i>
 										Eliminación Permanente
 									{% elseif movement.movementType == 'edit' %}
 										<i class="fas fa-edit"></i>
 										Editado
+									{% elseif movement.movementType == 'reserved_sale' %}
+										<i class="fas fa-bookmark"></i>
+										Venta de Producto Reservado
 									{% else %}
 										<i class="fas fa-sync-alt"></i>
 										{{ movement.movementTypeDescription }}
@@ -139,7 +141,7 @@
 									{% endif %}
 								{% elseif movement.movementType == 'entry' %}
 									<span class="quantity-positive">+{{ movement.quantity }}</span>
-								{% elseif movement.movementType in ['sale', 'deletion', 'permanent_delete'] %}
+								{% elseif movement.movementType in ['sale', 'deletion', 'permanent_delete', 'reserved_sale'] %}
 									<span class="quantity-negative">-{{ movement.quantity|abs }}</span>
 								{% else %}
 									{{ movement.quantity }}
