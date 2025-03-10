@@ -114,15 +114,15 @@ class ProductType extends AbstractType
                 ]
             ])
 
-            ->add('loadCapacity', TextareaType::class, [
-                'label' => 'Resistencia a la carga',
-                'required' => false,
-                'attr' => [
-                    'placeholder' => 'Describa la capacidad de carga o presión soportada',
-                    'class' => 'form-control',
-                    'rows' => 2
-                ]
-            ])
+            // ->add('loadCapacity', TextareaType::class, [
+            //     'label' => 'Resistencia a la carga',
+            //     'required' => false,
+            //     'attr' => [
+            //         'placeholder' => 'Describa la capacidad de carga o presión soportada',
+            //         'class' => 'form-control',
+            //         'rows' => 2
+            //     ]
+            // ])
             ->add('estimatedLifeHours', NumberType::class, [
                 'label' => 'Vida útil estimada (meses)',
                 'required' => false,

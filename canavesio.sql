@@ -62,11 +62,23 @@ CREATE TABLE IF NOT EXISTS `category` (
 ) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Volcando datos para la tabla canavesio2.category: ~0 rows (aproximadamente)
-INSERT INTO `category` (`id`, `name`, `code`, `image`) VALUES
-	(1, 'Tractores', '123', 'tractorcategoria-67cdd52da289a.jpg'),
-	(3, 'Pulverizadoras', '12345', 'pulverizadoracategoria-67cdd584950b6.webp'),
-	(7, 'Cosechadoras', '1235645', 'cosechadoracategoria-67cdd6f6847af.webp'),
-	(8, 'Sembradoras', '4565687', 'sembradoracategoria-67cdd72faf29e.jpg');
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- Limpiar la tabla
+TRUNCATE TABLE category;
+
+-- Reiniciar el auto_increment
+ALTER TABLE category AUTO_INCREMENT = 1;
+
+-- Insertar los datos sin especificar IDs
+INSERT INTO `category` (`name`, `code`, `image`) VALUES
+('Tractores', '123', 'tractorcategoria-67cdd52da289a.jpg'),
+('Pulverizadoras', '12345', 'pulverizadoracategoria-67cdd584950b6.webp'),
+('Cosechadoras', '1235645', 'cosechadoracategoria-67cdd6f6847af.webp'),
+('Sembradoras', '4565687', 'sembradoracategoria-67cdd72faf29e.jpg');
+
+-- Reactivar las restricciones de clave foránea
+SET FOREIGN_KEY_CHECKS = 1;
 
 -- Volcando estructura para tabla canavesio2.doctrine_migration_versions
 CREATE TABLE IF NOT EXISTS `doctrine_migration_versions` (
@@ -75,12 +87,6 @@ CREATE TABLE IF NOT EXISTS `doctrine_migration_versions` (
   `execution_time` int DEFAULT NULL,
   PRIMARY KEY (`version`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci;
-
--- Volcando datos para la tabla canavesio2.doctrine_migration_versions: ~0 rows (aproximadamente)
-INSERT INTO `doctrine_migration_versions` (`version`, `executed_at`, `execution_time`) VALUES
-	('DoctrineMigrations\\Version20250309174756', '2025-03-09 17:47:59', 1305),
-	('DoctrineMigrations\\Version20250309210804', '2025-03-09 21:08:08', 9),
-	('DoctrineMigrations\\Version20250309213413', '2025-03-09 21:34:17', 11);
 
 -- Volcando estructura para tabla canavesio2.favorite
 CREATE TABLE IF NOT EXISTS `favorite` (
@@ -336,6 +342,14 @@ CREATE TABLE IF NOT EXISTS `used_machinery` (
   CONSTRAINT `FK_7A29C47012469DE2` FOREIGN KEY (`category_id`) REFERENCES `category` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Primero, desactivar las restricciones de clave foránea
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- Limpiar la tabla
+TRUNCATE TABLE used_machinery;
+
+-- Reiniciar el auto_increment
+ALTER TABLE used_machinery AUTO_INCREMENT = 1;
 -- Volcando datos para la tabla canavesio2.used_machinery: ~0 rows (aproximadamente)
 INSERT INTO `used_machinery` (`id`, `category_id`, `model`, `brand`, `manufacturing_date`, `fuel_tank_capacity`, `technology`, `transmission_system`, `last_service`, `hours_of_use`, `price`, `location`, `image_filenames`, `is_new`, `taxpayer_type`, `load_capacity`) VALUES
 	(3, 1, 'Puma 200', 'Case Ih', NULL, 395.00, 'AFS Pro 700, AccuGuide', 'manual', NULL, NULL, 142500.00, 'Rosario Argentina', '["puma-200--1-67cdda96e4b50.png", "puma-200--2-67cdda96e5065.png", "puma-200--3-67cdda96e55b4.png", "puma-200--4-67cdda96e5956.png"]', 1, 'responsable_inscripto', NULL),
@@ -362,6 +376,7 @@ INSERT INTO `used_machinery` (`id`, `category_id`, `model`, `brand`, `manufactur
 	(27, 8, 'Planters 3400', 'Agco', '2020-03-02 00:00:00', 1500.00, 'Control de siembra White', 'hidraulica', '2025-01-18 00:00:00', 2800, 80000.00, 'Corrientes Argentina', '["Planters-3400--1-67ce0e107eb87.jpg", "Planters-3400--2-67ce0e107f0f0.jpg", "Planters-3400--3-67ce0e107fb4c.jpg", "Planters-3400--4-67ce0e10802de.jpg", "Planters-3400--5-67ce0e1080901.jpg"]', 0, 'monotributista', NULL),
 	(28, 8, 'Momentum G8', 'Massey Ferguson', NULL, 3420.00, 'vSet, vDrive, DeltaForce', 'hidraulica', NULL, NULL, 280000.00, 'Tucumán Argentina', '["Momentum-G8--1-67ce0ee78349a.jpg", "Momentum-G8--2-67ce0ee783900.jpg", "Momentum-G8--3-67ce0ee783e2d.jpg", "Momentum-G8--4-67ce0ee78436e.jpg", "Momentum-G8--5-67ce0ee78487f.jpg"]', 1, 'exento', NULL);
 
+SET FOREIGN_KEY_CHECKS = 1;
 -- Volcando estructura para tabla canavesio2.user
 CREATE TABLE IF NOT EXISTS `user` (
   `id` int NOT NULL AUTO_INCREMENT,

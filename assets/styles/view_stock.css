@@ -625,3 +625,61 @@ tr.low-stock:hover {
 .suggestion-item.selected {
     background-color: #e9ecef !important;
 }
+
+.filters-container {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.filters-container label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 5px;
+}
+
+.filters-container select,
+.filters-container input {
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 8px 12px;
+}
+
+.filters-container select:focus,
+.filters-container input:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+.no-results {
+    text-align: center;
+    padding: 20px;
+    color: #6c757d;
+    font-style: italic;
+}
+
+.editable-cell select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background-color: #fff;
+    font-size: 14px;
+}
+
+.editable-cell select:focus {
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+.editable-cell select option {
+    padding: 8px;
+}
+
+.editable-cell select option:first-child {
+    font-style: italic;
+    color: #6c757d;
+}

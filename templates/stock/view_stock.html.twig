@@ -23,6 +23,27 @@
 		{% if is_granted('ROLE_ADMIN') or is_granted('ROLE_VENDEDOR') or is_granted('ROLE_GESTORSTOCK') %}
 			<a href="{{ path('view_deleted_stock') }}" class="btn btn-primary">Ver Productos Eliminados</a>
 		{% endif %}
+		<div class="filters-container mb-3">
+			<div class="row">
+				<div class="col-md-4">
+					<div class="form-group">
+						<label for="nameFilter">Filtrar por nombre:</label>
+						<input type="text" id="nameFilter" class="form-control" placeholder="Buscar por nombre...">
+					</div>
+				</div>
+				<div class="col-md-4">
+					<div class="form-group">
+						<label for="brandFilter">Filtrar por marca:</label>
+						<select id="brandFilter" class="form-control">
+							<option value="">Todas las marcas</option>
+							{% for brand in sparePartsBrands %}
+								<option value="{{ brand }}">{{ brand }}</option>
+							{% endfor %}
+						</select>
+					</div>
+				</div>
+			</div>
+		</div>
 
 		{% if (is_granted('ROLE_GESTORSTOCK') or is_granted('ROLE_ADMIN')) and products is defined and products|filter(p => p.needsRestock)|length > 0 %}
 			<div class="stock-warning">
@@ -174,726 +195,873 @@
 {% block javascripts %}
 	{{ parent() }}
 	 <script>
-					let brandsList = Array.from(new Set({{ sparePartsBrands|json_encode|raw }}));
-					
-						try {
-						        const savedBrands = localStorage.getItem('customBrands');
-						        if (savedBrands) {
-						            const parsedBrands = JSON.parse(savedBrands);
-						            parsedBrands.forEach(brand => {
-						                if (!brandsList.includes(brand)) {
-						                    brandsList.push(brand);
-						                }
-						            });
-						        }
-						    } catch (e) {
-						        console.error('Error loading saved brands:', e);
-						    }
-								    	brandsList.sort();
-										{# console.log(brandsList.sort());	 #}
-	function toggleEditing(row, mode) {
-			    const cells = row.querySelectorAll('.editable-cell');
-			    const editBtn = row.querySelector('.edit-btn');
-			    const saveBtn = row.querySelector('.save-btn');
-			    
-			    cells.forEach(cell => {
-			        const field = cell.dataset.field;
-			        const isStockMode = mode === 'stock';
-			        const isAdmin =
+			let brandsList = Array.from(new Set({{ sparePartsBrands|json_encode|raw }}));
+			
+				try {
+						const savedBrands = localStorage.getItem('customBrands');
+						if (savedBrands) {
+							const parsedBrands = JSON.parse(savedBrands);
+							parsedBrands.forEach(brand => {
+								if (!brandsList.includes(brand)) {
+									brandsList.push(brand);
+								}
+							});
+						}
+					} catch (e) {
+						console.error('Error loading saved brands:', e);
+					}
+								brandsList.sort();
+								{# console.log(brandsList.sort());	 #}
+	let materialsList = [
+			        'Acero inoxidable', 'Hierro fundido', 'Caucho', 
+			        'Plástico reforzado', 'Aluminio', 'Bronce',
+			        'Acero al carbono', 'Polietileno', 'PVC',
+			        'Titanio', 'Cobre', 'Latón', 'Cerámica',
+			        'Fibra de carbono', 'Poliuretano'
+			    ];
+			
+			    // Cargar materiales guardados
+			    try {
+			        const savedMaterials = localStorage.getItem('customMaterials');
+			        if (savedMaterials) {
+			            const parsedMaterials = JSON.parse(savedMaterials);
+			            materialsList = Array.from(new Set([...materialsList, ...parsedMaterials])).sort();
+			        }
+			    } catch (e) {
+			        alert("no se pudieron agregar los cambios...");	
+			    }
+		function toggleEditing(row, mode) {
+			const cells = row.querySelectorAll('.editable-cell');
+			const editBtn = row.querySelector('.edit-btn');
+			const saveBtn = row.querySelector('.save-btn');
+			
+			cells.forEach(cell => {
+				const field = cell.dataset.field;
+				const isStockMode = mode === 'stock';
+				const isAdmin =
 	{{ is_granted('ROLE_ADMIN') ? 'true' : 'false' }};
-			        const isGestorStock =
+															const isGestorStock =
 	{{ is_granted('ROLE_GESTORSTOCK') ? 'true' : 'false' }};
-			        const isVendedor =
+															const isVendedor =
 	{{ is_granted('ROLE_VENDEDOR') ? 'true' : 'false' }};
-			        
-			        let isEditable = false;
-			        
-			        if (isAdmin) {
-			            isEditable = true;
-			        } else if (isGestorStock && (field === 'quantity' || field === 'minStock')) {
-			            isEditable = true;
-			        } else if (isVendedor && field !== 'minStock' && !isStockMode) {
-			            isEditable = true;
-			        }
-			        
-			        if (isEditable && !cell.classList.contains('editing')) {
-			            const currentValue = cell.textContent.trim();
-			            cell.classList.add('editing');
-			
-			            let inputElement;
-			            
-			            try {
-			                if (field === 'brand') {
-			                    const wrapper = document.createElement('div');
-			                    wrapper.className = 'brand-input-wrapper';
-			                    
-			                    const input = document.createElement('input');
-			                    input.type = 'text';
-			                    input.className = 'form-control brand-input editable';
-			                    input.name = field;
-			                    input.value = currentValue;
-			                    input.autocomplete = 'off';
-			                    
-			                    const suggestionContainer = document.createElement('div');
-			                    suggestionContainer.className = 'brand-suggestions';
-			                    
-			                    wrapper.appendChild(input);
-			                    wrapper.appendChild(suggestionContainer);
-			                    
-			                    setupBrandAutocomplete(input, suggestionContainer);
-			                    inputElement = wrapper;
-			                } else if (field === 'material') {
-			                    const select = document.createElement('select');
-			                    select.className = 'form-control editable';
-			                    select.name = field;
-			                    
-			                    const materials = [
-			                        'Acero inoxidable',
-			                        'Hierro fundido',
-			                        'Caucho',
-			                        'Plástico reforzado',
-			                        'Aluminio',
-			                        'Otro'
-			                    ];
-			                    
-			                    const defaultOption = document.createElement('option');
-			                    defaultOption.value = '';
-			                    defaultOption.textContent = 'Seleccione el material';
-			                    defaultOption.selected = !currentValue;
-			                    select.appendChild(defaultOption);
-			                    
-			                    materials.forEach(material => {
-			                        const option = document.createElement('option');
-			                        option.value = material;
-			                        option.textContent = material;
-			                        option.selected = material === currentValue;
-			                        select.appendChild(option);
-			                    });
-			                    
-			                    inputElement = select;
-			                } else if (field === 'description' || field === 'installationRequirements' || field === 'compatibleModels') {
-			                    const textarea = document.createElement('textarea');
-			                    textarea.rows = 3;
-			                    textarea.className = 'form-control editable';
-			                    textarea.name = field;
-			                    textarea.value = currentValue;
-			                    textarea.placeholder = getPlaceholder(field);
-			                    inputElement = textarea;
-			                } else {
-			                    const input = document.createElement('input');
-			                    input.type = getInputType(field);
-			                    input.className = 'form-control editable';
-			                    input.name = field;
-			                    input.value = field === 'price' ? currentValue.replace('$', '') : currentValue;
-			                    input.placeholder = getPlaceholder(field);
-			                    
-			                    if (field === 'quantity') {
-			                        input.min = "1";
-			                        input.step = "1";
-			                    } else if (field === 'minStock') {
-			                        input.min = "0";
-			                        input.step = "1";
-			                    } else if (field === 'price' || field === 'weight') {
-			                        input.min = "0.01";
-			                        input.step = "0.01";
-			                    }
-			                    
-			                    inputElement = input;
-			                }
-			
-			                // Limpiar y agregar el nuevo elemento
-			                if (inputElement instanceof Node) {
-			                    cell.textContent = '';
-			                    cell.appendChild(inputElement);
-			                } else {
-			                    console.error('Error: inputElement no es un nodo DOM válido');
-			                }
-			
-			            } catch (error) {
-			                console.error('Error al crear el elemento de entrada:', error);
-			            }
-			        }
-			    });
-			
-			    editBtn.style.display = editBtn.style.display === 'none' ? '' : 'none';
-			    saveBtn.style.display = saveBtn.style.display === 'none' ? '' : 'none';
-			}
-			
+											        
+		let isEditable = false;
+		
+		if (isAdmin) {
+			isEditable = true;
+		} else if (isGestorStock && (field === 'quantity' || field === 'minStock')) {
+			isEditable = true;
+		} else if (isVendedor && field !== 'minStock' && !isStockMode) {
+			isEditable = true;
+		}
+		
+		if (isEditable && !cell.classList.contains('editing')) {
+			const currentValue = cell.textContent.trim();
+			cell.classList.add('editing');
+	
+			let inputElement;
 			
 			try {
-			    const savedBrands = localStorage.getItem('customBrands');
-			    if (savedBrands) {
-			        const parsedBrands = JSON.parse(savedBrands);
-			        parsedBrands.forEach(brand => {
-			            if (!brandsList.includes(brand)) {
-			                brandsList.push(brand);
-			            }
-			        });
-			    }
-			    brandsList = Array.from(new Set(brandsList)).sort();
-			    console.log('Marcas totales después de localStorage:', brandsList);
-			} catch (e) {
-			    console.error('Error cargando marcas:', e);
-			}
-			
-			function createSelect(field, currentValue) {
-				console.log("select");
-			    if (field === 'brand') {
-			        console.log('Creando campo de marca para:', currentValue);
-			        
-			        // Crear wrapper con posicionamiento relativo
-			        const wrapper = document.createElement('div');
-			        wrapper.className = 'brand-input-wrapper';
-			        wrapper.style.position = 'relative';
-			        wrapper.style.width = '100%';
-			
-			        // Crear input
-			        const input = document.createElement('input');
-			        input.type = 'text';
-			        input.className = 'form-control brand-input';
-			        input.name = field;
-			        input.value = currentValue;
-			        input.autocomplete = 'off';
-			        input.placeholder = 'Escriba para buscar una marca...';
-			
-			        // Crear contenedor de sugerencias
-			        const suggestionContainer = document.createElement('div');
-			        suggestionContainer.className = 'brand-suggestions';
-			        suggestionContainer.style.display = 'none';
-			        suggestionContainer.style.position = 'absolute';
-			        suggestionContainer.style.width = '100%';
-			        suggestionContainer.style.top = '100%';
-			        suggestionContainer.style.left = '0';
-			        suggestionContainer.style.zIndex = '1000';
-			        suggestionContainer.style.backgroundColor = '#fff';
-			        suggestionContainer.style.border = '1px solid #ced4da';
-			        suggestionContainer.style.borderTop = 'none';
-			        suggestionContainer.style.maxHeight = '200px';
-			        suggestionContainer.style.overflowY = 'auto';
-			        suggestionContainer.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
-			
-			        wrapper.appendChild(input);
-			        wrapper.appendChild(suggestionContainer);
-			
-			        // Configurar autocompletado
-			        setTimeout(() => {
-			            setupBrandAutocomplete(input, suggestionContainer);
-			        }, 0);
-			
-			        return wrapper;
-			    }
-			    // ... resto del código para otros campos ...
-			}
-			
-			function setupBrandAutocomplete(input, suggestionContainer) {
-	    if (!input || !suggestionContainer) {
-	        console.error("Input o contenedor de sugerencias faltante");
-	        return;
-	    }
-	
-	    let selectedIndex = -1;
-	
-	    function filterBrands(query) {
-	        query = query.toLowerCase().trim();
-	        
-	        // Si no hay consulta, no mostrar sugerencias
-	        if (!query) {
-	            return [];
-	        }
-	
-	        // Primero filtrar por la primera letra
-	        const firstChar = query.charAt(0);
-	        let filteredBrands = brandsList.filter(brand => 
-	            brand.toLowerCase().startsWith(firstChar)
-	        );
-	
-	        // Si hay más letras, refinar la búsqueda dentro de las marcas ya filtradas
-	        if (query.length > 1) {
-	            const restOfQuery = query.slice(1);
-	            filteredBrands = filteredBrands.filter(brand => {
-	                const brandLower = brand.toLowerCase();
-	                const brandRest = brandLower.slice(1);
-	                return brandRest.includes(restOfQuery);
-	            });
-	        }
-	
-	        console.log('Query:', query, 'Resultados:', filteredBrands); // Para debugging
-	        return filteredBrands;
-	    }
-	
-	    function showSuggestions(suggestions) {
-	        suggestionContainer.innerHTML = '';
-	        selectedIndex = -1;
-	
-	        if (suggestions.length > 0) {
-	            suggestions.forEach((brand, index) => {
-	                const div = document.createElement('div');
-	                div.className = 'suggestion-item';
-	                div.style.padding = '8px 12px';
-	                div.style.cursor = 'pointer';
-	                div.style.borderBottom = '1px solid #eee';
-	
-	                // Resaltar la parte coincidente
-	                const query = input.value.toLowerCase();
-	                const brandLower = brand.toLowerCase();
-	                const matchIndex = brandLower.indexOf(query);
-	                
-	                if (matchIndex >= 0) {
-	                    const before = brand.slice(0, matchIndex);
-	                    const match = brand.slice(matchIndex, matchIndex + query.length);
-	                    const after = brand.slice(matchIndex + query.length);
-	                    div.innerHTML = before + '<strong>' + match + '</strong>' + after;
-		                } else {
-		                    div.textContent = brand;
-		                }
-		
-		                div.addEventListener('mouseenter', () => {
-		                    selectedIndex = index;
-		                    updateSelectedSuggestion();
-		                });
-		
-		                div.addEventListener('click', () => {
-		                    input.value = brand;
-		                    suggestionContainer.style.display = 'none';
-		                    input.focus();
-		                });
-		
-		                suggestionContainer.appendChild(div);
+				if (field === 'brand') {
+					const wrapper = document.createElement('div');
+					wrapper.className = 'brand-input-wrapper';
+					
+					const input = document.createElement('input');
+					input.type = 'text';
+					input.className = 'form-control brand-input editable';
+					input.name = field;
+					input.value = currentValue;
+					input.autocomplete = 'off';
+					
+					const suggestionContainer = document.createElement('div');
+					suggestionContainer.className = 'brand-suggestions';
+					
+					wrapper.appendChild(input);
+					wrapper.appendChild(suggestionContainer);
+					
+					setupBrandAutocomplete(input, suggestionContainer);
+					inputElement = wrapper;
+				} else if (field === 'material') {
+		            const select = document.createElement('select');
+		            select.className = 'form-control editable';
+		            select.name = field;
+		            
+		            // Opción por defecto
+		            const defaultOption = document.createElement('option');
+		            defaultOption.value = '';
+		            defaultOption.textContent = 'Seleccione el material';
+		            defaultOption.selected = !currentValue;
+		            select.appendChild(defaultOption);
+		            
+		            // Agregar todas las opciones de materiales
+		            materialsList.forEach(material => {
+		                const option = document.createElement('option');
+		                option.value = material;
+		                option.textContent = material;
+		                option.selected = material === currentValue;
+		                select.appendChild(option);
 		            });
-		            suggestionContainer.style.display = 'block';
-		        } else {
-		            suggestionContainer.style.display = 'none';
-		        }
-		    }
-				
-				    function updateSelectedSuggestion() {
-				        const items = suggestionContainer.querySelectorAll('.suggestion-item');
-				        items.forEach((item, index) => {
-				            if (index === selectedIndex) {
-				                item.style.backgroundColor = '#e9ecef';
-				            } else {
-				                item.style.backgroundColor = '';
-				            }
-				        });
-				
-				        if (selectedIndex >= 0 && items[selectedIndex]) {
-				            items[selectedIndex].scrollIntoView({ block: 'nearest' });
-				        }
-				    }
-			 let debounceTimer;
-				input.addEventListener('input', (e) => {
-					clearTimeout(debounceTimer);
-					debounceTimer = setTimeout(() => {
-						const query = e.target.value;
-						const suggestions = filterBrands(query);
-						showSuggestions(suggestions);
-					}, 150); // 150ms de retraso
-				});
-				
-				    // Event Listeners
-				    input.addEventListener('input', (e) => {
-				        const query = e.target.value;
-				        const suggestions = filterBrands(query);
-				        showSuggestions(suggestions);
-				    });
-				
-				    input.addEventListener('focus', () => {
-				        if (input.value) {
-				            const suggestions = filterBrands(input.value);
-				            showSuggestions(suggestions);
-				        }
-				    });
-				
-				    input.addEventListener('keydown', (e) => {
-				        const items = suggestionContainer.querySelectorAll('.suggestion-item');
-				        
-				        switch(e.key) {
-				            case 'ArrowDown':
-				                e.preventDefault();
-				                selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
-				                if (selectedIndex === -1 && items.length > 0) selectedIndex = 0;
-				                updateSelectedSuggestion();
-				                break;
-				
-				            case 'ArrowUp':
-				                e.preventDefault();
-				                selectedIndex = Math.max(selectedIndex - 1, 0);
-				                updateSelectedSuggestion();
-				                break;
-				
-				            case 'Enter':
-				                e.preventDefault();
-				                if (selectedIndex >= 0 && items[selectedIndex]) {
-				                    input.value = items[selectedIndex].textContent;
-				                    suggestionContainer.style.display = 'none';
-				                }
-				                break;
-				
-				            case 'Escape':
-				                suggestionContainer.style.display = 'none';
-				                break;
-				        }
-				    });
-				
-				    // Cerrar sugerencias al hacer clic fuera
-				    document.addEventListener('click', (e) => {
-				        if (!input.contains(e.target) && !suggestionContainer.contains(e.target)) {
-				            suggestionContainer.style.display = 'none';
-				        }
-				    });
-				
-				    // Manejar el valor al perder el foco
-				    input.addEventListener('blur', () => {
-				        setTimeout(() => {
-				            if (!suggestionContainer.contains(document.activeElement)) {
-				                if (input.value) {
-				                    const formattedBrand = capitalizeWords(input.value);
-				                    input.value = formattedBrand;
-				                    
-				                    if (!brandsList.includes(formattedBrand)) {
-				                        brandsList.push(formattedBrand);
-				                        brandsList.sort();
-				                        try {
-				                            const savedBrands = JSON.parse(localStorage.getItem('customBrands') || '[]');
-				                            if (!savedBrands.includes(formattedBrand)) {
-				                                savedBrands.push(formattedBrand);
-				                                localStorage.setItem('customBrands', JSON.stringify(savedBrands));
-				                            }
-				                        } catch (e) {
-				                            console.error('Error guardando marca:', e);
-				                        }
-				                    }
-				                }
-				                suggestionContainer.style.display = 'none';
-				            }
-				        }, 200);
-				    });
-				}
-				
-				function capitalizeWords(str) {
-				    return str.split(' ')
-				        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-				        .join(' ');
-				}
-										
-										    
-					function getInputType(field) {
-						const types = {
-							quantity: 'number',
-							minStock: 'number',
-							price: 'number',
-							weight: 'number',
-							estimatedLifeHours: 'number',
-							default: 'text'
-						};
-						return types[field] || types.default;
-					}
-																						
-			function getPlaceholder(field) {
-		    const placeholders = {
-		        name: 'Ej: Filtro de aire, Cuchilla, Disco de siembra',
-		        partNumber: 'Código único del fabricante',
-		        brand: 'Marca del repuesto',
-		        quantity: 'Cantidad disponible',
-		        minStock: 'Stock mínimo',
-		        price: 'Precio en $',
-		        description: 'Descripción detallada del repuesto',
-		        compatibleModels: 'Liste los modelos de máquinas compatibles',
-		        dimensions: 'Ej: 100 x 50 x 25 mm',
-		        weight: 'Peso en kg',
-		        estimatedLifeHours: 'Horas de uso estimadas',
-		        mountingType: 'Tipo de montaje',
-		        installationRequirements: 'Herramientas y procedimientos necesarios'
-		    };
-		    return placeholders[field] || '';
-		}
-																									
-													                function toggleStatus(button) {
-													                    const currentStatus = button.dataset.status === '1';
-													                    const newStatus = currentStatus ? '0' : '1';
-													                    
-													                    const row = button.closest('tr');
-													                    const id = row.dataset.id;
-													                    const formData = new FormData();
-													                    const csrfToken = row.querySelector('.csrf-token').value;
-													                    
-													                    formData.append('isEnabled', newStatus);
-													                    formData.append('_token', csrfToken);
-													                    
-													                    fetch('{{ path('product_toggle_status', {'id': '__id__'}) }}'.replace('__id__', id), {
-													                        method: 'POST',
-													                        body: formData
-													                    })
-													                    .then(response => {
-													                        if (!response.ok) {
-													                            return response.text().then(text => {
-													                                console.error('Respuesta no-JSON:', text);
-													                                throw new Error('Error en la respuesta del servidor');
-													                            });
-													                        }
-													                        return response.json();
-													                    })
-													                    .then(data => {
-													                        if (data.success) {
-													                            button.dataset.status = newStatus;
-													                            button.textContent = newStatus === '0' ? 'Deshabilitado' : 'Habilitado';
-													                            button.className = `btn ${newStatus === '0' ? 'btn-danger' : 'btn-success'} toggle-status`;
-													                            window.location.reload();
-													                        } else {
-													                            throw new Error(data.message || 'Error al actualizar el estado');
-													                        }
-													                    })
-													                    .catch(error => {
-													                        console.error('Error:', error);
-													                        alert('Error al actualizar el estado del producto: ' + error.message);
-													                    });
-													                }
-																									
-													            function validateAndSave(row) {
-													                    const errors = [];
-													                    const fields = row.querySelectorAll('.editable-cell input, .editable-cell select, .editable-cell textarea');
-													                    
-													                    fields.forEach(field => {
-													                        const fieldName = field.name;
-													                        const value = field.value.trim();
-													                        
-													                        // Validaciones generales
-													                        if (field.required && value === '') {
-													                            errors.push(`El campo ${fieldName} es obligatorio`);
-													                            markFieldAsInvalid(field);
-													                            return;
-													                        }
-													                
-													                        // Validaciones específicas por campo
-													                        switch(fieldName) {
-													                            case 'name':
-													                            case 'partNumber':
-													                            case 'brand':
-													                                if (value.length < 3) {
-													                                    errors.push(`${fieldName} debe tener al menos 3 caracteres`);
-													                                    markFieldAsInvalid(field);
-													                                }
-													                                break;
-													                            case 'quantity':
-													                                if (parseInt(value) < 1) {
-													                                    errors.push('La cantidad debe ser mayor que cero');
-													                                    markFieldAsInvalid(field);
-													                                }
-													                                break;
-													                            case 'minStock':
-													                                if (parseInt(value) < 0) {
-													                                    errors.push('El stock mínimo no puede ser negativo');
-													                                    markFieldAsInvalid(field);
-													                                }
-													                                break;
-													                            case 'price':
-													                                if (parseFloat(value) <= 0) {
-													                                    errors.push('El precio debe ser mayor que cero');
-													                                    markFieldAsInvalid(field);
-													                                }
-													                                break;
-													                            case 'description':
-													                                if (value.length < 10) {
-													                                    errors.push('La descripción debe tener al menos 10 caracteres');
-													                                    markFieldAsInvalid(field);
-													                                }
-													                                break;
-													                            case 'compatibleModels':
-													                                if (value.length < 5) {
-													                                    errors.push('Debe especificar al menos un modelo compatible');
-													                                    markFieldAsInvalid(field);
-													                                }
-													                                break;
-													                            case 'dimensions':
-													                                if (value && !value.match(/^\d+(?:\s*x\s*\d+(?:\s*x\s*\d+)?)?$/)) {
-													                                    errors.push('Formato de dimensiones inválido (ej: 100 x 50 x 25)');
-													                                    markFieldAsInvalid(field);
-													                                }
-													                                break;
-													                            case 'weight':
-													                                if (value && parseFloat(value) <= 0) {
-													                                    errors.push('El peso debe ser mayor que cero');
-													                                    markFieldAsInvalid(field);
-													                                }
-													                                break;
-													                            case 'estimatedLifeHours':
-													                                if (value && parseInt(value) <= 0) {
-													                                    errors.push('Las horas estimadas deben ser mayores que cero');
-													                                    markFieldAsInvalid(field);
-													                                }
-													                                break;
-													                        }
-													                    });
-													                
-													                        if (errors.length > 0) {
-													                            showErrors(errors);
-													                            return false;
-													                        }
-													                    
-													                        saveChanges(row);
-													                        return true;
-													                }
-																									
-													        function markFieldAsInvalid(input) {
-													            input.classList.add('is-invalid');
-													            input.classList.remove('is-valid');
-													        }
-													                
-													        function markFieldAsValid(input) {
-													            input.classList.add('is-valid');
-													            input.classList.remove('is-invalid');
-													        }
-													                
-													        function showErrors(errors) {
-													            if (typeof $('#errorModal').modal === 'function') {
-													                const errorList = document.getElementById('errorList');
-													                errorList.innerHTML = '';
-													                
-													                errors.forEach(error => {
-													                    const li = document.createElement('li');
-													                    li.textContent = error;
-													                    errorList.appendChild(li);
-													                });
-													                
-													                $('#errorModal').modal('show');
-													            } else {
-													                alert('Errores de validación:\n- ' + errors.join('\n- '));
-													            }
-													        }
-													                
-						function saveChanges(row) {
-						const id = row.dataset.id;
-						const formData = new FormData();
-						const csrfToken = row.querySelector('.csrf-token').value;
-						const saveBtn = row.querySelector('.save-btn');
-						
-						if (saveBtn) saveBtn.classList.add('loading');
-						
-						// Obtener todos los campos editables
-						const editableCells = row.querySelectorAll('.editable-cell.editing');
-						editableCells.forEach(cell => {
-							const field = cell.dataset.field;
-							const input = cell.querySelector('input, select, textarea');
-							
-							if (input) {
-								if (input.tagName === 'SELECT') {
-									// Para selectores, guardar tanto el valor como el texto visible
-									const selectedOption = input.options[input.selectedIndex];
-									formData.append(field, input.value);
-									formData.append(field + '_text', selectedOption ? selectedOption.textContent : '');
-								} else {
-									formData.append(field, input.value);
-								}
-							}
-						});
-					
-						// Agregar el estado si existe
-						const statusBtn = row.querySelector('.toggle-status');
-						if (statusBtn) {
-							formData.append('isEnabled', statusBtn.dataset.status);
-						}
-					
-						formData.append('_token', csrfToken);
-					
-						fetch('{{ path('product_edit', {'id': '__id__'}) }}'.replace('__id__', id), {
-							method: 'POST',
-							body: formData
-						})
-						.then(response => {
-							if (!response.ok) {
-								throw new Error('Error en la respuesta del servidor');
-							}
-							return response.json();
-						})
-						.then(data => {
-							if (data.success) {
-								// Actualizar la UI con los nuevos valores
-								editableCells.forEach(cell => {
-									const field = cell.dataset.field;
-									const input = cell.querySelector('input, select, textarea');
+		
+		            // Evento para guardar nuevos materiales
+		            select.addEventListener('change', function() {
+		                const newMaterial = this.value;
+		                if (newMaterial && !materialsList.includes(newMaterial)) {
+		                    materialsList.push(newMaterial);
+		                    materialsList.sort();
+		                    
+		                    try {
+		                        const savedMaterials = JSON.parse(localStorage.getItem('customMaterials') || '[]');
+		                        if (!savedMaterials.includes(newMaterial)) {
+		                            savedMaterials.push(newMaterial);
+		                            localStorage.setItem('customMaterials', JSON.stringify(savedMaterials));
+		                            console.log(`[${currentDate}] New material saved: ${newMaterial} - User: ${currentUser}`);
+		                        }
+		                    } catch (e) {
+		                        console.error(`[${currentDate}] Error saving material - User: ${currentUser}:`, e);
+		                    }
+		                }
+		            });
+		            
+		            inputElement = select;
+		        } else if (field === 'description' || field === 'installationRequirements' || field === 'compatibleModels') {
+											                    const textarea = document.createElement('textarea');
+											                    textarea.rows = 3;
+											                    textarea.className = 'form-control editable';
+											                    textarea.name = field;
+											                    textarea.value = currentValue;
+											                    textarea.placeholder = getPlaceholder(field);
+											                    inputElement = textarea;
+											                } else {
+											                    const input = document.createElement('input');
+											                    input.type = getInputType(field);
+											                    input.className = 'form-control editable';
+											                    input.name = field;
+											                    input.value = field === 'price' ? currentValue.replace('$', '') : currentValue;
+											                    input.placeholder = getPlaceholder(field);
+											                    
+											                    if (field === 'quantity') {
+											                        input.min = "1";
+											                        input.step = "1";
+											                    } else if (field === 'minStock') {
+											                        input.min = "0";
+											                        input.step = "1";
+											                    } else if (field === 'price' || field === 'weight') {
+											                        input.min = "0.01";
+											                        input.step = "0.01";
+											                    }
+											                    
+											                    inputElement = input;
+											                }
+											
+											                // Limpiar y agregar el nuevo elemento
+											                if (inputElement instanceof Node) {
+											                    cell.textContent = '';
+											                    cell.appendChild(inputElement);
+											                } else {
+											                    console.error('Error: inputElement no es un nodo DOM válido');
+											                }
+											
+											            } catch (error) {
+											                console.error('Error al crear el elemento de entrada:', error);
+											            }
+											        }
+											    });
+											
+											    editBtn.style.display = editBtn.style.display === 'none' ? '' : 'none';
+											    saveBtn.style.display = saveBtn.style.display === 'none' ? '' : 'none';
+											}
+											
+											
+											try {
+											    const savedBrands = localStorage.getItem('customBrands');
+											    if (savedBrands) {
+											        const parsedBrands = JSON.parse(savedBrands);
+											        parsedBrands.forEach(brand => {
+											            if (!brandsList.includes(brand)) {
+											                brandsList.push(brand);
+											            }
+											        });
+											    }
+											    brandsList = Array.from(new Set(brandsList)).sort();
+											} catch (e) {
+											    console.error('Error cargando marcas:', e);
+											}
+											
+											function createSelect(field, currentValue) {
+											    if (field === 'brand') {
+											        
+											        // Crear wrapper con posicionamiento relativo
+											        const wrapper = document.createElement('div');
+											        wrapper.className = 'brand-input-wrapper';
+											        wrapper.style.position = 'relative';
+											        wrapper.style.width = '100%';
+											
+											        // Crear input
+											        const input = document.createElement('input');
+											        input.type = 'text';
+											        input.className = 'form-control brand-input';
+											        input.name = field;
+											        input.value = currentValue;
+											        input.autocomplete = 'off';
+											        input.placeholder = 'Escriba para buscar una marca...';
+											
+											        // Crear contenedor de sugerencias
+											        const suggestionContainer = document.createElement('div');
+											        suggestionContainer.className = 'brand-suggestions';
+											        suggestionContainer.style.display = 'none';
+											        suggestionContainer.style.position = 'absolute';
+											        suggestionContainer.style.width = '100%';
+											        suggestionContainer.style.top = '100%';
+											        suggestionContainer.style.left = '0';
+											        suggestionContainer.style.zIndex = '1000';
+											        suggestionContainer.style.backgroundColor = '#fff';
+											        suggestionContainer.style.border = '1px solid #ced4da';
+											        suggestionContainer.style.borderTop = 'none';
+											        suggestionContainer.style.maxHeight = '200px';
+											        suggestionContainer.style.overflowY = 'auto';
+											        suggestionContainer.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+											
+											        wrapper.appendChild(input);
+											        wrapper.appendChild(suggestionContainer);
+											
+											        // Configurar autocompletado
+											        setTimeout(() => {
+											            setupBrandAutocomplete(input, suggestionContainer);
+											        }, 0);
+											
+											        return wrapper;
+											    }
+											    // ... resto del código para otros campos ...
+											}
+											
+											function setupBrandAutocomplete(input, suggestionContainer) {
+									    if (!input || !suggestionContainer) {
+									        console.error("Input o contenedor de sugerencias faltante");
+									        return;
+									    }
 									
-									if (input) {
-										if (input.tagName === 'SELECT') {
-											const selectedOption = input.options[input.selectedIndex];
-											cell.textContent = selectedOption ? selectedOption.textContent : '';
-										} else if (field === 'price') {
-											cell.textContent = '$' + input.value;
-										} else {
-											cell.textContent = input.value;
-										}
-									}
+									    let selectedIndex = -1;
 									
-									cell.classList.remove('editing');
-								});
+									    function filterBrands(query) {
+									        query = query.toLowerCase().trim();
+									        
+									        // Si no hay consulta, no mostrar sugerencias
+									        if (!query) {
+									            return [];
+									        }
+									
+									        // Primero filtrar por la primera letra
+									        const firstChar = query.charAt(0);
+									        let filteredBrands = brandsList.filter(brand => 
+									            brand.toLowerCase().startsWith(firstChar)
+									        );
+									
+									        // Si hay más letras, refinar la búsqueda dentro de las marcas ya filtradas
+									        if (query.length > 1) {
+									            const restOfQuery = query.slice(1);
+									            filteredBrands = filteredBrands.filter(brand => {
+									                const brandLower = brand.toLowerCase();
+									                const brandRest = brandLower.slice(1);
+									                return brandRest.includes(restOfQuery);
+									            });
+									        }
+									        return filteredBrands;
+									    }
+									
+									    function showSuggestions(suggestions) {
+									        suggestionContainer.innerHTML = '';
+									        selectedIndex = -1;
+									
+									        if (suggestions.length > 0) {
+									            suggestions.forEach((brand, index) => {
+									                const div = document.createElement('div');
+									                div.className = 'suggestion-item';
+									                div.style.padding = '8px 12px';
+									                div.style.cursor = 'pointer';
+									                div.style.borderBottom = '1px solid #eee';
+									
+									                // Resaltar la parte coincidente
+									                const query = input.value.toLowerCase();
+									                const brandLower = brand.toLowerCase();
+									                const matchIndex = brandLower.indexOf(query);
+									                
+									                if (matchIndex >= 0) {
+									                    const before = brand.slice(0, matchIndex);
+									                    const match = brand.slice(matchIndex, matchIndex + query.length);
+									                    const after = brand.slice(matchIndex + query.length);
+									                    div.innerHTML = before + '<strong>' + match + '</strong>' + after;
+																		                } else {
+																		                    div.textContent = brand;
+																		                }
+																		
+																		                div.addEventListener('mouseenter', () => {
+																		                    selectedIndex = index;
+																		                    updateSelectedSuggestion();
+																		                });
+																		
+																		                div.addEventListener('click', () => {
+																		                    input.value = brand;
+																		                    suggestionContainer.style.display = 'none';
+																		                    input.focus();
+																		                });
+																		
+																		                suggestionContainer.appendChild(div);
+																		            });
+																		            suggestionContainer.style.display = 'block';
+																		        } else {
+																		            suggestionContainer.style.display = 'none';
+																		        }
+																		    }
+																				
+																				    function updateSelectedSuggestion() {
+																				        const items = suggestionContainer.querySelectorAll('.suggestion-item');
+																				        items.forEach((item, index) => {
+																				            if (index === selectedIndex) {
+																				                item.style.backgroundColor = '#e9ecef';
+																				            } else {
+																				                item.style.backgroundColor = '';
+																				            }
+																				        });
+																				
+																				        if (selectedIndex >= 0 && items[selectedIndex]) {
+																				            items[selectedIndex].scrollIntoView({ block: 'nearest' });
+																				        }
+																				    }
+																			 let debounceTimer;
+																				input.addEventListener('input', (e) => {
+																					clearTimeout(debounceTimer);
+																					debounceTimer = setTimeout(() => {
+																						const query = e.target.value;
+																						const suggestions = filterBrands(query);
+																						showSuggestions(suggestions);
+																					}, 150); // 150ms de retraso
+																				});
+																				
+																				    // Event Listeners
+																				    input.addEventListener('input', (e) => {
+																				        const query = e.target.value;
+																				        const suggestions = filterBrands(query);
+																				        showSuggestions(suggestions);
+																				    });
+																				
+																				    input.addEventListener('focus', () => {
+																				        if (input.value) {
+																				            const suggestions = filterBrands(input.value);
+																				            showSuggestions(suggestions);
+																				        }
+																				    });
+																				
+																				    input.addEventListener('keydown', (e) => {
+																				        const items = suggestionContainer.querySelectorAll('.suggestion-item');
+																				        
+																				        switch(e.key) {
+																				            case 'ArrowDown':
+																				                e.preventDefault();
+																				                selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+																				                if (selectedIndex === -1 && items.length > 0) selectedIndex = 0;
+																				                updateSelectedSuggestion();
+																				                break;
+																				
+																				            case 'ArrowUp':
+																				                e.preventDefault();
+																				                selectedIndex = Math.max(selectedIndex - 1, 0);
+																				                updateSelectedSuggestion();
+																				                break;
+																				
+																				            case 'Enter':
+																				                e.preventDefault();
+																				                if (selectedIndex >= 0 && items[selectedIndex]) {
+																				                    input.value = items[selectedIndex].textContent;
+																				                    suggestionContainer.style.display = 'none';
+																				                }
+																				                break;
+																				
+																				            case 'Escape':
+																				                suggestionContainer.style.display = 'none';
+																				                break;
+																				        }
+																				    });
+																				
+																				    // Cerrar sugerencias al hacer clic fuera
+																				    document.addEventListener('click', (e) => {
+																				        if (!input.contains(e.target) && !suggestionContainer.contains(e.target)) {
+																				            suggestionContainer.style.display = 'none';
+																				        }
+																				    });
+																				
+																				    // Manejar el valor al perder el foco
+																				    input.addEventListener('blur', () => {
+																				        setTimeout(() => {
+																				            if (!suggestionContainer.contains(document.activeElement)) {
+																				                if (input.value) {
+																				                    const formattedBrand = capitalizeWords(input.value);
+																				                    input.value = formattedBrand;
+																				                    
+																				                    if (!brandsList.includes(formattedBrand)) {
+																				                        brandsList.push(formattedBrand);
+																				                        brandsList.sort();
+																				                        try {
+																				                            const savedBrands = JSON.parse(localStorage.getItem('customBrands') || '[]');
+																				                            if (!savedBrands.includes(formattedBrand)) {
+																				                                savedBrands.push(formattedBrand);
+																				                                localStorage.setItem('customBrands', JSON.stringify(savedBrands));
+																				                            }
+																				                        } catch (e) {
+																				                            console.error('Error guardando marca:', e);
+																				                        }
+																				                    }
+																				                }
+																				                suggestionContainer.style.display = 'none';
+																				            }
+																				        }, 200);
+																				    });
+																				}
+																				
+																				function capitalizeWords(str) {
+																				    return str.split(' ')
+																				        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+																				        .join(' ');
+																				}
+																										
+																										    
+																					function getInputType(field) {
+																						const types = {
+																							quantity: 'number',
+																							minStock: 'number',
+																							price: 'number',
+																							weight: 'number',
+																							estimatedLifeHours: 'number',
+																							default: 'text'
+																						};
+																						return types[field] || types.default;
+																					}
+																																						
+																			function getPlaceholder(field) {
+																		    const placeholders = {
+																		        name: 'Ej: Filtro de aire, Cuchilla, Disco de siembra',
+																		        partNumber: 'Código único del fabricante',
+																		        brand: 'Marca del repuesto',
+																		        quantity: 'Cantidad disponible',
+																		        minStock: 'Stock mínimo',
+																		        price: 'Precio en $',
+																		        description: 'Descripción detallada del repuesto',
+																		        compatibleModels: 'Liste los modelos de máquinas compatibles',
+																		        dimensions: 'Ej: 100 x 50 x 25 mm',
+																		        weight: 'Peso en kg',
+																		        estimatedLifeHours: 'Horas de uso estimadas',
+																		        mountingType: 'Tipo de montaje',
+																		        installationRequirements: 'Herramientas y procedimientos necesarios'
+																		    };
+																		    return placeholders[field] || '';
+																		}
+																																									
+																													                function toggleStatus(button) {
+																													                    const currentStatus = button.dataset.status === '1';
+																													                    const newStatus = currentStatus ? '0' : '1';
+																													                    
+																													                    const row = button.closest('tr');
+																													                    const id = row.dataset.id;
+																													                    const formData = new FormData();
+																													                    const csrfToken = row.querySelector('.csrf-token').value;
+																													                    
+																													                    formData.append('isEnabled', newStatus);
+																													                    formData.append('_token', csrfToken);
+																													                    
+																													                    fetch('{{ path('product_toggle_status', {'id': '__id__'}) }}'.replace('__id__', id), {
+																													                        method: 'POST',
+																													                        body: formData
+																													                    })
+																													                    .then(response => {
+																													                        if (!response.ok) {
+																													                            return response.text().then(text => {
+																													                                console.error('Respuesta no-JSON:', text);
+																													                                throw new Error('Error en la respuesta del servidor');
+																													                            });
+																													                        }
+																													                        return response.json();
+																													                    })
+																													                    .then(data => {
+																													                        if (data.success) {
+																													                            button.dataset.status = newStatus;
+																													                            button.textContent = newStatus === '0' ? 'Deshabilitado' : 'Habilitado';
+																													                            button.className = `btn ${newStatus === '0' ? 'btn-danger' : 'btn-success'} toggle-status`;
+																													                            window.location.reload();
+																													                        } else {
+																													                            throw new Error(data.message || 'Error al actualizar el estado');
+																													                        }
+																													                    })
+																													                    .catch(error => {
+																													                        console.error('Error:', error);
+																													                        alert('Error al actualizar el estado del producto: ' + error.message);
+																													                    });
+																													                }
+																																									
+																													            function validateAndSave(row) {
+																													                    const errors = [];
+																													                    const fields = row.querySelectorAll('.editable-cell input, .editable-cell select, .editable-cell textarea');
+																													                    
+																													                    fields.forEach(field => {
+																													                        const fieldName = field.name;
+																													                        const value = field.value.trim();
+																													                        
+																													                        // Validaciones generales
+																													                        if (field.required && value === '') {
+																													                            errors.push(`El campo ${fieldName} es obligatorio`);
+																													                            markFieldAsInvalid(field);
+																													                            return;
+																													                        }
+																													                
+																													                        // Validaciones específicas por campo
+																													                        switch(fieldName) {
+																													                            case 'name':
+																													                            case 'partNumber':
+																													                            case 'brand':
+																													                                if (value.length < 3) {
+																													                                    errors.push(`${fieldName} debe tener al menos 3 caracteres`);
+																													                                    markFieldAsInvalid(field);
+																													                                }
+																													                                break;
+																													                            case 'quantity':
+																													                                if (parseInt(value) < 1) {
+																													                                    errors.push('La cantidad debe ser mayor que cero');
+																													                                    markFieldAsInvalid(field);
+																													                                }
+																													                                break;
+																													                            case 'minStock':
+																													                                if (parseInt(value) < 0) {
+																													                                    errors.push('El stock mínimo no puede ser negativo');
+																													                                    markFieldAsInvalid(field);
+																													                                }
+																													                                break;
+																													                            case 'price':
+																													                                if (parseFloat(value) <= 0) {
+																													                                    errors.push('El precio debe ser mayor que cero');
+																													                                    markFieldAsInvalid(field);
+																													                                }
+																													                                break;
+																													                            case 'description':
+																													                                if (value.length < 10) {
+																													                                    errors.push('La descripción debe tener al menos 10 caracteres');
+																													                                    markFieldAsInvalid(field);
+																													                                }
+																													                                break;
+																													                            case 'compatibleModels':
+																													                                if (value.length < 5) {
+																													                                    errors.push('Debe especificar al menos un modelo compatible');
+																													                                    markFieldAsInvalid(field);
+																													                                }
+																													                                break;
+																													                            case 'dimensions':
+																													                                if (value && !value.match(/^\d+(?:\s*x\s*\d+(?:\s*x\s*\d+)?)?$/)) {
+																													                                    errors.push('Formato de dimensiones inválido (ej: 100 x 50 x 25)');
+																													                                    markFieldAsInvalid(field);
+																													                                }
+																													                                break;
+																													                            case 'weight':
+																													                                if (value && parseFloat(value) <= 0) {
+																													                                    errors.push('El peso debe ser mayor que cero');
+																													                                    markFieldAsInvalid(field);
+																													                                }
+																													                                break;
+																													                            case 'estimatedLifeHours':
+																													                                if (value && parseInt(value) <= 0) {
+																													                                    errors.push('Las horas estimadas deben ser mayores que cero');
+																													                                    markFieldAsInvalid(field);
+																													                                }
+																													                                break;
+																													                        }
+																													                    });
+																													                
+																													                        if (errors.length > 0) {
+																													                            showErrors(errors);
+																													                            return false;
+																													                        }
+																													                    
+																													                        saveChanges(row);
+																													                        return true;
+																													                }
+																																									
+																													        function markFieldAsInvalid(input) {
+																													            input.classList.add('is-invalid');
+																													            input.classList.remove('is-valid');
+																													        }
+																													                
+																													        function markFieldAsValid(input) {
+																													            input.classList.add('is-valid');
+																													            input.classList.remove('is-invalid');
+																													        }
+																													                
+																													        function showErrors(errors) {
+																													            if (typeof $('#errorModal').modal === 'function') {
+																													                const errorList = document.getElementById('errorList');
+																													                errorList.innerHTML = '';
+																													                
+																													                errors.forEach(error => {
+																													                    const li = document.createElement('li');
+																													                    li.textContent = error;
+																													                    errorList.appendChild(li);
+																													                });
+																													                
+																													                $('#errorModal').modal('show');
+																													            } else {
+																													                alert('Errores de validación:\n- ' + errors.join('\n- '));
+																													            }
+																													        }
+																													                
+					function saveChanges(row) {
+					const id = row.dataset.id;
+					const formData = new FormData();
+					const csrfToken = row.querySelector('.csrf-token').value;
+					const saveBtn = row.querySelector('.save-btn');
 					
-								// Mostrar/ocultar botones
-								const editBtn = row.querySelector('.edit-btn');
-								if (editBtn) editBtn.style.display = '';
-								if (saveBtn) {
-									saveBtn.style.display = 'none';
-									saveBtn.classList.remove('loading');
-								}
+					if (saveBtn) saveBtn.classList.add('loading');
 					
-								// Actualizar el estado de stock si es necesario
-								if (data.needsRestock !== undefined) {
-									if (data.needsRestock) {
-										row.classList.add('low-stock');
-									} else {
-										row.classList.remove('low-stock');
-									}
-								}
-					
-								// Mostrar mensaje de éxito
-								const successMessage = document.createElement('div');
-								successMessage.className = 'alert alert-success';
-								successMessage.textContent = 'Producto actualizado correctamente';
-								row.closest('.stock-container').insertBefore(successMessage, row.closest('table'));
+					// Obtener todos los campos editables
+					const editableCells = row.querySelectorAll('.editable-cell.editing');
+					editableCells.forEach(cell => {
+								const field = cell.dataset.field;
+								const input = cell.querySelector('input, select, textarea');
 								
-								// Actualizar la página después de un breve delay
-								setTimeout(() => {
-									successMessage.remove();
-									window.location.reload();
-								}, 1500);
-							} else {
-								throw new Error(data.message || 'Error en la actualización');
-							}
-						})
-						.catch(error => {
-							console.error('Error:', error);
-							if (saveBtn) saveBtn.classList.remove('loading');
-							
-							const errorMessage = document.createElement('div');
-							errorMessage.className = 'alert alert-danger';
-							errorMessage.textContent = error.message;
-							row.closest('.stock-container').insertBefore(errorMessage, row.closest('table'));
-							
-							setTimeout(() => {
-								errorMessage.remove();
-							}, 5000);
-						});
-					}
-													                
-						function deleteProduct(productId, csrfToken) {
-								if (confirm('¿Estás seguro de que quieres eliminar este producto?')) {
-									const formData = new FormData();
-									formData.append('_token', csrfToken);
-									
-									fetch('/product/' + productId, {
-										method: 'POST',
-										body: formData
-									})
-									.then(response => {
-										if (response.ok) {
-											window.location.href = '/stock/view';
-										} else {
-											throw new Error('Error al eliminar el producto');
+								if (input) {
+									if (field === 'material') {
+										const selectedMaterial = input.value;
+										formData.append(field, selectedMaterial);
+										
+										// Guardar nuevo material si no existe
+										if (selectedMaterial && !materialsList.includes(selectedMaterial)) {
+											try {
+												const savedMaterials = JSON.parse(localStorage.getItem('customMaterials') || '[]');
+												if (!savedMaterials.includes(selectedMaterial)) {
+													savedMaterials.push(selectedMaterial);
+													localStorage.setItem('customMaterials', JSON.stringify(savedMaterials));
+													console.log(`[${currentDate}] New material saved during edit: ${selectedMaterial} - User: ${currentUser}`);
+												}
+											} catch (e) {
+												console.error(`[${currentDate}] Error saving material during edit - User: ${currentUser}:`, e);
+											}
 										}
-									})
-									.catch(error => {
-										console.error('Error:', error);
-										alert('Error al eliminar el producto: ' + error.message);
-									});
+									} else {
+										formData.append(field, input.value);
+									}
 								}
-							}
+							});
+																					
+																						// Agregar el estado si existe
+																						const statusBtn = row.querySelector('.toggle-status');
+																						if (statusBtn) {
+																							formData.append('isEnabled', statusBtn.dataset.status);
+																						}
+																					
+																						formData.append('_token', csrfToken);
+																					
+																						fetch('{{ path('product_edit', {'id': '__id__'}) }}'.replace('__id__', id), {
+																							method: 'POST',
+																							body: formData
+																						})
+																						.then(response => {
+																							if (!response.ok) {
+																								throw new Error('Error en la respuesta del servidor');
+																							}
+																							return response.json();
+																						})
+																						.then(data => {
+																							if (data.success) {
+																								// Actualizar la UI con los nuevos valores
+																								editableCells.forEach(cell => {
+																									const field = cell.dataset.field;
+																									const input = cell.querySelector('input, select, textarea');
+																									
+																									if (input) {
+																										if (input.tagName === 'SELECT') {
+																											const selectedOption = input.options[input.selectedIndex];
+																											cell.textContent = selectedOption ? selectedOption.textContent : '';
+																										} else if (field === 'price') {
+																											cell.textContent = '$' + input.value;
+																										} else {
+																											cell.textContent = input.value;
+																										}
+																									}
+																									
+																									cell.classList.remove('editing');
+																								});
+																					
+																								// Mostrar/ocultar botones
+																								const editBtn = row.querySelector('.edit-btn');
+																								if (editBtn) editBtn.style.display = '';
+																								if (saveBtn) {
+																									saveBtn.style.display = 'none';
+																									saveBtn.classList.remove('loading');
+																								}
+																					
+																								// Actualizar el estado de stock si es necesario
+																								if (data.needsRestock !== undefined) {
+																									if (data.needsRestock) {
+																										row.classList.add('low-stock');
+																									} else {
+																										row.classList.remove('low-stock');
+																									}
+																								}
+																					
+																								// Mostrar mensaje de éxito
+																								const successMessage = document.createElement('div');
+																								successMessage.className = 'alert alert-success';
+																								successMessage.textContent = 'Producto actualizado correctamente';
+																								row.closest('.stock-container').insertBefore(successMessage, row.closest('table'));
+																								
+																								// Actualizar la página después de un breve delay
+																								setTimeout(() => {
+																									successMessage.remove();
+																									window.location.reload();
+																								}, 1500);
+																							} else {
+																								throw new Error(data.message || 'Error en la actualización');
+																							}
+																						})
+																						.catch(error => {
+																							console.error('Error:', error);
+																							if (saveBtn) saveBtn.classList.remove('loading');
+																							
+																							const errorMessage = document.createElement('div');
+																							errorMessage.className = 'alert alert-danger';
+																							errorMessage.textContent = error.message;
+																							row.closest('.stock-container').insertBefore(errorMessage, row.closest('table'));
+																							
+																							setTimeout(() => {
+																								errorMessage.remove();
+																							}, 5000);
+																						});
+																					}
+																													                
+																						function deleteProduct(productId, csrfToken) {
+																								if (confirm('¿Estás seguro de que quieres eliminar este producto?')) {
+																									const formData = new FormData();
+																									formData.append('_token', csrfToken);
+																									
+																									fetch('/product/' + productId, {
+																										method: 'POST',
+																										body: formData
+																									})
+																									.then(response => {
+																										if (response.ok) {
+																											window.location.href = '/stock/view';
+																										} else {
+																											throw new Error('Error al eliminar el producto');
+																										}
+																									})
+																									.catch(error => {
+																										console.error('Error:', error);
+																										alert('Error al eliminar el producto: ' + error.message);
+																									});
+																								}
+																							}
+																
+															document.addEventListener('DOMContentLoaded', function() {
+										    // Obtener la lista inicial de marcas del servidor
+										    let listaMarcas = Array.from(new Set({{ sparePartsBrands|json_encode|raw }}));
+										    
+										    // Cargar marcas adicionales desde localStorage
+										    try {
+										        const savedBrands = localStorage.getItem('customBrands');
+										        if (savedBrands) {
+										            const parsedBrands = JSON.parse(savedBrands);
+										            parsedBrands.forEach(brand => {
+										                if (!listaMarcas.includes(brand)) {
+										                    listaMarcas.push(brand);
+										                }
+										            });
+										        }
+										    } catch (e) {
+										        console.error('Error loading saved brands:', e);
+										    }
+										
+										    // Ordenar la lista completa
+										    listaMarcas.sort();
+										    
+										    // Poblar el select de marcas
+										    const brandFilter = document.getElementById('brandFilter');
+										    
+										    // Limpiar todas las opciones excepto la primera (Todas las marcas)
+										    while (brandFilter.options.length > 1) {
+										        brandFilter.remove(1);
+										    }
+										
+										    // Agregar las marcas ordenadas
+										    listaMarcas.forEach(brand => {
+										        const option = document.createElement('option');
+										        option.value = brand;
+										        option.textContent = brand;
+										        brandFilter.appendChild(option);
+										    });
+														
+														    // Función para filtrar la tabla
+														    function filterTable() {
+														        const nameFilter = document.getElementById('nameFilter').value.toLowerCase();
+														        const brandFilter = document.getElementById('brandFilter').value.toLowerCase();
+														        const rows = document.querySelectorAll('.stock-table tbody tr');
+														        let visibleRows = 0;
+														
+														        
+														
+														        rows.forEach(row => {
+														            if (row.classList.contains('no-products')) return;
+														
+														            const nameCell = row.querySelector('[data-field="name"]');
+														            const brandCell = row.querySelector('[data-field="brand"]');
+														            
+														            const name = nameCell ? nameCell.textContent.toLowerCase() : '';
+														            const brand = brandCell ? brandCell.textContent.toLowerCase() : '';
+														
+														            const nameMatch = name.includes(nameFilter);
+														            const brandMatch = !brandFilter || brand === brandFilter;
+														
+														            if (nameMatch && brandMatch) {
+														                row.style.display = '';
+														                visibleRows++;
+														            } else {
+														                row.style.display = 'none';
+														            }
+														        });
+														
+														        updateNoResultsMessage(visibleRows);
+														    }
+														
+														    function updateNoResultsMessage(visibleRows) {
+														        const tbody = document.querySelector('.stock-table tbody');
+														        let noResultsRow = document.querySelector('.no-results');
+														        
+														        if (visibleRows === 0) {
+														            if (!noResultsRow) {
+														                noResultsRow = document.createElement('tr');
+														                noResultsRow.className = 'no-results';
+														                noResultsRow.innerHTML = `
+	<td colspan="19" class="text-center">
+		No se encontraron productos que coincidan con los filtros
+	</td>`;
+							                tbody.appendChild(noResultsRow);
+							            } else {
+							                noResultsRow.style.display = '';
+							            }
+							        } else if (noResultsRow) {
+							            noResultsRow.style.display = 'none';
+							        }
+							    }
+							
+							    // Event listeners
+							    let timeout = null;
+							    const nameFilter = document.getElementById('nameFilter');
+							    
+							    nameFilter.addEventListener('input', function() {
+							        clearTimeout(timeout);
+							        timeout = setTimeout(() => {
+							            
+							            filterTable();
+							        }, 300);
+							    });
+							
+							    brandFilter.addEventListener('change', function() {
+							        
+							        filterTable();
+							    });
+							});
 </script>
 {% endblock %}
