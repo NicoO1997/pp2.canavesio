@@ -169,19 +169,8 @@
 								<i class="fas fa-shopping-cart"></i>
 								Agregar al Carrito
 							</a>
-							<a href="{{ path('app_login') }}" class="btn-guest">
-								<i class="fas fa-credit-card"></i>
-								Comprar Ahora
-							</a>
 						{% elseif is_granted('ROLE_USUARIO') %}
 							{% if product.quantity > 0 %}
-								<form action="{{ path('create-preference') }}" method="get" class="form-pago">
-									<input type="hidden" name="quantity" id="buyNowQuantity" value="1">
-									<button type="submit" class="btn-accion btn-pago">
-										<i class="fas fa-credit-card"></i>
-										Comprar Ahora
-									</button>
-								</form>
 
 								<a href="#" class="btn-accion btn-pago-simulado" id="btn-pago-simulado">
 									<i class="fas fa-credit-card"></i>
