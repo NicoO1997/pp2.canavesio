@@ -46,7 +46,13 @@
                                         {% if cartProductOrder.isFromReservation %}disabled{% endif %}>
                                     <span class="stock-info" title="{% if cartProductOrder.isFromReservation %}Producto Reservado{% else %}Stock disponible{% endif %}">
                                         {% if not cartProductOrder.isFromReservation %}
-                                            (Stock: {{ cartProductOrder.product.quantity }})
+                                            {% if not cartProductOrder.product.quantity > 0 %}
+                                            <span style="color: red; font-weight: bold; text-transform: uppercase;">
+                                                Stock: {{ cartProductOrder.product.quantity }}
+                                            </span>
+                                                {% else %}
+                                                (Stock: {{ cartProductOrder.product.quantity }})
+                                            {% endif %}
                                         {% else %}
                                             (Reservado)
                                         {% endif %}

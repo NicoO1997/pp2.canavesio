@@ -683,3 +683,121 @@ tr.low-stock:hover {
     font-style: italic;
     color: #6c757d;
 }
+
+.stock-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: middle;
+    transition: background-color 0.2s;
+    word-wrap: break-word;
+    white-space: nowrap; /* Prevent text wrapping by default */
+    overflow: hidden; /* Hide overflow content */
+    text-overflow: ellipsis; /* Show ellipsis for overflow content */
+    max-width: 200px; /* Set maximum width for cells */
+    min-width: 100px; /* Set minimum width for cells */
+    position: relative; /* For proper positioning of expanded content */
+}
+
+/* Specific widths for different types of fields */
+.stock-table td[data-field="name"],
+.stock-table td[data-field="description"],
+.stock-table td[data-field="compatibleModels"],
+.stock-table td[data-field="installationRequirements"] {
+    min-width: 200px;
+    max-width: 300px;
+}
+
+.stock-table td[data-field="partNumber"],
+.stock-table td[data-field="brand"],
+.stock-table td[data-field="material"] {
+    min-width: 120px;
+    max-width: 200px;
+}
+
+.stock-table td[data-field="quantity"],
+.stock-table td[data-field="minStock"],
+.stock-table td[data-field="price"],
+.stock-table td[data-field="weight"],
+.stock-table td[data-field="estimatedLifeHours"] {
+    min-width: 80px;
+    max-width: 120px;
+    text-align: right; /* Right align numbers */
+}
+
+/* Style for editable cells */
+.editable-cell.editing {
+    padding: 0;
+    white-space: normal; /* Allow wrapping when editing */
+    overflow: visible;
+}
+
+.editable-cell.editing input,
+.editable-cell.editing select,
+.editable-cell.editing textarea {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    margin: 0;
+    border: 2px solid #3b82f6;
+    border-radius: 4px;
+    min-height: 36px; /* Ensure consistent height */
+}
+
+/* Expand cell content on hover */
+.stock-table td:hover {
+    white-space: normal;
+    overflow: visible;
+    position: relative;
+    z-index: 10;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    min-height: 100%;
+}
+
+/* Container styles to handle overflow */
+.stock-container {
+    overflow-x: auto;
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+
+/* Table layout */
+.stock-table {
+    table-layout: fixed; /* Fixed layout for better control */
+    width: 100%;
+    min-width: 1200px; /* Minimum width to ensure all columns are visible */
+}
+
+/* Ensure header cells match content cells */
+.stock-table th {
+    padding: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background-color: #f3f4f6;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
+
+/* Add responsive adjustments */
+@media (max-width: 1600px) {
+    .stock-table {
+        min-width: 1800px;
+    }
+}
+
+@media (max-width: 768px) {
+    .stock-table td,
+    .stock-table th {
+        font-size: 14px;
+        padding: 8px 6px;
+    }
+}
+
+/* Style for textarea fields */
+.editable-cell textarea {
+    resize: vertical;
+    min-height: 60px;
+    max-height: 200px;
+}

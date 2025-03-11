@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\ProductMovement;
+use App\Form\MovementFilterType;
 use App\Form\MonthYearSelectorType;
 use App\Repository\ProductMovementRepository;
 use App\Repository\ProductRepository;

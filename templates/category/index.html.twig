@@ -11,18 +11,6 @@
     
     <div class="category-container fade-in">
         <h1 class="category-title">Categorías</h1>
-        
-        {% for message in app.flashes('success') %}
-            <div class="alert alert-success">
-                {{ message }}
-            </div>
-        {% endfor %}
-
-        {% for message in app.flashes('error') %}
-            <div class="alert alert-error">
-                {{ message }}
-            </div>
-        {% endfor %}
 
         {% if is_granted('ROLE_VENDEDOR') %}
             <a href="{{ path('app_category_new') }}" class="btn-new-category">

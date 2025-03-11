@@ -11,12 +11,6 @@
     <div class="category-container fade-in">
         <h1 class="category-title">Nueva Categoría</h1>
 
-        {% for message in app.flashes('error') %}
-            <div class="alert alert-error">
-                {{ message }}
-            </div>  
-        {% endfor %}
-
         <div class="category-form">
             {{ form_start(form) }}
                 <div class="form-group">
