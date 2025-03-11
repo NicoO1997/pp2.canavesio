@@ -67,7 +67,7 @@
                                             <td>{{ machinery.model }}</td>
                                             <td>{{ machinery.brand }}</td>
                                             <td>{{ machinery.category ? machinery.category.name : 'Sin categoría' }}</td>
-                                            <td>{{ machinery.location }}</td>
+                                            <td>{{ machinery.locality }}, {{ machinery.provincia }}</td>
                                             <td>${{ machinery.price|number_format(2, '.', ',')|default('0.00') }}</td>
                                             <td>
                                                 {% set vatRate = {
@@ -147,7 +147,7 @@
                                             <td>{{ machinery.model }}</td>
                                             <td>{{ machinery.brand }}</td>
                                             <td>{{ machinery.category ? machinery.category.name : 'Sin categoría' }}</td>
-                                            <td>{{ machinery.location }}</td>
+                                            <td>{{ machinery.locality }}, {{ machinery.provincia }}</td>
                                             <td>${{ machinery.price|number_format(2, '.', ',')|default('0.00') }}</td>
                                             <td>
                                                 {% set vatRate = {

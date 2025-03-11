@@ -16,6 +16,8 @@ class ProductMovement
     public const TYPE_ADJUSTMENT = 'adjustment';
     public const TYPE_EDIT = 'edit';
     public const TYPE_PERMANENT_DELETE = 'permanent_delete';
+    public const TYPE_DELIVERY = 'delivery';
+    public const TYPE_RESERVATION = 'reservation';
 
     // Tipos de movimiento para el carrito
     public const TYPE_RESERVED = 'reserved';
@@ -38,7 +40,9 @@ class ProductMovement
         self::TYPE_RESERVATION_CANCELLED => 'Reserva Cancelada',
         self::TYPE_PURCHASE_COMPLETED => 'Compra Completada',
         self::TYPE_PURCHASE_CANCELLED => 'Compra Cancelada',
-        self::TYPE_RESERVED_SALE => 'Venta de Producto Reservado'
+        self::TYPE_RESERVED_SALE => 'Venta de Producto Reservado',
+        self::TYPE_DELIVERY => 'Entrega Física de Reserva',
+        self::TYPE_RESERVATION => 'Repuestos reservados',
     ];
 
     #[ORM\Id]

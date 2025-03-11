@@ -95,6 +95,10 @@
 				</thead>
 				<tbody>
 					{% for movement in movements %}
+						{% if movement.movementType == 'delivery' %}
+							{% set deliveryText = movement.description|split(' unidades')|first|split('Entrega física de ')|last %}
+							{% set deliveryQuantity = deliveryText|number_format + 0 %}
+						{% endif %}
 						<tr>
 							<td>{{ movement.createdAt|date('d/m/Y H:i:s') }}</td>
 							<td>
@@ -124,6 +128,9 @@
 									{% elseif movement.movementType == 'reserved_sale' %}
 										<i class="fas fa-bookmark"></i>
 										Venta de Producto Reservado
+									{% elseif movement.movementType == 'delivery' %}
+										<i class="fas fa-truck"></i>
+										Entrega Física
 									{% else %}
 										<i class="fas fa-sync-alt"></i>
 										{{ movement.movementTypeDescription }}
@@ -143,11 +150,19 @@
 									<span class="quantity-positive">+{{ movement.quantity }}</span>
 								{% elseif movement.movementType in ['sale', 'deletion', 'permanent_delete', 'reserved_sale'] %}
 									<span class="quantity-negative">-{{ movement.quantity|abs }}</span>
+								{% elseif movement.movementType == 'delivery' %}
+									<span class="quantity-neutral">{{ deliveryQuantity }}</span>
 								{% else %}
 									{{ movement.quantity }}
 								{% endif %}
 							</td>
-							<td>{{ movement.previousStock }}</td>
+							<td>
+							{% if movement.movementType == 'delivery' %}
+								{{ movement.newStock }}
+							{% else %}
+								{{ movement.previousStock }}
+							{% endif %}
+							</td>
 							<td>{{ movement.newStock }}</td>
 							<td>{{ movement.performedBy }}</td>
 							<td>{{ movement.description }}</td>

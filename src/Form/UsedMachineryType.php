@@ -92,8 +92,13 @@ class UsedMachineryType extends AbstractType
                 'required' => true,
                 'attr' => ['class' => 'form-control']
             ])
-            ->add('location', TextType::class, [
-                'label' => 'Ubicación',
+            ->add('provincia', TextType::class, [
+                'label' => 'Provincia',
+                'required' => true,
+                'attr' => ['class' => 'form-control']
+            ])
+            ->add('locality', TextType::class, [
+                'label' => 'Localidad',
                 'required' => true,
                 'attr' => ['class' => 'form-control']
             ])

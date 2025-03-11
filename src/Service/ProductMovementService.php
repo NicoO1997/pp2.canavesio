@@ -49,6 +49,31 @@ class ProductMovementService
         return $movement;
     }
 
+    /**
+     * Registra la entrega física de una reserva (sin afectar al stock)
+     * 
+     * @param Product $product El producto entregado
+     * @param int $quantity La cantidad entregada
+     * @param string|null $description Descripción opcional del movimiento
+     * @return void
+     */
+    public function recordPhysicalDelivery(
+        Product $product,
+        int $quantity,
+        ?string $description = null
+    ): void {
+        $currentStock = $product->getQuantity();
+        
+        $this->recordMovement(
+            $product,
+            'delivery',
+            $quantity, // Guarda la cantidad entregada aquí (sin signo negativo)
+            $currentStock,
+            $currentStock,
+            $description ?? sprintf('Entrega física de %d unidades de producto reservado', $quantity)
+        );
+    }
+
     public function recordEntry(Product $product, int $quantity, ?string $description = null): void
     {
         $previousStock = $product->getQuantity();
@@ -319,5 +344,40 @@ class ProductMovementService
         }
         
         return $result;
+    }
+
+    /**
+     * Registra una reserva de producto (reduce el stock pero con etiqueta específica)
+     * 
+     * @param Product $product El producto a reservar
+     * @param int $quantity La cantidad a reservar
+     * @param string|null $description Descripción opcional de la reserva
+     * @param string|null $orderId Identificador opcional del usuario o la orden
+     * @return void
+     */
+    public function recordReservation(
+        Product $product,
+        int $quantity,
+        ?string $description = null,
+        ?string $orderId = null
+    ): void {
+        $previousStock = $product->getQuantity();
+        $newStock = $previousStock - $quantity;
+
+        // Actualizar la cantidad del producto ANTES de registrar el movimiento
+        $product->setQuantity($newStock);
+        $this->entityManager->persist($product);
+        $this->entityManager->flush();
+        
+        // Registrar el movimiento con tipo específico para reservas
+        $this->recordMovement(
+            $product,
+            ProductMovement::TYPE_RESERVATION, // Usar la constante específica para reservas
+            -$quantity,
+            $previousStock,
+            $newStock,
+            $description ?? 'Producto reservado', // Utilizar exactamente "Producto reservado"
+            $orderId ?? 'NicoO1997'
+        );
     }
 }

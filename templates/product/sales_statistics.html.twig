@@ -12,6 +12,11 @@
 {% block body %}
 <div class="statistics-container">
     <div class="statistics-header">
+        <div class="back-button-container">
+            <a href="{{ path('app_home_page') }}" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
         <h1>Estadísticas de Ventas: {{ month }}/{{ year }}</h1>
         <div class="current-info">
             <span class="datetime">
@@ -73,6 +78,7 @@
                     <tr>
                         <th>Producto</th>
                         <th>Cantidad Vendida</th>
+                        <th>Monto Total</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -80,6 +86,7 @@
                         <tr>
                             <td>{{ stat.product_name }}</td>
                             <td>{{ stat.total_quantity|abs }}</td>
+                            <td>${{ stat.total_amount_per_product|number_format(2, ',', '.') }}</td>
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -109,29 +116,33 @@
                     "{{ stat.product_name }}",
                 {% endfor %}
             ],
-            datasets: [{
-                label: 'Cantidad Vendida',
-                data: [
-                    {% for stat in statistics|slice(0, 5) %}
-                        {{ stat.total_quantity|abs }},
-                    {% endfor %}
-                ],
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.7)',
-                    'rgba(54, 162, 235, 0.7)',
-                    'rgba(255, 206, 86, 0.7)',
-                    'rgba(75, 192, 192, 0.7)',
-                    'rgba(153, 102, 255, 0.7)'
-                ],
-                borderColor: [
-                    'rgba(255, 99, 132, 1)',
-                    'rgba(54, 162, 235, 1)',
-                    'rgba(255, 206, 86, 1)',
-                    'rgba(75, 192, 192, 1)',
-                    'rgba(153, 102, 255, 1)'
-                ],
-                borderWidth: 1
-            }]
+            datasets: [
+                {
+                    label: 'Cantidad Vendida',
+                    data: [
+                        {% for stat in statistics|slice(0, 5) %}
+                            {{ stat.total_quantity|abs }},
+                        {% endfor %}
+                    ],
+                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Monto Total ($)',
+                    data: [
+                        {% for stat in statistics|slice(0, 5) %}
+                            {{ stat.total_amount_per_product }},
+                        {% endfor %}
+                    ],
+                    backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1,
+                    type: 'line',
+                    yAxisID: 'y1'
+                }
+            ]
         };
 
         // Configuración del gráfico de productos
@@ -144,9 +155,21 @@
                 scales: {
                     y: {
                         beginAtZero: true,
+                        position: 'left',
                         title: {
                             display: true,
                             text: 'Cantidad'
+                        }
+                    },
+                    y1: {
+                        beginAtZero: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Monto ($)'
+                        },
+                        grid: {
+                            drawOnChartArea: false
                         }
                     },
                     x: {
@@ -165,8 +188,9 @@
                         }
                     },
                     legend: {
-                        display: false
+                        display: true
                     }
+                    
                 }
             }
         };

@@ -56,11 +56,19 @@
             {{ form_errors(form.transmissionSystem, {'attr': {'class': 'form-error'}}) }}
         </div>
 
+        {# Reemplazar el campo location por provincia y locality #}
         <div class="form-group location-group">
-            {{ form_label(form.location) }}
-            {{ form_widget(form.location) }}
-            {{ form_errors(form.location, {'attr': {'class': 'form-error'}}) }}
-            <div class="location-suggestions" style="display: none;"></div>
+            {{ form_label(form.provincia) }}
+            {{ form_widget(form.provincia) }}
+            {{ form_errors(form.provincia, {'attr': {'class': 'form-error'}}) }}
+            <div class="provincia-suggestions" style="display: none;"></div>
+        </div>
+
+        <div class="form-group location-group">
+            {{ form_label(form.locality) }}
+            {{ form_widget(form.locality) }}
+            {{ form_errors(form.locality, {'attr': {'class': 'form-error'}}) }}
+            <div class="locality-suggestions" style="display: none;"></div>
         </div>
 
         <div class="form-group price-field">
@@ -90,7 +98,7 @@
             {{ form_label(form.imageFilenames) }}
             {{ form_widget(form.imageFilenames) }}
             {{ form_errors(form.imageFilenames, {'attr': {'class': 'form-error'}}) }}
-            <small class="form-text text-muted">Puedes seleccionar hasta 5 imÃ¡genes</small>
+            <small class="form-text text-muted">Puedes seleccionar hasta 5 imágenes</small>
         </div>
 
         <div class="used-fields-container">

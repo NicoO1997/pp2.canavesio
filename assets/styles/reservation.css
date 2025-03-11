@@ -299,3 +299,7 @@ h1 {
 .product-row {
     animation: fadeIn 0.3s ease-in-out;
 }
+
+.bg-secondary {
+    background-color: #32ed2d !important;
+}

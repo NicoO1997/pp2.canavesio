@@ -55,12 +55,20 @@ class UsedMachinery
     private ?Category $category = null;
     
     #[ORM\Column(length: 255)]
-    #[Assert\NotBlank(message: "La ubicación es obligatoria")]
+    #[Assert\NotBlank(message: "La localidad es obligatoria")]
     #[Assert\Regex(
         pattern: "/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/",
-        message: "La ubicación solo puede contener letras"
+        message: "La localidad solo puede contener letras"
     )]
-    private ?string $location = null;
+    private ?string $locality = null;
+
+    #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "La provincia es obligatoria")]
+    #[Assert\Regex(
+        pattern: "/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/",
+        message: "La provincia solo puede contener letras"
+    )]
+private ?string $provincia = null;
 
     #[ORM\Column(type: 'json')]
     private array $imageFilenames = [];
@@ -231,16 +239,33 @@ class UsedMachinery
         return $this;
     }
     
-    public function getLocation(): ?string
-    {
-        return $this->location;
-    }
+    public function getLocality(): ?string
+{
+    return $this->locality;
+}
 
-    public function setLocation(string $location): self
-    {
-        $this->location = $location;
-        return $this;
-    }
+public function setLocality(string $locality): self
+{
+    $this->locality = $locality;
+    return $this;
+}
+
+public function getProvincia(): ?string
+{
+    return $this->provincia;
+}
+
+public function setProvincia(string $provincia): self
+{
+    $this->provincia = $provincia;
+    return $this;
+}
+
+// Para mantener compatibilidad con código existente
+public function getLocation(): string
+{
+    return $this->locality . ', ' . $this->provincia;
+}
     
     public function getImageFilenames(): array
     {

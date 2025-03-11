@@ -109,12 +109,23 @@
                                     <td>{{ reservation.createdAt|date('Y-m-d H:i') }}</td>
                                     <td>{{ reservation.expiresAt|date('Y-m-d H:i') }}</td>
                                     <td>
-                                        <span class="badge bg-{{ reservation.status == 'pending' ? 'warning' : 'danger' }}">
-                                            {{ reservation.status == 'pending' ? 'Pendiente' : 'Cancelada' }}
-                                        </span>
+                                        {% if reservation.status == 'pending' %}
+                                            <span class="badge bg-warning">Pendiente</span>
+                                        {% elseif reservation.status == 'cancelled' %}
+                                            <span class="badge bg-danger">Cancelada</span>
+                                        {% elseif reservation.status == 'delivered' %}
+                                            <span class="badge bg-primary">Entregada</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ reservation.status }}</span>
+                                        {% endif %}
                                     </td>
                                     <td>
                                         {% if reservation.status == 'pending' %}
+                                            <form action="{{ path('reservation_deliver', {'id': reservation.id}) }}" 
+                                                  method="POST" 
+                                                  class="d-inline">
+                                                <button type="submit" class="btn btn-primary btn-sm">Finalizar compra</button>
+                                            </form>
                                             <form action="{{ path('reservation_cancel', {'id': reservation.id}) }}" 
                                                   method="POST" 
                                                   class="d-inline" 

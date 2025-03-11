@@ -61,6 +61,21 @@ class Reservation
         $this->setTimestamps();
     }
 
+    public function deliver(): void
+    {
+        if ($this->status === 'pending') {
+            $this->status = 'delivered';
+        }
+    }
+
+    /**
+     * Verifica si la reserva está entregada
+     */
+    public function isDelivered(): bool
+    {
+        return $this->status === 'delivered';
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -294,6 +309,7 @@ class Reservation
             'pending' => 'warning',
             'completed' => 'success',
             'cancelled' => 'danger',
+            'delivered' => 'primary',
             default => 'secondary',
         };
     }
@@ -307,6 +323,7 @@ class Reservation
             'pending' => 'Pendiente',
             'completed' => 'Completada',
             'cancelled' => 'Cancelada',
+            'delivered' => 'Entregada',
             default => 'Desconocido',
         };
     }

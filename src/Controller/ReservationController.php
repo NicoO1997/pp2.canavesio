@@ -118,12 +118,11 @@ class ReservationController extends AbstractController
             }
 
             // Usar el método específico para reservas que maneja todo el proceso
-            $productMovementService->recordReservedSale(
+            $productMovementService->recordReservation(
                 $product,
                 $quantity,
                 sprintf('Reserva de %d unidades para %s', $quantity, $user->getEmail())
             );
-
             // Ya no actualizamos el producto aquí, pues lo hace recordReservedSale
 
             $reservation = new Reservation();
@@ -214,11 +213,53 @@ class ReservationController extends AbstractController
         return $this->redirectToRoute('reservation_list');
     }
 
+    /**
+     * Marca una reserva como entregada físicamente
+     */
+    #[Route('/reservation/{id}/deliver', name: 'reservation_deliver', methods: ['POST'])]
+    public function deliver(
+        Reservation $reservation,
+        EntityManagerInterface $entityManager,
+        \App\Service\ProductMovementService $productMovementService
+    ): Response {
+        if (!$this->isGranted('ROLE_VENDEDOR')) {
+            $this->addFlash('error', 'No tienes permisos para marcar entregas.');
+            return $this->redirectToRoute('app_login');
+        }
+
+        if ($reservation->getStatus() !== 'pending') {
+            $this->addFlash('error', 'Solo se pueden finalizar compras de reservas en estado pendiente.');
+            return $this->redirectToRoute('reservation_create');
+        }
+        
+        try {
+            // Registrar la entrega en el historial de movimientos
+            $productMovementService->recordPhysicalDelivery(
+                $reservation->getProduct(),
+                $reservation->getQuantity(),
+                sprintf('Entrega física de reserva a %s', $reservation->getCustomer()->getEmail())
+            );
+            
+            // Actualizar el estado de la reserva a "delivered"
+            $reservation->setStatus('delivered');
+            $reservation->setUpdatedAt(new \DateTime('2025-03-11 13:34:09')); // Fecha actual proporcionada
+            $reservation->setUpdatedBy('NicoO1997'); // Usuario actual proporcionado
+            
+            $entityManager->flush();
+            $this->addFlash('success', 'Producto entregado exitosamente.');
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Ocurrió un error al registrar la entrega: ' . $e->getMessage());
+        }
+        
+        return $this->redirectToRoute('reservation_create');
+    }
+
     #[Route('/reservation/{id}/add-to-cart', name: 'cart_add_reservation', methods: ['POST'])]
     public function addToCart(
         Reservation $reservation,
         EntityManagerInterface $entityManager,
-        CartRepository $cartRepository
+        CartRepository $cartRepository,
+        \App\Service\ProductMovementService $productMovementService
     ): JsonResponse {
         $user = $this->getUser();
         
@@ -253,6 +294,20 @@ class ReservationController extends AbstractController
         $product = $reservation->getProduct();
         $quantity = $reservation->getQuantity();
 
+        // Registrar la finalización de la reserva en el historial de movimientos
+        // usando un tipo especial de movimiento que no modifica el stock
+        // ya que éste ya fue descontado en la reserva inicial
+        $productMovementService->recordMovement(
+            $product,
+            'reserved_sale', // Mismo tipo que en la reserva
+            0, // Cantidad 0 porque ya fue descontada
+            $product->getQuantity(), // El stock actual
+            $product->getQuantity(), // El stock no cambia
+            // Opción 2: Usar el método getUserIdentifier() que parece estar disponible
+            sprintf('Finalización de compra de reserva a %s', $user->getUserIdentifier()),
+            $user->getUserIdentifier()
+        );
+
         $cartProductOrder = $cart->getCartProductOrders()
             ->filter(fn($cpo) => $cpo->getProduct() === $product)
             ->first();
@@ -265,15 +320,15 @@ class ReservationController extends AbstractController
             $cartProductOrder->setCart($cart);
             $cartProductOrder->setQuantity($quantity);
             $cartProductOrder->setIsFromReservation(true);
-            $cartProductOrder->setDate(new \DateTime('2025-03-05 15:28:46'));
-            $cartProductOrder->setTime(new \DateTime('2025-03-05 15:28:46'));
+            $cartProductOrder->setDate(new \DateTime('2025-03-11 13:34:09'));
+            $cartProductOrder->setTime(new \DateTime('2025-03-11 13:34:09'));
 
             $entityManager->persist($cartProductOrder);
         }
 
         $reservation->setStatus('completed');
-        $reservation->setUpdatedAt(new \DateTime('2025-03-05 15:28:46'));
-        $reservation->setUpdatedBy('NicoO1997');
+        $reservation->setUpdatedAt(new \DateTime('2025-03-11 13:34:09'));
+        $reservation->setUpdatedBy($user->getUserIdentifier());
 
         try {
             $entityManager->flush();
@@ -284,7 +339,7 @@ class ReservationController extends AbstractController
         } catch (\Exception $e) {
             return new JsonResponse([
                 'success' => false,
-                'message' => 'Ocurrió un error al agregar la reserva al carrito.'
+                'message' => 'Ocurrió un error al agregar la reserva al carrito: ' . $e->getMessage()
             ], 500);
         }
     }

@@ -55,14 +55,15 @@ class ProductMovementController extends AbstractController
         $startDate = sprintf('%d-%02d-01 00:00:00', $year, $month);
         $endDate = sprintf('%d-%02d-%d 23:59:59', $year, $month, $daysInMonth);
         
-        // Asegurarse de que la consulta devuelva valores positivos para las cantidades
+        // Consulta actualizada para incluir el monto total por producto
         $sqlStats = "
-            SELECT p.id, p.name as product_name, ABS(SUM(m.quantity)) AS total_quantity 
+            SELECT p.id, p.name as product_name, ABS(SUM(m.quantity)) AS total_quantity, 
+                   ABS(SUM(m.quantity)) * p.price AS total_amount_per_product
             FROM product_movement m
             JOIN product p ON m.product_id = p.id
             WHERE m.movement_type = 'sale'
             AND m.created_at BETWEEN ? AND ?
-            GROUP BY p.id, p.name
+            GROUP BY p.id, p.name, p.price
             ORDER BY total_quantity DESC
         ";
         
@@ -95,7 +96,7 @@ class ProductMovementController extends AbstractController
             'totalAmount' => $totalAmount ?: 0,
             'form' => $form->createView(),
             'currentDateTime' => new DateTime('now', new DateTimeZone('America/Argentina/Buenos_Aires')),
-            'currentUser' => $this->getUser() ? $this->getUser()->getUsername() : 'Guest'
+            'currentUser' => $this->getUser() ? $this->getUser()->getUserIdentifier() : 'Guest'
         ]);
     }
 
@@ -175,7 +176,7 @@ class ProductMovementController extends AbstractController
         $entityManager->flush();
 
         $currentUser = $this->getUser();
-        $currentUsername = $currentUser ? $currentUser->getUsername() : 'Guest';
+        $currentUsername = $currentUser ? $currentUser->getUserIdentifier() : 'Guest';
 
         return $this->render('product/movements.html.twig', [
             'movements' => $movements,
