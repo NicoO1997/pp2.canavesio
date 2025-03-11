@@ -2,21 +2,102 @@
 
 namespace App\Controller;
 
-use App\Entity\Product;
 use App\Entity\ProductMovement;
+use App\Form\MonthYearSelectorType;
 use App\Repository\ProductMovementRepository;
 use App\Repository\ProductRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Doctrine\ORM\EntityManagerInterface;
-use App\Form\MovementFilterType;
 use DateTime;
 use DateTimeZone;
 
 class ProductMovementController extends AbstractController
 {
+    #[Route('/estadisticas-ventas', name: 'sales_statistics')]
+    public function salesStatistics(Request $request, EntityManagerInterface $em): Response
+    {
+        $month = (int)date('m');
+        $year = (int)date('Y');
+        
+        $form = $this->createForm(MonthYearSelectorType::class, [
+            'month' => $month,
+            'year' => $year
+        ]);
+        
+        $form->handleRequest($request);
+        
+        if ($form->isSubmitted() && $form->isValid()) {
+            $data = $form->getData();
+            $month = (int)$data['month'];
+            $year = (int)$data['year'];
+        } else {
+            $requestedMonth = $request->query->get('month');
+            $requestedYear = $request->query->get('year');
+            
+            if ($requestedMonth) {
+                $month = (int)$requestedMonth;
+            }
+            
+            if ($requestedYear) {
+                $year = (int)$requestedYear;
+            }
+        }
+        
+        $month = max(1, min(12, $month));
+        
+        $conn = $em->getConnection();
+        
+        $daysInMonth = date('t', mktime(0, 0, 0, $month, 1, $year));
+        $startDate = sprintf('%d-%02d-01 00:00:00', $year, $month);
+        $endDate = sprintf('%d-%02d-%d 23:59:59', $year, $month, $daysInMonth);
+        
+        // Asegurarse de que la consulta devuelva valores positivos para las cantidades
+        $sqlStats = "
+            SELECT p.id, p.name as product_name, ABS(SUM(m.quantity)) AS total_quantity 
+            FROM product_movement m
+            JOIN product p ON m.product_id = p.id
+            WHERE m.movement_type = 'sale'
+            AND m.created_at BETWEEN ? AND ?
+            GROUP BY p.id, p.name
+            ORDER BY total_quantity DESC
+        ";
+        
+        $stmt = $conn->executeQuery($sqlStats, [
+            $startDate,
+            $endDate
+        ]);
+        
+        $statistics = $stmt->fetchAllAssociative();
+        
+        $sqlTotal = "
+            SELECT COALESCE(SUM(ABS(m.quantity) * p.price), 0) as total_amount
+            FROM product_movement m
+            JOIN product p ON m.product_id = p.id
+            WHERE m.movement_type = 'sale'
+            AND m.created_at BETWEEN ? AND ?
+        ";
+        
+        $totalAmount = $conn->executeQuery($sqlTotal, [
+            $startDate,
+            $endDate
+        ])->fetchOne();
+        
+        return $this->render('product/sales_statistics.html.twig', [
+            'month' => $month,
+            'year' => $year,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'statistics' => $statistics,
+            'totalAmount' => $totalAmount ?: 0,
+            'form' => $form->createView(),
+            'currentDateTime' => new DateTime('now', new DateTimeZone('America/Argentina/Buenos_Aires')),
+            'currentUser' => $this->getUser() ? $this->getUser()->getUsername() : 'Guest'
+        ]);
+    }
+
     #[Route('/historial-movimientos', name: 'product_movements')]
     public function index(
         Request $request, 
@@ -91,12 +172,15 @@ class ProductMovementController extends AbstractController
         
         // Aplicar los cambios a la base de datos
         $entityManager->flush();
-    
+
+        $currentUser = $this->getUser();
+        $currentUsername = $currentUser ? $currentUser->getUsername() : 'Guest';
+
         return $this->render('product/movements.html.twig', [
             'movements' => $movements,
             'form' => $form->createView(),
             'currentDateTime' => new DateTime('now', new DateTimeZone('America/Argentina/Buenos_Aires')),
-            'currentUser' => 'SantiAragon'
+            'currentUser' => $currentUsername
         ]);
     }
 }

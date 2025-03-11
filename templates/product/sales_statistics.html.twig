@@ -1,0 +1,181 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link href="{{ asset('styles/statistics.css') }}" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}
+
+{% block title %}Estadísticas de Ventas {{ month }}/{{ year }}{% endblock %}
+
+{% block body %}
+<div class="statistics-container">
+    <div class="statistics-header">
+        <h1>Estadísticas de Ventas: {{ month }}/{{ year }}</h1>
+        <div class="current-info">
+            <span class="datetime">
+                <i class="fas fa-clock"></i>
+                {{ currentDateTime|date("d/m/Y H:i:s") }}</span>
+            <span class="user">
+                <i class="fas fa-user"></i>
+                {{ currentUser }}</span>
+        </div>
+    </div>
+
+    <div class="statistics-form">
+        {{ form_start(form) }}
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    {{ form_label(form.month, 'Mes') }}
+                    {{ form_widget(form.month, {'attr': {'class': 'form-control'}}) }}
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    {{ form_label(form.year, 'Año') }}
+                    {{ form_widget(form.year, {'attr': {'class': 'form-control'}}) }}
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    {{ form_widget(form.submit, {'attr': {'class': 'btn btn-primary'}}) }}
+                </div>
+            </div>
+        </div>
+        {{ form_end(form) }}
+    </div>
+
+    <div class="debug-info">
+        <p><strong>Fecha de consulta:</strong> {{ startDate }} al {{ endDate }}</p>
+        {% set monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'] %}
+        {% set monthIndex = month > 0 and month <= 12 ? month - 1 : 0 %}
+        <p><strong>Mes seleccionado:</strong> {{ month }} ({{ monthNames[monthIndex] }})</p>
+        <p><strong>Año seleccionado:</strong> {{ year }}</p>
+        <p><strong>Registros encontrados:</strong> {{ statistics|length }}</p>
+    </div>
+
+    <!-- Sección de gráficos -->
+    <div class="charts-container">
+        <div class="chart-box">
+            <h3 class="chart-title">Repuestos Más Vendidos</h3>
+            <canvas id="productsChart"></canvas>
+        </div>
+    </div>
+
+    <div class="statistics-table">
+        <h2>Productos Vendidos</h2>
+        {% if statistics|length > 0 %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cantidad Vendida</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stat in statistics %}
+                        <tr>
+                            <td>{{ stat.product_name }}</td>
+                            <td>{{ stat.total_quantity|abs }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <div class="total-amount">
+                <p>Monto Total: ${{ totalAmount|number_format(2, ',', '.') }}</p>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-search"></i>
+                <p>No se encontraron ventas para {{ monthNames[monthIndex] }} de {{ year }}</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Incluir Chart.js desde CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Datos para el gráfico de productos
+        var productsData = {
+            labels: [
+                {% for stat in statistics|slice(0, 5) %}
+                    "{{ stat.product_name }}",
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'Cantidad Vendida',
+                data: [
+                    {% for stat in statistics|slice(0, 5) %}
+                        {{ stat.total_quantity|abs }},
+                    {% endfor %}
+                ],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.7)',
+                    'rgba(54, 162, 235, 0.7)',
+                    'rgba(255, 206, 86, 0.7)',
+                    'rgba(75, 192, 192, 0.7)',
+                    'rgba(153, 102, 255, 0.7)'
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)'
+                ],
+                borderWidth: 1
+            }]
+        };
+
+        // Configuración del gráfico de productos
+        var productsChartConfig = {
+            type: 'bar',
+            data: productsData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Cantidad'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Productos'
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Top 5 Repuestos Más Vendidos - {{ monthNames[monthIndex] }} {{ year }}',
+                        font: {
+                            size: 16
+                        }
+                    },
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        };
+
+        // Crear el gráfico de productos
+        var productsChart = new Chart(
+            document.getElementById('productsChart'),
+            productsChartConfig
+        );
+    });
+</script>
+{% endblock %}

@@ -93,6 +93,7 @@ class ProductMovementService
             $description ?? 'Eliminación del producto'
         );
     }
+
     public function recordReservedSale(
         Product $product,
         int $quantity,
@@ -119,25 +120,25 @@ class ProductMovementService
         );
     }
 
-
-public function recordPermanentDeletion(Product $product, ?string $description = null): void
-{
-    $previousStock = $product->getQuantity();
-    
-    $this->recordMovement(
-        $product,
-        ProductMovement::TYPE_PERMANENT_DELETE,
-        -$previousStock,
-        $previousStock,
-        0,
-        $description ?? sprintf(
-            'Eliminación permanente del producto %s realizada por %s',
-            $product->getName(),
+    public function recordPermanentDeletion(Product $product, ?string $description = null): void
+    {
+        $previousStock = $product->getQuantity();
+        
+        $this->recordMovement(
+            $product,
+            ProductMovement::TYPE_PERMANENT_DELETE,
+            -$previousStock,
+            $previousStock,
+            0,
+            $description ?? sprintf(
+                'Eliminación permanente del producto %s realizada por %s',
+                $product->getName(),
+                'SantiAragon'
+            ),
             'SantiAragon'
-        ),
-        'SantiAragon'
-    );
-}
+        );
+    }
+
     public function recordAdjustment(Product $product, int $newQuantity, ?string $description = null): void
     {
         $previousStock = $product->getQuantity();
@@ -153,7 +154,6 @@ public function recordPermanentDeletion(Product $product, ?string $description =
         );
     }
 
-    // En ProductMovementService.php
     public function recordEdit(Product $product, int $newQuantity, ?string $description = null): void
     {
         $originalStock = $product->getQuantity();
@@ -173,5 +173,151 @@ public function recordPermanentDeletion(Product $product, ?string $description =
                 $newQuantity
             )
         );
+    }
+
+    /**
+     * Obtiene las estadísticas de ventas por mes
+     * 
+     * @param int $year El año a consultar
+     * @param int $month El mes a consultar (1-12)
+     * @return array Los productos más vendidos y sus cantidades
+     */
+    public function getTopSellingProductsByMonth(int $year, int $month): array
+    {
+        // Validar mes
+        $month = max(1, min(12, $month));
+        
+        // Construir fechas para el período
+        $startDate = new \DateTime("$year-$month-01");
+        $endDate = clone $startDate;
+        $endDate->modify('last day of this month')->setTime(23, 59, 59);
+        
+        // Crear consulta
+        $qb = $this->entityManager->createQueryBuilder();
+        $qb->select('p.id, p.name as product_name, SUM(m.quantity) AS total_quantity')
+           ->from(ProductMovement::class, 'm')
+           ->join('m.product', 'p')
+           ->where('m.movementType = :saleType')
+           ->andWhere('m.createdAt BETWEEN :start AND :end')
+           ->setParameter('saleType', ProductMovement::TYPE_SALE)
+           ->setParameter('start', $startDate)
+           ->setParameter('end', $endDate)
+           ->groupBy('p.id, p.name')
+           ->orderBy('total_quantity', 'DESC');
+        
+        return $qb->getQuery()->getResult();
+    }
+    
+    /**
+     * Calcula el monto total vendido en un mes
+     * 
+     * @param int $year El año a consultar
+     * @param int $month El mes a consultar (1-12)
+     * @return float El monto total vendido
+     */
+    public function getTotalAmountSoldByMonth(int $year, int $month): float
+    {
+        // Validar mes
+        $month = max(1, min(12, $month));
+        
+        // Construir fechas para el período
+        $startDate = new \DateTime("$year-$month-01");
+        $endDate = clone $startDate;
+        $endDate->modify('last day of this month')->setTime(23, 59, 59);
+        
+        // Crear consulta
+        $qb = $this->entityManager->createQueryBuilder();
+        $qb->select('COALESCE(SUM(ABS(m.quantity) * p.price), 0) as total_amount')
+           ->from(ProductMovement::class, 'm')
+           ->join('m.product', 'p')
+           ->where('m.movementType = :saleType')
+           ->andWhere('m.createdAt BETWEEN :start AND :end')
+           ->setParameter('saleType', ProductMovement::TYPE_SALE)
+           ->setParameter('start', $startDate)
+           ->setParameter('end', $endDate);
+        
+        $result = $qb->getQuery()->getSingleScalarResult();
+        return is_numeric($result) ? (float) $result : 0.0;
+    }
+    
+    /**
+     * Obtiene estadísticas completas de ventas para un mes específico
+     * 
+     * @param int $year El año a consultar
+     * @param int $month El mes a consultar (1-12)
+     * @return array Estadísticas completas del mes
+     */
+    public function getMonthlyStatistics(int $year, int $month): array
+    {
+        $topSellingProducts = $this->getTopSellingProductsByMonth($year, $month);
+        $totalAmount = $this->getTotalAmountSoldByMonth($year, $month);
+        
+        // Calculamos fechas para incluir en la respuesta
+        $startDate = new \DateTime("$year-$month-01");
+        $endDate = clone $startDate;
+        $endDate->modify('last day of this month');
+        
+        return [
+            'period' => [
+                'year' => $year,
+                'month' => $month,
+                'start_date' => $startDate->format('Y-m-d'),
+                'end_date' => $endDate->format('Y-m-d'),
+            ],
+            'top_selling_products' => $topSellingProducts,
+            'total_amount' => $totalAmount,
+            'total_products_sold' => count($topSellingProducts),
+            'generated_at' => (new \DateTime())->format('Y-m-d H:i:s'),
+        ];
+    }
+    
+    /**
+     * Compara ventas entre dos meses diferentes
+     * 
+     * @param int $year1 Primer año a comparar
+     * @param int $month1 Primer mes a comparar (1-12)
+     * @param int $year2 Segundo año a comparar
+     * @param int $month2 Segundo mes a comparar (1-12)
+     * @return array Comparación entre los dos meses
+     */
+    public function compareMonthlySales(int $year1, int $month1, int $year2, int $month2): array
+    {
+        $stats1 = $this->getMonthlyStatistics($year1, $month1);
+        $stats2 = $this->getMonthlyStatistics($year2, $month2);
+        
+        // Calculamos diferencias
+        $amountDifference = $stats2['total_amount'] - $stats1['total_amount'];
+        $percentChange = $stats1['total_amount'] > 0 
+            ? ($amountDifference / $stats1['total_amount']) * 100 
+            : 0;
+        
+        return [
+            'first_month' => $stats1,
+            'second_month' => $stats2,
+            'comparison' => [
+                'amount_difference' => $amountDifference,
+                'percent_change' => round($percentChange, 2),
+                'increased' => $amountDifference > 0,
+            ]
+        ];
+    }
+    
+    /**
+     * Obtiene las ventas anuales agrupadas por mes
+     * 
+     * @param int $year El año a consultar
+     * @return array Ventas mensuales para el año
+     */
+    public function getYearlySalesByMonth(int $year): array
+    {
+        $result = [];
+        
+        // Obtenemos estadísticas para cada mes del año
+        for ($month = 1; $month <= 12; $month++) {
+            $monthName = date('F', mktime(0, 0, 0, $month, 10));
+            $result[$monthName] = $this->getTotalAmountSoldByMonth($year, $month);
+        }
+        
+        return $result;
     }
 }
