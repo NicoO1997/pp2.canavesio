@@ -4,7 +4,7 @@
 -- SO del servidor:              Win64
 -- HeidiSQL Versión:             12.1.0.6537
 -- --------------------------------------------------------
-
+SELECT CONCAT('[', DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s'), '] Starting database import - User: SantiAragon') AS log;
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET NAMES utf8 */;
 /*!50503 SET NAMES utf8mb4 */;
@@ -19,6 +19,38 @@
 CREATE DATABASE IF NOT EXISTS `canavesio2` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
 USE `canavesio2`;
 
+SET FOREIGN_KEY_CHECKS = 0;
+SET SQL_MODE = 'NO_AUTO_VALUE_ON_ZERO';
+
+-- Limpiar todas las tablas antes de importar
+SELECT CONCAT('[', DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s'), '] Cleaning tables - User: SantiAragon') AS log;
+
+TRUNCATE TABLE user_favorite_product;
+TRUNCATE TABLE cart_product_order;
+TRUNCATE TABLE product_movement;
+TRUNCATE TABLE product_parts_machine;
+TRUNCATE TABLE purchase_item;
+TRUNCATE TABLE recipe_machine_parts;
+TRUNCATE TABLE recipe_machine_product;
+TRUNCATE TABLE reservation;
+TRUNCATE TABLE used_machinery;
+TRUNCATE TABLE cart;
+TRUNCATE TABLE category;
+TRUNCATE TABLE favorite;
+TRUNCATE TABLE machine;
+TRUNCATE TABLE parts;
+TRUNCATE TABLE product;
+TRUNCATE TABLE purchase;
+TRUNCATE TABLE recipe_machine;
+TRUNCATE TABLE recipe_product;
+TRUNCATE TABLE user;
+
+-- Reiniciar todos los auto_increment
+SELECT CONCAT('[', DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s'), '] Resetting auto_increment values - User: SantiAragon') AS LOG;
+
+ALTER TABLE category AUTO_INCREMENT = 1;
+ALTER TABLE used_machinery AUTO_INCREMENT = 1;
+ALTER TABLE user AUTO_INCREMENT = 1;
 -- Volcando estructura para tabla canavesio2.cart
 CREATE TABLE IF NOT EXISTS `cart` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -59,26 +91,7 @@ CREATE TABLE IF NOT EXISTS `category` (
   `image` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `UNIQ_64C19C15E237E06` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Volcando datos para la tabla canavesio2.category: ~0 rows (aproximadamente)
-SET FOREIGN_KEY_CHECKS = 0;
-
--- Limpiar la tabla
-TRUNCATE TABLE category;
-
--- Reiniciar el auto_increment
-ALTER TABLE category AUTO_INCREMENT = 1;
-
--- Insertar los datos sin especificar IDs
-INSERT INTO `category` (`name`, `code`, `image`) VALUES
-('Tractores', '123', 'tractorcategoria-67cdd52da289a.jpg'),
-('Pulverizadoras', '12345', 'pulverizadoracategoria-67cdd584950b6.webp'),
-('Cosechadoras', '1235645', 'cosechadoracategoria-67cdd6f6847af.webp'),
-('Sembradoras', '4565687', 'sembradoracategoria-67cdd72faf29e.jpg');
-
--- Reactivar las restricciones de clave foránea
-SET FOREIGN_KEY_CHECKS = 1;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=UTF8MB4_UNICODE_CI;
 
 -- Volcando estructura para tabla canavesio2.doctrine_migration_versions
 CREATE TABLE IF NOT EXISTS `doctrine_migration_versions` (
@@ -340,44 +353,8 @@ CREATE TABLE IF NOT EXISTS `used_machinery` (
   PRIMARY KEY (`id`),
   KEY `IDX_7A29C47012469DE2` (`category_id`),
   CONSTRAINT `FK_7A29C47012469DE2` FOREIGN KEY (`category_id`) REFERENCES `category` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=UTF8MB4_UNICODE_CI;
 
--- Primero, desactivar las restricciones de clave foránea
-SET FOREIGN_KEY_CHECKS = 0;
-
--- Limpiar la tabla
-TRUNCATE TABLE used_machinery;
-
--- Reiniciar el auto_increment
-ALTER TABLE used_machinery AUTO_INCREMENT = 1;
--- Volcando datos para la tabla canavesio2.used_machinery: ~0 rows (aproximadamente)
-INSERT INTO `used_machinery` (`id`, `category_id`, `model`, `brand`, `manufacturing_date`, `fuel_tank_capacity`, `technology`, `transmission_system`, `last_service`, `hours_of_use`, `price`, `location`, `image_filenames`, `is_new`, `taxpayer_type`, `load_capacity`) VALUES
-	(3, 1, 'Puma 200', 'Case Ih', NULL, 395.00, 'AFS Pro 700, AccuGuide', 'manual', NULL, NULL, 142500.00, 'Rosario Argentina', '["puma-200--1-67cdda96e4b50.png", "puma-200--2-67cdda96e5065.png", "puma-200--3-67cdda96e55b4.png", "puma-200--4-67cdda96e5956.png"]', 1, 'responsable_inscripto', NULL),
-	(4, 1, 'MF 7719 S', 'Massey Ferguson', NULL, 430.00, 'Datatronic 5, Auto-Guide', 'cvt', NULL, NULL, 138800.00, 'Pergamino Argentina', '["modelo-mf7719-S--1-67cde9eec98bd.png", "modelo-mf7719-S--2-67cde9eec9cda.png", "modelo-mf7719-S--3-67cde9eeca066.png", "modelo-mf7719-S--4-67cde9eeca3d4.png", "modelo-mf7719-S--5-67cde9eeca7e1.png"]', 1, 'responsable_inscripto', NULL),
-	(5, 1, 'Axion 870', 'Claas', NULL, 455.00, 'CEBIS, GPS Pilot', 'cvt', NULL, NULL, 155000.00, 'Mendoza Argentina', '["axion-870--1-67cdeae91c763.png", "axion-870--2-67cdeae91cc6f.png", "axion-870--3-67cdeae91d258.png", "axion-870--4-67cdeae91d6cb.png", "axion-870--5-67cdeae91dafb.png"]', 1, 'exento', NULL),
-	(6, 1, '6130R', 'John Deere', NULL, 270.00, 'GreenStar 3 2630', 'mecanica', NULL, NULL, 85000.00, 'Tucumán Argentina', '["6130R--1-67cdebda8231c.png", "6130R--2-67cdebda8286b.png", "6130R--3-67cdebda82c94.png", "6130R--4-67cdebda831b2.png"]', 1, 'monotributista', NULL),
-	(7, 1, '6130R', 'John Deere', '2018-06-05 00:00:00', 270.00, 'GreenStar 3 2630', 'mecanica', '2025-01-15 00:00:00', 3200, 85000.00, 'Tucumán Argentina', '["6130R--1-67cdebf1b7857.png", "6130R--2-67cdebf1b7d2d.png", "6130R--3-67cdebf1b8140.png", "6130R--4-67cdebf1b8560.png"]', 0, 'monotributista', NULL),
-	(8, 1, 'Maxxum 125', 'Case Ih', '2005-11-03 00:00:00', 250.00, 'AFS Pro 700 básico', 'automatica', '2024-11-05 00:00:00', 4500, 70000.00, 'Santa Fe Argentina', '["Maxxum-125--1-67cdecf15b9f2.png", "Maxxum-125--2-67cdecf15bfd1.png", "Maxxum-125--3-67cdecf15c507.png", "Maxxum-125--4-67cdecf15ca89.png"]', 0, 'responsable_inscripto', NULL),
-	(9, 1, 'MF 6713', 'Massey Ferguson', '2016-04-19 00:00:00', 230.00, 'Datatronic 4', 'mecanica', '2024-12-22 00:00:00', 5800, 55000.00, 'San Luis Argentina', '["mf-6713--1-67cdedf990b08.png", "mf-6713--2-67cdedf9910d7.png", "mf-6713--3-67cdedf9914c9.png", "mf-6713--4-67cdedf99193a.png", "mf-6713--5-67cdedf991e6e.png"]', 0, 'monotributista', NULL),
-	(10, 7, 'S790', 'John Deere', NULL, 14100.00, 'Harvest Smart, AutoTrac', 'hidrostatica', NULL, NULL, 580000.00, 'Salta Argentina', '["S790--1-67cdeee8060d5.png", "S790--2-67cdeee80675e.png", "S790--3-67cdeee806c79.png", "S790--4-67cdeee80729a.png", "S790--5-67cdeee807768.png"]', 1, 'responsable_inscripto', NULL),
-	(11, 7, 'LEXION 8700', 'Claas', NULL, 320.00, 'CEMOS AUTOMATIC, CEBIS', 'cvt', NULL, NULL, 595000.00, 'Córdoba Argentina', '["lexion-8700--1-67cdf037cee35.png", "lexion-8700--2-67cdf037cf271.png", "lexion-8700--3-67cdf037cf5a0.png", "lexion-8700--4-67cdf037cf96e.png", "lexion-8700--5-67cdf037cfdfa.png"]', 1, 'responsable_inscripto', NULL),
-	(12, 7, 'IDEAL 9T', 'Fendt', NULL, 270.00, 'IDEALharvest, VarioGuide', 'hidrostatica', NULL, NULL, 625000.00, 'Buenos Aires Argentina', '["ideal-9T--1-67cdf0e72bf7f.png", "ideal-9T--2-67cdf0e72c336.png", "ideal-9T--3-67cdf0e72c665.png", "ideal-9T--4-67cdf0e72c915.png", "ideal-9T--5-67cdf0e72cbd0.png"]', 1, 'responsable_inscripto', NULL),
-	(13, 7, 'S680', 'John Deere', '2019-11-05 00:00:00', 280.00, 'GreenStar 3, AutoTrac', 'hidrostatica', '2024-12-15 00:00:00', 1800, 320000.00, 'Córdoba Argentina', '["s680--1-67cdf1b7c33bd.png", "s680--2-67cdf1b7c3972.png"]', 0, 'responsable_inscripto', NULL),
-	(14, 7, 'LEXION 760', 'Claas', '2018-06-16 00:00:00', 315.00, 'CEMOS, CEBIS', 'hidrostatica', '2025-02-10 00:00:00', 2200, 280000.00, 'Santa Fe Argentina', '["lexion-760--1-67cdf2bd1ebd5.png", "lexion-760--2-67cdf2bd1f0b4.png", "lexion-760--3-67cdf2bd1f6c1.png"]', 0, 'responsable_inscripto', NULL),
-	(15, 3, 'R4060', 'John Deere', NULL, 6000.00, 'ExactApply, AutoTrac', 'hidrostatica', NULL, NULL, 390000.00, 'La Pampa Argentina', '["R4060--1-67cdf41d4e290.png", "R4060--2-67cdf41d4e74f.png", "R4060--3-67cdf41d4eb5f.png", "R4060--4-67cdf41d4ef40.png", "R4060--5-67cdf41d4f22d.png"]', 1, 'responsable_inscripto', NULL),
-	(16, 3, 'Patriot 4440', 'Case Ih', NULL, 6600.00, 'AIM Command FLEX, AccuGuide', 'hidrostatica', NULL, NULL, 375000.00, 'Santiago Del Estero Argentina', '["patriot-4440--1-67cdf506c6de8.png", "patriot-4440--2-67cdf506c7275.png", "patriot-4440--3-67cdf506c7834.png", "patriot-4440--4-67cdf506c7c80.png", "patriot-4440--5-67cdf506c8032.png"]', 1, 'responsable_inscripto', NULL),
-	(17, 3, 'R4045', 'John Deere', '2018-06-16 00:00:00', 4500.00, 'GreenStar 3, AutoTrac', 'hidrostatica', '2025-01-18 00:00:00', 2300, 220000.00, 'Buenos Aires Argentina', '["R4045--1-67cdf5d715b76.jpg", "R4045--2-67cdf5d71606a.jpg", "R4045--3-67cdf5d7164fd.jpg", "R4045--4-67cdf5d716a43.jpg", "R4045--5-67cdf5d716fdc.jpg"]', 0, 'responsable_inscripto', NULL),
-	(18, 3, 'Patriot 3340', 'Case Ih', '2017-07-05 00:00:00', 3800.00, 'AIM Command PRO', 'hidrostatica', '2024-11-25 00:00:00', 3100, 195000.00, 'La Rioja Argentina', '["Patriot-3340--1-67cdf69c9fea7.jpg", "Patriot-3340--2-67cdf69ca048c.jpg", "Patriot-3340--3-67cdf69ca091d.jpg", "Patriot-3340--4-67cdf69ca0e32.jpg", "Patriot-3340--5-67cdf69ca14d2.jpg"]', 0, 'responsable_inscripto', NULL),
-	(19, 3, 'Guardian SP.275F', 'New Holland', '2017-04-19 00:00:00', 3800.00, 'IntelliView III', 'hidrostatica', '2025-02-05 00:00:00', 2900, 180000.00, 'Entre Ríos Argentina', '["Guardian-SP-275F--1-67cdf716a250f.jpg"]', 0, 'exento', NULL),
-	(20, 8, 'DB90', 'John Deere', NULL, 3500.00, 'ExactEmerge, SeedStar 4HP', 'automatica', NULL, NULL, 320000.00, 'Santa Fe Argentina', '["DB90--1-67cdf7e05cd13.png", "DB90--2-67cdf7e05d209.png"]', 1, 'responsable_inscripto', NULL),
-	(21, 8, 'Early Riser 2160', 'Case Ih', NULL, 3300.00, 'Advanced Seed Delivery, AFS Pro 700', 'hidraulica', NULL, NULL, 310000.00, 'Córdoba Argentina', '["early-riser-2160--1-67cdf95f35282.png", "early-riser-2160--2-67cdf95f35987.png", "early-riser-2160--3-67cdf95f35f7b.png", "early-riser-2160--4-67cdf95f36568.png", "early-riser-2160--5-67cdf95f36c91.png"]', 1, 'responsable_inscripto', NULL),
-	(22, 8, 'SSM 27', 'Semeato', '2015-12-05 00:00:00', 1800.00, 'Double Disc básico', 'mecanica', '2024-12-10 00:00:00', 2500, 85000.00, 'Entre Ríos Argentina', '["SSM-27--1-67cdfa13d1198.jpg", "SSM-27--2-67cdfa13d15d5.jpg", "SSM-27--3-67cdfa13d1970.jpg", "SSM-27--4-67cdfa13d1ca9.jpg", "SSM-27--5-67cdfa13d2117.jpg"]', 0, 'responsable_inscripto', NULL),
-	(26, 8, 'YP-2425A', 'Great Plains', '2016-06-05 00:00:00', 1700.00, 'Air-Pro Metering básico', 'mecanicaHD', '2025-02-05 00:00:00', 2100, 95000.00, 'Chaco Argentina', '["YP-2425A--1-67ce0d1c6f4cd.jpg", "YP-2425A--2-67ce0d1c6f9b9.jpg", "YP-2425A--3-67ce0d1c6fde5.jpg", "YP-2425A--4-67ce0d1c70178.jpg", "YP-2425A--5-67ce0d1c704de.jpg"]', 0, 'exento', NULL),
-	(27, 8, 'Planters 3400', 'Agco', '2020-03-02 00:00:00', 1500.00, 'Control de siembra White', 'hidraulica', '2025-01-18 00:00:00', 2800, 80000.00, 'Corrientes Argentina', '["Planters-3400--1-67ce0e107eb87.jpg", "Planters-3400--2-67ce0e107f0f0.jpg", "Planters-3400--3-67ce0e107fb4c.jpg", "Planters-3400--4-67ce0e10802de.jpg", "Planters-3400--5-67ce0e1080901.jpg"]', 0, 'monotributista', NULL),
-	(28, 8, 'Momentum G8', 'Massey Ferguson', NULL, 3420.00, 'vSet, vDrive, DeltaForce', 'hidraulica', NULL, NULL, 280000.00, 'Tucumán Argentina', '["Momentum-G8--1-67ce0ee78349a.jpg", "Momentum-G8--2-67ce0ee783900.jpg", "Momentum-G8--3-67ce0ee783e2d.jpg", "Momentum-G8--4-67ce0ee78436e.jpg", "Momentum-G8--5-67ce0ee78487f.jpg"]', 1, 'exento', NULL);
-
-SET FOREIGN_KEY_CHECKS = 1;
--- Volcando estructura para tabla canavesio2.user
 CREATE TABLE IF NOT EXISTS `user` (
   `id` int NOT NULL AUTO_INCREMENT,
   `email` varchar(180) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -393,11 +370,7 @@ CREATE TABLE IF NOT EXISTS `user` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `UNIQ_IDENTIFIER_EMAIL` (`email`),
   UNIQUE KEY `UNIQ_8D93D649F85E0677` (`username`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Volcando datos para la tabla canavesio2.user: ~0 rows (aproximadamente)
-INSERT INTO `user` (`id`, `email`, `username`, `phone`, `security_question`, `security_answer`, `roles`, `password`, `reset_token`, `created_at`, `is_guest`) VALUES
-	(1, 'VENDEDOR@canavesio.org.ar', 'VENDEDOR', '1234557', 'nombre_mascota', 'Garu', '["ROLE_VENDEDOR"]', '$2y$13$BRV83ZpxH3bNC05ygrfS9OeVj8IEEmq5wozUe9J7ByMSgofoY4hOq', NULL, '2025-03-09 17:49:11', 0);
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=UTF8MB4_UNICODE_CI;
 
 -- Volcando estructura para tabla canavesio2.user_favorite_product
 CREATE TABLE IF NOT EXISTS `user_favorite_product` (
@@ -416,6 +389,47 @@ CREATE TABLE IF NOT EXISTS `user_favorite_product` (
   CONSTRAINT `FK_F30BE81EAA17481D` FOREIGN KEY (`favorite_id`) REFERENCES `favorite` (`id`),
   CONSTRAINT `FK_F30BE81EF6B75B26` FOREIGN KEY (`machine_id`) REFERENCES `machine` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+SELECT CONCAT('[', DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s'), '] Starting data insertion - User: SantiAragon') AS log;
+-- Insertar los datos sin especificar IDs
+INSERT INTO `category` (`name`, `code`, `image`) VALUES
+('Tractores', '123', 'tractorcategoria-67cdd52da289a.jpg'),
+('Pulverizadoras', '12345', 'pulverizadoracategoria-67cdd584950b6.webp'),
+('Cosechadoras', '1235645', 'cosechadoracategoria-67cdd6f6847af.webp'),
+('Sembradoras', '4565687', 'sembradoracategoria-67cdd72faf29e.jpg');
+INSERT INTO `user` (`email`, `username`, `phone`, `security_question`, `security_answer`, `roles`, `password`, `reset_token`, `created_at`, `is_guest`) VALUES
+	('VENDEDOR@canavesio.org.ar', 'VENDEDOR', '1234557', 'nombre_mascota', 'Garu', '["ROLE_VENDEDOR"]', '$2y$13$BRV83ZpxH3bNC05ygrfS9OeVj8IEEmq5wozUe9J7ByMSgofoY4hOq', NULL, '2025-03-09 17:49:11', 0);
+-- Volcando datos para la tabla canavesio2.used_machinery: ~0 rows (aproximadamente)
+INSERT INTO `used_machinery` (`category_id`, `model`, `brand`, `manufacturing_date`, `fuel_tank_capacity`, `technology`, `transmission_system`, `last_service`, `hours_of_use`, `price`, `location`, `image_filenames`, `is_new`, `taxpayer_type`, `load_capacity`) VALUES
+	(1, 'Puma 200', 'Case Ih', NULL, 395.00, 'AFS Pro 700, AccuGuide', 'manual', NULL, NULL, 142500.00, 'Rosario Argentina', '["puma-200--1-67cdda96e4b50.png", "puma-200--2-67cdda96e5065.png", "puma-200--3-67cdda96e55b4.png", "puma-200--4-67cdda96e5956.png"]', 1, 'responsable_inscripto', NULL),
+	(1, 'MF 7719 S', 'Massey Ferguson', NULL, 430.00, 'Datatronic 5, Auto-Guide', 'cvt', NULL, NULL, 138800.00, 'Pergamino Argentina', '["modelo-mf7719-S--1-67cde9eec98bd.png", "modelo-mf7719-S--2-67cde9eec9cda.png", "modelo-mf7719-S--3-67cde9eeca066.png", "modelo-mf7719-S--4-67cde9eeca3d4.png", "modelo-mf7719-S--5-67cde9eeca7e1.png"]', 1, 'responsable_inscripto', NULL),
+	(1, 'Axion 870', 'Claas', NULL, 455.00, 'CEBIS, GPS Pilot', 'cvt', NULL, NULL, 155000.00, 'Mendoza Argentina', '["axion-870--1-67cdeae91c763.png", "axion-870--2-67cdeae91cc6f.png", "axion-870--3-67cdeae91d258.png", "axion-870--4-67cdeae91d6cb.png", "axion-870--5-67cdeae91dafb.png"]', 1, 'exento', NULL),
+	(1, '6130R', 'John Deere', NULL, 270.00, 'GreenStar 3 2630', 'mecanica', NULL, NULL, 85000.00, 'Tucumán Argentina', '["6130R--1-67cdebda8231c.png", "6130R--2-67cdebda8286b.png", "6130R--3-67cdebda82c94.png", "6130R--4-67cdebda831b2.png"]', 1, 'monotributista', NULL),
+	(1, '6130R', 'John Deere', '2018-06-05 00:00:00', 270.00, 'GreenStar 3 2630', 'mecanica', '2025-01-15 00:00:00', 3200, 85000.00, 'Tucumán Argentina', '["6130R--1-67cdebf1b7857.png", "6130R--2-67cdebf1b7d2d.png", "6130R--3-67cdebf1b8140.png", "6130R--4-67cdebf1b8560.png"]', 0, 'monotributista', NULL),
+	(1, 'Maxxum 125', 'Case Ih', '2005-11-03 00:00:00', 250.00, 'AFS Pro 700 básico', 'automatica', '2024-11-05 00:00:00', 4500, 70000.00, 'Santa Fe Argentina', '["Maxxum-125--1-67cdecf15b9f2.png", "Maxxum-125--2-67cdecf15bfd1.png", "Maxxum-125--3-67cdecf15c507.png", "Maxxum-125--4-67cdecf15ca89.png"]', 0, 'responsable_inscripto', NULL),
+	(1, 'MF 6713', 'Massey Ferguson', '2016-04-19 00:00:00', 230.00, 'Datatronic 4', 'mecanica', '2024-12-22 00:00:00', 5800, 55000.00, 'San Luis Argentina', '["mf-6713--1-67cdedf990b08.png", "mf-6713--2-67cdedf9910d7.png", "mf-6713--3-67cdedf9914c9.png", "mf-6713--4-67cdedf99193a.png", "mf-6713--5-67cdedf991e6e.png"]', 0, 'monotributista', NULL),
+	(7, 'S790', 'John Deere', NULL, 14100.00, 'Harvest Smart, AutoTrac', 'hidrostatica', NULL, NULL, 580000.00, 'Salta Argentina', '["S790--1-67cdeee8060d5.png", "S790--2-67cdeee80675e.png", "S790--3-67cdeee806c79.png", "S790--4-67cdeee80729a.png", "S790--5-67cdeee807768.png"]', 1, 'responsable_inscripto', NULL),
+	(7, 'LEXION 8700', 'Claas', NULL, 320.00, 'CEMOS AUTOMATIC, CEBIS', 'cvt', NULL, NULL, 595000.00, 'Córdoba Argentina', '["lexion-8700--1-67cdf037cee35.png", "lexion-8700--2-67cdf037cf271.png", "lexion-8700--3-67cdf037cf5a0.png", "lexion-8700--4-67cdf037cf96e.png", "lexion-8700--5-67cdf037cfdfa.png"]', 1, 'responsable_inscripto', NULL),
+	(7, 'IDEAL 9T', 'Fendt', NULL, 270.00, 'IDEALharvest, VarioGuide', 'hidrostatica', NULL, NULL, 625000.00, 'Buenos Aires Argentina', '["ideal-9T--1-67cdf0e72bf7f.png", "ideal-9T--2-67cdf0e72c336.png", "ideal-9T--3-67cdf0e72c665.png", "ideal-9T--4-67cdf0e72c915.png", "ideal-9T--5-67cdf0e72cbd0.png"]', 1, 'responsable_inscripto', NULL),
+	(7, 'S680', 'John Deere', '2019-11-05 00:00:00', 280.00, 'GreenStar 3, AutoTrac', 'hidrostatica', '2024-12-15 00:00:00', 1800, 320000.00, 'Córdoba Argentina', '["s680--1-67cdf1b7c33bd.png", "s680--2-67cdf1b7c3972.png"]', 0, 'responsable_inscripto', NULL),
+	(7, 'LEXION 760', 'Claas', '2018-06-16 00:00:00', 315.00, 'CEMOS, CEBIS', 'hidrostatica', '2025-02-10 00:00:00', 2200, 280000.00, 'Santa Fe Argentina', '["lexion-760--1-67cdf2bd1ebd5.png", "lexion-760--2-67cdf2bd1f0b4.png", "lexion-760--3-67cdf2bd1f6c1.png"]', 0, 'responsable_inscripto', NULL),
+	(3, 'R4060', 'John Deere', NULL, 6000.00, 'ExactApply, AutoTrac', 'hidrostatica', NULL, NULL, 390000.00, 'La Pampa Argentina', '["R4060--1-67cdf41d4e290.png", "R4060--2-67cdf41d4e74f.png", "R4060--3-67cdf41d4eb5f.png", "R4060--4-67cdf41d4ef40.png", "R4060--5-67cdf41d4f22d.png"]', 1, 'responsable_inscripto', NULL),
+	(3, 'Patriot 4440', 'Case Ih', NULL, 6600.00, 'AIM Command FLEX, AccuGuide', 'hidrostatica', NULL, NULL, 375000.00, 'Santiago Del Estero Argentina', '["patriot-4440--1-67cdf506c6de8.png", "patriot-4440--2-67cdf506c7275.png", "patriot-4440--3-67cdf506c7834.png", "patriot-4440--4-67cdf506c7c80.png", "patriot-4440--5-67cdf506c8032.png"]', 1, 'responsable_inscripto', NULL),
+	(3, 'R4045', 'John Deere', '2018-06-16 00:00:00', 4500.00, 'GreenStar 3, AutoTrac', 'hidrostatica', '2025-01-18 00:00:00', 2300, 220000.00, 'Buenos Aires Argentina', '["R4045--1-67cdf5d715b76.jpg", "R4045--2-67cdf5d71606a.jpg", "R4045--3-67cdf5d7164fd.jpg", "R4045--4-67cdf5d716a43.jpg", "R4045--5-67cdf5d716fdc.jpg"]', 0, 'responsable_inscripto', NULL),
+	(3, 'Patriot 3340', 'Case Ih', '2017-07-05 00:00:00', 3800.00, 'AIM Command PRO', 'hidrostatica', '2024-11-25 00:00:00', 3100, 195000.00, 'La Rioja Argentina', '["Patriot-3340--1-67cdf69c9fea7.jpg", "Patriot-3340--2-67cdf69ca048c.jpg", "Patriot-3340--3-67cdf69ca091d.jpg", "Patriot-3340--4-67cdf69ca0e32.jpg", "Patriot-3340--5-67cdf69ca14d2.jpg"]', 0, 'responsable_inscripto', NULL),
+	(3, 'Guardian SP.275F', 'New Holland', '2017-04-19 00:00:00', 3800.00, 'IntelliView III', 'hidrostatica', '2025-02-05 00:00:00', 2900, 180000.00, 'Entre Ríos Argentina', '["Guardian-SP-275F--1-67cdf716a250f.jpg"]', 0, 'exento', NULL),
+	(8, 'DB90', 'John Deere', NULL, 3500.00, 'ExactEmerge, SeedStar 4HP', 'automatica', NULL, NULL, 320000.00, 'Santa Fe Argentina', '["DB90--1-67cdf7e05cd13.png", "DB90--2-67cdf7e05d209.png"]', 1, 'responsable_inscripto', NULL),
+	(8, 'Early Riser 2160', 'Case Ih', NULL, 3300.00, 'Advanced Seed Delivery, AFS Pro 700', 'hidraulica', NULL, NULL, 310000.00, 'Córdoba Argentina', '["early-riser-2160--1-67cdf95f35282.png", "early-riser-2160--2-67cdf95f35987.png", "early-riser-2160--3-67cdf95f35f7b.png", "early-riser-2160--4-67cdf95f36568.png", "early-riser-2160--5-67cdf95f36c91.png"]', 1, 'responsable_inscripto', NULL),
+	(8, 'SSM 27', 'Semeato', '2015-12-05 00:00:00', 1800.00, 'Double Disc básico', 'mecanica', '2024-12-10 00:00:00', 2500, 85000.00, 'Entre Ríos Argentina', '["SSM-27--1-67cdfa13d1198.jpg", "SSM-27--2-67cdfa13d15d5.jpg", "SSM-27--3-67cdfa13d1970.jpg", "SSM-27--4-67cdfa13d1ca9.jpg", "SSM-27--5-67cdfa13d2117.jpg"]', 0, 'responsable_inscripto', NULL),
+	(8, 'YP-2425A', 'Great Plains', '2016-06-05 00:00:00', 1700.00, 'Air-Pro Metering básico', 'mecanicaHD', '2025-02-05 00:00:00', 2100, 95000.00, 'Chaco Argentina', '["YP-2425A--1-67ce0d1c6f4cd.jpg", "YP-2425A--2-67ce0d1c6f9b9.jpg", "YP-2425A--3-67ce0d1c6fde5.jpg", "YP-2425A--4-67ce0d1c70178.jpg", "YP-2425A--5-67ce0d1c704de.jpg"]', 0, 'exento', NULL),
+	(8, 'Planters 3400', 'Agco', '2020-03-02 00:00:00', 1500.00, 'Control de siembra White', 'hidraulica', '2025-01-18 00:00:00', 2800, 80000.00, 'Corrientes Argentina', '["Planters-3400--1-67ce0e107eb87.jpg", "Planters-3400--2-67ce0e107f0f0.jpg", "Planters-3400--3-67ce0e107fb4c.jpg", "Planters-3400--4-67ce0e10802de.jpg", "Planters-3400--5-67ce0e1080901.jpg"]', 0, 'monotributista', NULL),
+	(8, 'Momentum G8', 'Massey Ferguson', NULL, 3420.00, 'vSet, vDrive, DeltaForce', 'hidraulica', NULL, NULL, 280000.00, 'Tucumán Argentina', '["Momentum-G8--1-67ce0ee78349a.jpg", "Momentum-G8--2-67ce0ee783900.jpg", "Momentum-G8--3-67ce0ee783e2d.jpg", "Momentum-G8--4-67ce0ee78436e.jpg", "Momentum-G8--5-67ce0ee78487f.jpg"]', 1, 'exento', NULL);
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- Registro de finalización
+SELECT CONCAT('[', DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s'), '] Database import completed successfully - User: SantiAragon') AS log;
 
 -- Volcando datos para la tabla canavesio2.user_favorite_product: ~0 rows (aproximadamente)
 

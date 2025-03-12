@@ -22,6 +22,7 @@ class ProductMovement
     // Tipos de movimiento para el carrito
     public const TYPE_RESERVED = 'reserved';
     public const TYPE_RESERVATION_CANCELLED = 'reservation_cancelled';
+    public const TYPE_RESERVATION_RESTORED = 'reservation_restored';
     public const TYPE_PURCHASE_COMPLETED = 'purchase_completed';
     public const TYPE_PURCHASE_CANCELLED = 'purchase_cancelled';
     public const TYPE_RESERVED_SALE = 'reserved_sale';
@@ -38,6 +39,7 @@ class ProductMovement
         self::TYPE_PERMANENT_DELETE => 'Eliminación Permanente',
         self::TYPE_RESERVED => 'Reservado en Carrito',
         self::TYPE_RESERVATION_CANCELLED => 'Reserva Cancelada',
+        self::TYPE_RESERVATION_RESTORED => 'Reserva Restaurada',
         self::TYPE_PURCHASE_COMPLETED => 'Compra Completada',
         self::TYPE_PURCHASE_CANCELLED => 'Compra Cancelada',
         self::TYPE_RESERVED_SALE => 'Venta de Producto Reservado',
@@ -249,32 +251,40 @@ class ProductMovement
     /**
      * Indica si el movimiento está relacionado con el carrito
      */
-    public function isCartRelated(): bool
-    {
-        return in_array($this->movementType, [
-            self::TYPE_RESERVED,
-            self::TYPE_RESERVATION_CANCELLED,
-            self::TYPE_PURCHASE_COMPLETED,
-            self::TYPE_PURCHASE_CANCELLED
-        ]);
-    }
+    /**
+ * Indica si el movimiento está relacionado con el carrito
+ */
+public function isCartRelated(): bool
+{
+    return in_array($this->movementType, [
+        self::TYPE_RESERVED,
+        self::TYPE_RESERVATION_CANCELLED,
+        self::TYPE_RESERVATION_RESTORED,
+        self::TYPE_PURCHASE_COMPLETED,
+        self::TYPE_PURCHASE_CANCELLED
+    ]);
+}
 
     /**
-     * Obtiene el estado de la reserva
-     */
-    public function getReservationStatus(): string
-    {
-        if ($this->movementType === self::TYPE_RESERVED) {
+ * Obtiene el estado de la reserva
+ */
+public function getReservationStatus(): string
+{
+    switch ($this->movementType) {
+        case self::TYPE_RESERVED:
             return 'Reservado';
-        } elseif ($this->movementType === self::TYPE_PURCHASE_COMPLETED) {
+        case self::TYPE_PURCHASE_COMPLETED:
             return 'Compra Completada';
-        } elseif ($this->movementType === self::TYPE_RESERVATION_CANCELLED) {
+        case self::TYPE_RESERVATION_CANCELLED:
             return 'Reserva Cancelada';
-        } elseif ($this->movementType === self::TYPE_PURCHASE_CANCELLED) {
+        case self::TYPE_PURCHASE_CANCELLED:
             return 'Compra Cancelada';
-        }
-        return 'No Aplica';
+        case self::TYPE_RESERVATION_RESTORED:
+            return 'Reserva Restaurada';
+        default:
+            return 'No Aplica';
     }
+}
 
     public function setNewStock(int $newStock): self
     {

@@ -380,4 +380,76 @@ class ProductMovementService
             $orderId ?? 'NicoO1997'
         );
     }
+
+    /**
+ * Registra la restauración de una reserva cuando se elimina del carrito
+ * 
+ * @param Product $product El producto cuya reserva se restaura
+ * @param int $quantity La cantidad que se restaura
+ * @param string|null $description Descripción opcional de la restauración
+ * @param string|null $performedBy Identificador del usuario que realiza la acción
+ * @return void
+ */
+public function recordReservationRestoration(
+    Product $product,
+    int $quantity,
+    ?string $description = null,
+    ?string $performedBy = null
+): void {
+    $currentStock = $product->getQuantity();
+    
+    // No modificamos el stock porque ya está reservado
+    $this->recordMovement(
+        $product,
+        ProductMovement::TYPE_RESERVATION_RESTORED,
+        $quantity,
+        $currentStock,
+        $currentStock, // El stock no cambia porque ya estaba reservado
+        $description ?? sprintf(
+            'Restauración de reserva de %d unidades - Eliminado del carrito',
+            $quantity
+        ),
+        $performedBy ?? 'SantiAragon'
+    );
+}
+
+/**
+ * Registra la cancelación de una reserva y restaura el stock
+ * 
+ * @param Product $product El producto cuya reserva se cancela
+ * @param int $quantity La cantidad que se devuelve al stock
+ * @param string|null $description Descripción opcional de la cancelación
+ * @param string|null $performedBy Identificador del usuario que realiza la acción
+ * @param string|null $customerIdentifier Identificador del cliente de la reserva
+ * @return void
+ */
+public function recordReservationCancellation(
+    Product $product,
+    int $quantity,
+    ?string $description = null,
+    ?string $performedBy = null,
+    ?string $customerIdentifier = null
+): void {
+    $currentStock = $product->getQuantity();
+    $newStock = $currentStock + $quantity;
+
+    // Actualizar el stock del producto
+    $product->setQuantity($newStock);
+    $this->entityManager->persist($product);
+
+    // Registrar el movimiento de cancelación
+    $this->recordMovement(
+        $product,
+        ProductMovement::TYPE_RESERVATION_CANCELLED,
+        $quantity, // Cantidad positiva porque se devuelve al stock
+        $currentStock,
+        $newStock,
+        $description ?? sprintf(
+            'Cancelación de reserva de %d unidades - Cliente: %s',
+            $quantity,
+            $customerIdentifier ?? 'No especificado'
+        ),
+        $performedBy ?? 'SantiAragon'
+    );
+}
 }

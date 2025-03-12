@@ -812,11 +812,13 @@
 					const formData = new FormData();
 					const csrfToken = row.querySelector('.csrf-token').value;
 					const saveBtn = row.querySelector('.save-btn');
+					formData.append('_token', csrfToken);
 					
 					if (saveBtn) saveBtn.classList.add('loading');
 					
 					// Obtener todos los campos editables
 					const editableCells = row.querySelectorAll('.editable-cell.editing');
+					console.log('Editable cells:', editableCells.length);
 					editableCells.forEach(cell => {
 								const field = cell.dataset.field;
 								const input = cell.querySelector('input, select, textarea');
@@ -841,6 +843,7 @@
 										}
 									} else {
 										formData.append(field, input.value);
+										console.log('Saving field:', field, 'value:', input.value);
 									}
 								}
 							});
@@ -851,7 +854,7 @@
 																							formData.append('isEnabled', statusBtn.dataset.status);
 																						}
 																					
-																						formData.append('_token', csrfToken);
+																						
 																					
 																						fetch('{{ path('product_edit', {'id': '__id__'}) }}'.replace('__id__', id), {
 																							method: 'POST',

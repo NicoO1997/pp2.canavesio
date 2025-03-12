@@ -7,6 +7,7 @@ use App\Entity\Product;
 use App\Entity\User;
 use App\Entity\Cart;
 use App\Entity\CartProductOrder;
+use App\Service\ProductMovementService;
 use App\Repository\CartRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -17,6 +18,12 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class ReservationController extends AbstractController
 {
+    private $productMovementService;
+    public function __construct(
+        ProductMovementService $productMovementService
+    ) {
+        $this->productMovementService = $productMovementService;
+    }
     #[Route('/reservations/create', name: 'reservation_create')]
     public function create(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -59,7 +66,7 @@ class ReservationController extends AbstractController
     public function store(
         Request $request, 
         EntityManagerInterface $entityManager,
-        \App\Service\ProductMovementService $productMovementService
+        ProductMovementService $productMovementService
     ): Response {
         if (!$this->isGranted('ROLE_VENDEDOR')) {
             $this->addFlash('error', 'No tienes permisos para realizar reservas.');
@@ -178,34 +185,56 @@ class ReservationController extends AbstractController
     #[Route('/reservation/{id}/cancel', name: 'reservation_cancel', methods: ['POST'])]
     public function cancel(
         Reservation $reservation,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        ProductMovementService $productMovementService  // Agregar esta dependencia
     ): Response {
         $user = $this->getUser();
         
         if (!$user) {
             return $this->redirectToRoute('app_login');
         }
-
+    
         if (!$this->isGranted('ROLE_VENDEDOR') && $reservation->getCustomer() !== $user) {
             $this->addFlash('error', 'No tienes permisos para cancelar esta reserva.');
             return $this->redirectToRoute('reservation_list');
         }
-
+    
         if ($reservation->getStatus() === 'pending') {
-            $product = $reservation->getProduct();
-            $product->setQuantity($product->getQuantity() + $reservation->getQuantity());
-            
-            $reservation->setStatus('cancelled');
-            $reservation->setUpdatedAt(new \DateTime('2025-03-05 15:28:46'));
-            $reservation->setUpdatedBy('NicoO1997');
-
-            $entityManager->flush();
-
-            $this->addFlash('success', 'Reserva cancelada exitosamente.');
+            try {
+                $product = $reservation->getProduct();
+                $quantity = $reservation->getQuantity();
+    
+                // Registrar la cancelación y actualizar el stock
+                $productMovementService->recordReservationCancellation(
+                    $product,
+                    $quantity,
+                    sprintf(
+                        'Cancelación de reserva - Realizada por %s - Cliente: %s',
+                        'SantiAragon',
+                        $reservation->getCustomer()->getUserIdentifier()
+                    ),
+                    'SantiAragon',
+                    $reservation->getCustomer()->getUserIdentifier()
+                );
+                
+                // Actualizar el estado de la reserva
+                $reservation->setStatus('cancelled');
+                $reservation->setUpdatedAt(new \DateTime('2025-03-12 01:50:53'));
+                $reservation->setUpdatedBy('SantiAragon');
+    
+                $entityManager->flush();
+                $this->addFlash('success', 'Reserva cancelada exitosamente.');
+    
+            } catch (\Exception $e) {
+                $this->addFlash('error', 'Error al cancelar la reserva: ' . $e->getMessage());
+                return $this->isGranted('ROLE_VENDEDOR') 
+                    ? $this->redirectToRoute('reservation_create')
+                    : $this->redirectToRoute('reservation_list');
+            }
         } else {
             $this->addFlash('error', 'Esta reserva no puede ser cancelada.');
         }
-
+    
         if ($this->isGranted('ROLE_VENDEDOR')) {
             return $this->redirectToRoute('reservation_create');
         }
@@ -220,7 +249,7 @@ class ReservationController extends AbstractController
     public function deliver(
         Reservation $reservation,
         EntityManagerInterface $entityManager,
-        \App\Service\ProductMovementService $productMovementService
+        ProductMovementService $productMovementService
     ): Response {
         if (!$this->isGranted('ROLE_VENDEDOR')) {
             $this->addFlash('error', 'No tienes permisos para marcar entregas.');
@@ -259,7 +288,7 @@ class ReservationController extends AbstractController
         Reservation $reservation,
         EntityManagerInterface $entityManager,
         CartRepository $cartRepository,
-        \App\Service\ProductMovementService $productMovementService
+        // \App\Service\ProductMovementService $productMovementService
     ): JsonResponse {
         $user = $this->getUser();
         
@@ -297,16 +326,16 @@ class ReservationController extends AbstractController
         // Registrar la finalización de la reserva en el historial de movimientos
         // usando un tipo especial de movimiento que no modifica el stock
         // ya que éste ya fue descontado en la reserva inicial
-        $productMovementService->recordMovement(
-            $product,
-            'reserved_sale', // Mismo tipo que en la reserva
-            0, // Cantidad 0 porque ya fue descontada
-            $product->getQuantity(), // El stock actual
-            $product->getQuantity(), // El stock no cambia
-            // Opción 2: Usar el método getUserIdentifier() que parece estar disponible
-            sprintf('Finalización de compra de reserva a %s', $user->getUserIdentifier()),
-            $user->getUserIdentifier()
-        );
+        // $productMovementService->recordMovement(
+        //     $product,
+        //     'reserved_sale', // Mismo tipo que en la reserva
+        //     0, // Cantidad 0 porque ya fue descontada
+        //     $product->getQuantity(), // El stock actual
+        //     $product->getQuantity(), // El stock no cambia
+        //     // Opción 2: Usar el método getUserIdentifier() que parece estar disponible
+        //     sprintf('Finalización de compra de reserva a %s', $user->getUserIdentifier()),
+        //     $user->getUserIdentifier()
+        // );
 
         $cartProductOrder = $cart->getCartProductOrders()
             ->filter(fn($cpo) => $cpo->getProduct() === $product)

@@ -50,8 +50,14 @@
                                             <span style="color: red; font-weight: bold; text-transform: uppercase;">
                                                 Stock: {{ cartProductOrder.product.quantity }}
                                             </span>
-                                                {% else %}
+                                            {% elseif cartProductOrder.product.quantity > 0 and cartProductOrder.product.quantity > cartProductOrder.product.minStock %}
+                                            <span style="color: green; font-weight: bold;">
                                                 (Stock: {{ cartProductOrder.product.quantity }})
+                                            </span>
+                                            {% else %}
+                                            <span style="color: orange; font-weight: bold;">
+                                            (Stock: {{ cartProductOrder.product.quantity }})
+                                            </span>
                                             {% endif %}
                                         {% else %}
                                             (Reservado)

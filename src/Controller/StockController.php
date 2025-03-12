@@ -41,21 +41,41 @@ class StockController extends AbstractController
         if (!$this->isCsrfTokenValid('edit' . $product->getId(), $request->request->get('_token'))) {
             return new JsonResponse(['success' => false, 'message' => 'Token CSRF inválido'], 400);
         }
-
+    
         $isGestorStock = $this->isGranted('ROLE_GESTORSTOCK');
         $isAdmin = $this->isGranted('ROLE_ADMIN');
         $isVendedor = $this->isGranted('ROLE_VENDEDOR');
-
+    
         if (!$isGestorStock && !$isAdmin && !$isVendedor) {
             return new JsonResponse(['success' => false, 'message' => 'No tienes permisos suficientes'], 403);
         }
-
+    
         try {
-            if ($isVendedor || $isAdmin) {
-                // Guardar el stock original ANTES de cualquier cambio
-                $originalQuantity = $product->getQuantity();
-
-                // Procesar los cambios
+            // Guardar el stock original ANTES de cualquier cambio
+            $originalQuantity = $product->getQuantity();
+    
+            if ($isGestorStock) {
+                // Procesar solo quantity y minStock para ROLE_GESTORSTOCK
+                if ($request->request->has('quantity')) {
+                    $newQuantity = (int) $request->request->get('quantity');
+                    if ($newQuantity !== $originalQuantity) {
+                        // Registrar el movimiento antes de actualizar la cantidad
+                        $this->productMovementService->recordMovement(
+                            $product,
+                            ProductMovement::TYPE_EDIT,
+                            $newQuantity - $originalQuantity,
+                            $originalQuantity,
+                            $newQuantity,
+                            sprintf('Modificación manual de stock de %d a %d por Gestor Stock', $originalQuantity, $newQuantity)
+                        );
+                    }
+                    $product->setQuantity($newQuantity);
+                }
+                if ($request->request->has('minStock')) {
+                    $product->setMinStock((int) $request->request->get('minStock'));
+                }
+            } elseif ($isVendedor || $isAdmin) {
+                // Procesar todos los campos para ROLE_VENDEDOR y ROLE_ADMIN
                 foreach ($request->request->all() as $field => $value) {
                     if ($field !== '_token' && $field !== 'isEnabled' && !str_ends_with($field, '_text')) {
                         $setter = 'set' . ucfirst($field);
@@ -63,14 +83,13 @@ class StockController extends AbstractController
                             if (in_array($field, ['quantity', 'minStock', 'estimatedLifeHours'])) {
                                 $value = (int) $value;
                                 if ($field === 'quantity' && $value !== $originalQuantity) {
-                                    // Registrar el movimiento antes de actualizar la cantidad
                                     $this->productMovementService->recordMovement(
                                         $product,
                                         ProductMovement::TYPE_EDIT,
-                                        $value - $originalQuantity, // Diferencia como cantidad
-                                        $originalQuantity,         // Stock original
-                                        $value,                    // Stock nuevo
-                                        sprintf('Modificación manual de stock de %d a %d', $originalQuantity, $value)
+                                        $value - $originalQuantity,
+                                        $originalQuantity,
+                                        $value,
+                                        sprintf('Modificación manual de stock de %d a %d por Vendedor', $originalQuantity, $value)
                                     );
                                 }
                                 $product->$setter($value);
@@ -83,13 +102,13 @@ class StockController extends AbstractController
                     }
                 }
             }
-
-            if ($request->request->has('isEnabled')) {
+    
+            if (($isVendedor || $isAdmin) && $request->request->has('isEnabled')) {
                 $product->setIsEnabled($request->request->get('isEnabled') == '1');
             }
-
+    
             $entityManager->flush();
-
+    
             return new JsonResponse([
                 'success' => true,
                 'message' => 'Producto actualizado correctamente',

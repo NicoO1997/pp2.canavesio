@@ -4,6 +4,7 @@ namespace App\Controller;
 use App\Entity\Cart;
 use App\Entity\CartProductOrder;
 use App\Entity\Product;
+use App\Entity\Reservation;
 use App\Entity\ProductMovement;
 use App\Repository\CartRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -127,36 +128,78 @@ class CartController extends AbstractController
         if (!$user) {
             return $this->redirectToRoute('app_login');
         }
-
+    
         $cartProductOrder = $entityManager->getRepository(CartProductOrder::class)->find($id);
-
+    
         if (!$cartProductOrder) {
             throw $this->createNotFoundException('Cart product order not found');
         }
-
+    
         $cart = $cartProductOrder->getCart();
         if ($cart->getUser() !== $user) {
             throw $this->createAccessDeniedException('You do not have permission to remove this item from the cart.');
         }
-
-        $cart->removeCartProductOrder($cartProductOrder);
-
+    
         $product = $cartProductOrder->getProduct();
-        // if ($product) {
-        //     $quantity = $cartProductOrder->getQuantity();
-
-        //     // Solo registramos el movimiento de cancelación de reserva
-        //     $this->productMovementService->recordAdjustment(
-        //         $product,
-        //         $quantity,
-        //         'Reserva cancelada - Producto eliminado del carrito'
-        //     );
-        // }
-
+        $quantity = $cartProductOrder->getQuantity();
+    
+        // Verificar si el producto viene de una reserva
+        if ($cartProductOrder->isFromReservation()) {
+            // Buscar la reserva relacionada más reciente
+            $qb = $entityManager->getRepository(Reservation::class)
+                ->createQueryBuilder('r')
+                ->where('r.product = :product')
+                ->andWhere('r.customer = :customer')
+                ->andWhere('r.status = :status')
+                ->andWhere('r.quantity = :quantity')
+                ->orderBy('r.updatedAt', 'DESC')
+                ->setMaxResults(1);
+    
+            $qb->setParameter('product', $product)
+               ->setParameter('customer', $user)
+               ->setParameter('status', 'completed')
+               ->setParameter('quantity', $quantity);
+    
+            $reservation = $qb->getQuery()->getOneOrNullResult();
+    
+            if ($reservation) {
+                // Restaurar la reserva a estado pendiente
+                $reservation->setStatus('pending');
+                $reservation->setUpdatedAt(new DateTime('now', new DateTimeZone('America/Argentina/Buenos_Aires')));
+                $reservation->setUpdatedBy($user->getUserIdentifier());
+    
+                // Registrar el movimiento de restauración de la reserva
+                $this->productMovementService->recordReservationRestoration(
+                    $product,
+                    $quantity,
+                    sprintf(
+                        'Reserva restaurada - Producto eliminado del carrito por %s',
+                        $user->getUserIdentifier()
+                    ),
+                    $user->getUserIdentifier()
+                );
+            } else {
+                // Si no encontramos la reserva, loguear el error pero permitir la eliminación
+                error_log(sprintf(
+                    'No se encontró la reserva para restaurar - Product ID: %d, User: %s, Quantity: %d',
+                    $product->getId(),
+                    $user->getUserIdentifier(),
+                    $quantity
+                ));
+            }
+        }
+    
+        // Eliminar el producto del carrito
+        $cart->removeCartProductOrder($cartProductOrder);
         $entityManager->remove($cartProductOrder);
-        $entityManager->flush();
-
-        $this->addFlash('success', 'Producto eliminado del carrito');
+        
+        try {
+            $entityManager->flush();
+            $this->addFlash('success', 'Producto eliminado del carrito');
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Error al eliminar el producto del carrito: ' . $e->getMessage());
+        }
+    
         return $this->redirectToRoute('cart_view');
     }
 
