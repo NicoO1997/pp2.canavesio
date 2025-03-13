@@ -50,7 +50,9 @@ class Product
     #[Assert\GreaterThanOrEqual(0, message: 'El stock mínimo no puede ser inferior a cero')]
     private ?int $minStock = null;
 
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    // #[ORM\Column(type: Types::TEXT, nullable: true)]
+    // private ?string $image = null;
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $image = null;
 
     #[ORM\Column(length: 255)]

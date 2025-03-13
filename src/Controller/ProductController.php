@@ -63,8 +63,9 @@ class ProductController extends AbstractController
                     $originalFilename = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $imageFile->getClientOriginalName())));
                     $newFilename = $originalFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
 
+                    // Use the configured images_directory instead of hardcoded path
                     $imageFile->move(
-                        'assets/imagenes',
+                        $this->getParameter('images_directory'),
                         $newFilename
                     );
 
