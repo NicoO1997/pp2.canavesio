@@ -15,11 +15,7 @@ services:
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
         bind:
             $defaultTimezone: '%app.timezone%'
-            $projectDir: '%kernel.project_dir%'
 
-    App\Command\MoveProductImagesCommand:
-        arguments:
-            $projectDir: '%kernel.project_dir%'
     # Servicios en src/
     App\:
         resource: '../src/'
