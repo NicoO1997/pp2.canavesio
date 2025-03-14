@@ -19,10 +19,12 @@
 	<div class="page-stock">
 		<h1>Stock de Productos</h1>
 
-		<a href="{{ path('app_home_page') }}" class="btn btn-primary mb-3">Volver</a>
-		{% if is_granted('ROLE_ADMIN') or is_granted('ROLE_VENDEDOR') or is_granted('ROLE_GESTORSTOCK') %}
-			<a href="{{ path('view_deleted_stock') }}" class="btn btn-primary">Ver Productos Eliminados</a>
-		{% endif %}
+		<div class="navigation-btns">
+			<a href="{{ path('app_home_page') }}" class="btn btn-primary mb-3 btn-back">Volver</a>
+			{% if is_granted('ROLE_ADMIN') or is_granted('ROLE_VENDEDOR') or is_granted('ROLE_GESTORSTOCK') %}
+				<a href="{{ path('view_deleted_stock') }}" class="btn btn-primary btn-view">Ver Productos Eliminados</a>
+			{% endif %}
+		</div>
 		<div class="filters-container mb-3">
 			<div class="row">
 				<div class="col-md-4">

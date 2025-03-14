@@ -15,11 +15,12 @@
         Volver
     </a>
     
-    <h1 class="favorites-heart">Mis Favoritos</h1>
+    <h1>Mis Favoritos</h1>
 
     {% if favorites is empty %}
         <div class="empty-state">
             <p>No tienes productos favoritos guardados.</p>
+            <p class="empty-state-help">Selecciona productos como favoritos para acceder rápidamente a ellos.</p>
         </div>
     {% else %}
         <div class="table-responsive">
@@ -45,19 +46,32 @@
                             <td>{{ favorite.product.brand }}</td>
                             <td>
                                 {% if favorite.product.image %}
-                                    <img src="{{ asset('imagenes/' ~ favorite.product.image) }}" alt="{{ favorite.product.name }}" class="product-image">
+                                    <div class="image-container">
+                                        <img src="{{ asset('imagenes/' ~ favorite.product.image) }}" alt="{{ favorite.product.name }}" class="product-image">
+                                    </div>
+                                {% else %}
+                                    <div class="no-image">Sin imagen</div>
                                 {% endif %}
                             </td>
                             <td>
                                 <form action="{{ path('remove_favorite', {id: favorite.id}) }}" method="post">
                                     <input type="hidden" name="_token" value="{{ csrf_token('remove_favorite_' ~ favorite.id) }}">
-                                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                                    <button type="submit" class="btn btn-danger">
+                                        <span class="btn-text">Eliminar</span>
+                                    </button>
                                 </form>
                             </td>
                         </tr>
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
+        
+        <div class="favorites-footer">
+            <div class="favorites-stats">
+                <span class="stats-number">{{ favorites|length }}</span>
+                <span class="stats-text">productos guardados</span>
+            </div>
         </div>
     {% endif %}
 </div>

@@ -13,13 +13,15 @@
         <h1 class="category-title">Categorías</h1>
 
         {% if is_granted('ROLE_VENDEDOR') %}
-            <a href="{{ path('app_category_new') }}" class="btn-new-category">
-                <i class="fas fa-plus"></i> Nueva Categoría
-            </a>
+            <div class="navigation-actions">
+                <a href="{{ path('app_category_new') }}" class="btn-new-category">
+                    <i class="fas fa-plus"></i> Nueva Categoría
+                </a>
 
-            <a href="{{ path('app_home_page') }}" class="btn-new-category">
-                <i class="fas"></i> Volver
-            </a>
+                <a href="{{ path('app_home_page') }}" class="btn-new-category">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+            </div>
         {% endif %}
 
         {% if categories is empty %}
@@ -52,27 +54,29 @@
                                          class="category-image">
                                 {% endif %}
                             </td>
-                            <td>
+                            <td class="category-name-cell">
                                 <span class="category-text">{{ category.name }}</span>
                                 <input type="text" class="category-input hidden" value="{{ category.name }}" data-field="name">
                                 <div class="error-message" id="name-error-{{ category.id }}"></div>
                             </td>
-                            <td>
+                            <td class="category-code-cell">
                                 <span class="category-text">{{ category.code }}</span>
                                 <input type="text" class="category-input hidden" value="{{ category.code }}" data-field="code">
                                 <div class="error-message" id="code-error-{{ category.id }}"></div>
                             </td>
                             {% if is_granted('ROLE_VENDEDOR') %}
-                                <td class="actions">
-                                    <button class="btn-edit" onclick="toggleEdit(this)" title="Editar">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn-save hidden" onclick="saveChanges(this)" title="Guardar">
-                                        <i class="fas fa-save"></i>
-                                    </button>
-                                    <button class="btn-delete" onclick="deleteCategory({{ category.id }})" title="Eliminar">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                <td class="actions-cell">
+                                    <div class="actions-container">
+                                        <button class="btn-edit" onclick="toggleEdit(this)" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn-save hidden" onclick="saveChanges(this)" title="Guardar">
+                                            <i class="fas fa-save"></i>
+                                        </button>
+                                        <button class="btn-delete" onclick="deleteCategory({{ category.id }})" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
                                 </td>
                             {% endif %}
                         </tr>

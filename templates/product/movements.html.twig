@@ -44,22 +44,22 @@
 					{{ form_label(form.dateTo) }}
 					{{ form_widget(form.dateTo) }}
 				</div>
-
-				<div class="filter-actions">
-					<button type="submit" class="btn-filter">
-						<i class="fas fa-search"></i>
-						Filtrar
-					</button>
-					<a href="{{ path('product_movements') }}" class="btn-clear">
-						<i class="fas fa-undo"></i>
-						Limpiar
-					</a>
-					<a href="{{ path('app_home_page') }}" class="btn-clear">
-						<i class="fas fa-undo"></i>
-						Volver
-					</a>
-				</div>
 			</div>
+            <!-- Mover el div filter-actions fuera del filters-grid -->
+            <div class="filter-actions">
+                <button type="submit" class="btn-filter">
+                    <i class="fas fa-search"></i>
+                    Filtrar
+                </button>
+                <a href="{{ path('product_movements') }}" class="btn-clear">
+                    <i class="fas fa-trash-alt"></i>
+                    Limpiar
+                </a>
+                <a href="{{ path('app_home_page') }}" class="btn-clear">
+                    <i class="fas fa-arrow-left"></i>
+                    Volver
+                </a>
+            </div>
 			{{ form_end(form) }}
 		</div>
 

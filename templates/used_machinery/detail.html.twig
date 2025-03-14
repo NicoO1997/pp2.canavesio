@@ -10,9 +10,25 @@
     <div class="machinery-container">
         <div class="machinery-detail-card">
             <div class="back-button-container">
-                <a href="{{ path('app_view_used_machinery') }}" class="back-button">
-                    <i class="fas fa-arrow-left"></i> Volver al listado
-                </a>
+                {% if isVendedor or isInvitado %}
+                    <a href="{{ app.request.headers.get('referer') }}" class="back-button">
+                        <i class="fas fa-arrow-left"></i> Volver al listado
+                    </a>
+                {% else %}
+                    {% if app.request.headers.get('referer') matches '#/usedMachinery/section/#' %}
+                        <a href="{{ app.request.headers.get('referer') }}" class="back-button">
+                            <i class="fas fa-arrow-left"></i> Volver a la sección
+                        </a>
+                    {% elseif app.request.headers.get('referer') matches '#/usedMachinery/category/#' %}
+                        <a href="{{ app.request.headers.get('referer') }}" class="back-button">
+                            <i class="fas fa-arrow-left"></i> Volver a la categoría
+                        </a>
+                    {% else %}
+                        <a href="{{ path('app_home_page') }}" class="back-button">
+                            <i class="fas fa-arrow-left"></i> Volver al inicio
+                        </a>
+                    {% endif %}
+                {% endif %}
             </div>
             
             <h1 class="machinery-title">{{ machinery.brand }} {{ machinery.model }}</h1>

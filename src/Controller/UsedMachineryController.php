@@ -28,7 +28,6 @@ class UsedMachineryController extends AbstractController
         return $this->render('used_machinery/view.html.twig', [
             'usedMachineries' => $usedMachineries,
             'isVendedor' => $this->isGranted('ROLE_VENDEDOR'),
-            'isGestorStock' => $this->isGranted('ROLE_GESTORSTOCK'),
         ]);
     }
 
@@ -45,7 +44,7 @@ class UsedMachineryController extends AbstractController
         return $this->render('used_machinery/detail.html.twig', [
             'machinery' => $machinery,
             'isVendedor' => $this->isGranted('ROLE_VENDEDOR'),
-            'isGestorStock' => $this->isGranted('ROLE_GESTORSTOCK'),
+            'isInvitado' => $this->isGranted('ROLE_INVITADO'),
         ]);
     }
 
@@ -120,7 +119,6 @@ class UsedMachineryController extends AbstractController
         return $this->render('used_machinery/add.html.twig', [
             'form' => $form->createView(),
             'isVendedor' => $this->isGranted('ROLE_VENDEDOR'),
-            'isGestorStock' => $this->isGranted('ROLE_GESTORSTOCK'),
         ]);
     }
     
@@ -259,7 +257,7 @@ class UsedMachineryController extends AbstractController
         return $this->render('used_machinery/view.html.twig', [
             'usedMachineries' => $usedMachineries,
             'isVendedor' => $this->isGranted('ROLE_VENDEDOR'),
-            'isGestorStock' => $this->isGranted('ROLE_GESTORSTOCK'),
+            'isInvitado' => $this->isGranted('ROLE_INVITADO'),
         ]);
     }
 
@@ -285,7 +283,7 @@ class UsedMachineryController extends AbstractController
     
         $usedMachineries = $queryBuilder->getQuery()->getResult();
 
-        if (!$this->isGranted('ROLE_VENDEDOR') && !$this->isGranted('ROLE_GESTORSTOCK')) {
+        if (!$this->isGranted('ROLE_VENDEDOR') && !$this->isGranted('ROLE_INVITADO')) {
             $usedMachineries = array_filter($usedMachineries, function($machinery) {
                 return $machinery->getPrice() !== null;
             });
@@ -295,7 +293,7 @@ class UsedMachineryController extends AbstractController
             'usedMachineries' => $usedMachineries,
             'section' => $section,
             'isVendedor' => $this->isGranted('ROLE_VENDEDOR'),
-            'isGestorStock' => $this->isGranted('ROLE_GESTORSTOCK'),
+            'isInvitado' => $this->isGranted('ROLE_INVITADO'),
         ]);
     }
 }

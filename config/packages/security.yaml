@@ -50,6 +50,9 @@ security:
         - { path: ^/stock/view, roles: [ROLE_VENDEDOR, ROLE_GESTORSTOCK] }
         - { path: ^/category/new, roles: [ROLE_VENDEDOR] }
         - { path: ^/category, roles: [ROLE_VENDEDOR] }
+        - { path: ^/used-machinery/detail, roles: [ROLE_VENDEDOR, ROLE_USUARIO, ROLE_INVITADO] }
+        - { path: ^/usedMachinery/section, roles: [ROLE_VENDEDOR, ROLE_USUARIO, ROLE_INVITADO] }
+        - { path: ^/usedMachinery/category, roles: [ROLE_VENDEDOR, ROLE_USUARIO, ROLE_INVITADO] }
 
 when@test:
     security:

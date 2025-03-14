@@ -1,47 +1,75 @@
+/* Variables de colores para consistencia */
+:root {
+    --primary-color: #3b76ef;
+    --primary-hover: #2a5fcf;
+    --secondary-color: #6c757d;
+    --secondary-hover: #5a6268;
+    --success-color: #10b981;
+    --success-hover: #059669;
+    --danger-color: #ef4444;
+    --danger-hover: #dc2626;
+    --warning-color: #f59e0b;
+    --warning-hover: #d97706;
+    --light-color: #f9fafb;
+    --border-color: #e5e7eb;
+    --text-color: #374151;
+    --text-dark: #111827;
+    --text-light: #6b7280;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.1);
+    --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+    --border-radius: 8px;
+    --transition: all 0.3s ease;
+}
+
 .page-stock {
-    padding: 20px;
+    padding: 25px;
     font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background-color: #f9fafb;
-    color: #374151;
+    background-color: var(--light-color);
+    color: var(--text-color);
     max-width: 100%;
     margin: 0 auto;
     overflow-x: hidden;
+    line-height: 1.6;
 }
 
 .page-stock h1 {
-    font-size: 28px;
+    font-size: 32px;
     font-weight: 700;
-    color: #111827;
-    margin-bottom: 24px;
-    border-bottom: 2px solid #e5e7eb;
-    padding-bottom: 12px;
+    color: var(--text-dark);
+    margin-bottom: 28px;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 15px;
     text-align: center;
+    letter-spacing: 0.5px;
 }
 
+/* Estilos de alertas */
 .alert {
-    border-radius: 8px;
+    border-radius: var(--border-radius);
     padding: 16px;
-    margin-bottom: 24px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 25px;
+    box-shadow: var(--shadow-sm);
     animation: fadeIn 0.5s ease-in-out;
+    font-weight: 500;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    border-left: 5px solid #f5c6cb;
+    color: #721c24;
 }
 
 .alert-success {
-    background-color: #ecfdf5;
-    border-left: 5px solid #10b981;
+    background-color: #d1fae5;
+    border-left: 5px solid #a7f3d0;
     color: #065f46;
 }
 
 .alert-warning {
     background-color: #fffbeb;
-    border-left: 5px solid #f59e0b;
+    border-left: 5px solid #fcd34d;
     color: #92400e;
-}
-
-.alert-danger {
-    background-color: #fef2f2;
-    border-left: 5px solid #ef4444;
-    color: #b91c1c;
 }
 
 @keyframes fadeIn {
@@ -49,31 +77,33 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* Advertencia de stock */
 .stock-warning {
-    background-color: #fffbeb;
-    border: 1px solid #fcd34d;
-    color: #92400e;
-    padding: 18px;
-    border-radius: 8px;
-    margin-bottom: 28px;
-    box-shadow: 0 2px 4px rgba(234, 179, 8, 0.1);
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+    padding: 20px;
+    border-radius: var(--border-radius);
+    margin-bottom: 30px;
+    box-shadow: var(--shadow-sm);
     position: relative;
-    padding-left: 60px;
+    padding-left: 65px;
 }
 
 .stock-warning::before {
     content: "⚠️";
     position: absolute;
-    left: 20px;
+    left: 22px;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 24px;
+    font-size: 25px;
 }
 
 .stock-warning strong {
     display: block;
     font-size: 18px;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
+    font-weight: 600;
 }
 
 .stock-warning ul {
@@ -82,23 +112,27 @@
 }
 
 .stock-warning li {
-    margin-bottom: 4px;
+    margin-bottom: 6px;
+    line-height: 1.5;
 }
 
+/* Contenedor principal de la tabla */
 .stock-container {
     background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.1);
-    margin-bottom: 30px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-md);
+    margin-bottom: 35px;
     overflow-x: auto;
     max-width: 100%;
-    transition: all 0.3s ease;
+    transition: var(--transition);
+    border: 1px solid var(--border-color);
 }
 
 .stock-container:hover {
-    box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+    box-shadow: var(--shadow-lg);
 }
 
+/* Estilos de la tabla */
 .stock-table {
     width: 100%;
     border-collapse: separate;
@@ -114,14 +148,17 @@
 
 .stock-table th {
     background-color: #f3f4f6;
-    color: #4b5563;
+    color: var(--text-dark);
     font-weight: 600;
     text-align: left;
     padding: 16px;
-    border-bottom: 2px solid #e5e7eb;
+    border-bottom: 2px solid var(--border-color);
     white-space: nowrap;
     position: relative;
     transition: background-color 0.2s;
+    text-transform: uppercase;
+    font-size: 13px;
+    letter-spacing: 0.5px;
 }
 
 .stock-table th:hover {
@@ -130,36 +167,48 @@
 
 .stock-table td {
     padding: 14px 16px;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--border-color);
     vertical-align: middle;
-    transition: background-color 0.2s;
-    word-wrap: break-word;
+    transition: background-color 0.2s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+    min-width: 100px;
+    position: relative;
 }
 
 .stock-table tbody tr {
     transition: all 0.2s ease;
 }
 
-.stock-table tbody tr:hover {
-    background-color: #f9fafb;
+.stock-table tbody tr:nth-child(even) {
+    background-color: #fafafa;
 }
 
+.stock-table tbody tr:hover {
+    background-color: #f1f5f9;
+}
+
+/* Estilos para imágenes de productos */
 .product-image {
-    max-width: 70px;
-    max-height: 70px;
+    max-width: 75px;
+    max-height: 75px;
     object-fit: cover;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-radius: 6px;
+    box-shadow: var(--shadow-sm);
     transition: transform 0.3s ease;
+    border: 1px solid #eaeaea;
 }
 
 .product-image:hover {
-    transform: scale(1.5);
+    transform: scale(1.8);
     position: relative;
     z-index: 100;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    box-shadow: var(--shadow-lg);
 }
 
+/* Badges de estado */
 .status-badge {
     display: inline-block;
     padding: 6px 12px;
@@ -169,6 +218,7 @@
     text-align: center;
     white-space: nowrap;
     min-width: 100px;
+    box-shadow: var(--shadow-sm);
 }
 
 .status-badge.in-stock {
@@ -179,27 +229,28 @@
 }
 
 .status-badge.low-stock {
-    background-color: #fffbeb;
-    color: #92400e;
-    border: 1px solid #fcd34d;
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
     margin-bottom: .5rem;
 }
 
 .status-badge.out-of-stock {
-    background-color: #fee2e2;
-    color: #b91c1c;
-    border: 1px solid #fca5a5;
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
     margin-bottom: .5rem;
 }
 
 tr.low-stock {
-    background-color: rgba(254, 243, 199, 0.2);
+    background-color: rgba(248, 215, 218, 0.2);
 }
 
 tr.low-stock:hover {
-    background-color: rgba(254, 243, 199, 0.4);
+    background-color: rgba(248, 215, 218, 0.4);
 }
 
+/* Celdas editables */
 .editable-cell {
     position: relative;
     cursor: pointer;
@@ -211,6 +262,8 @@ tr.low-stock:hover {
     content: "✏️";
     position: absolute;
     right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
     font-size: 14px;
     opacity: 0.5;
 }
@@ -223,7 +276,7 @@ tr.low-stock:hover {
 
 .editable-cell.editing .form-control {
     margin: 0;
-    border: 2px solid #3b82f6;
+    border: 2px solid var(--primary-color);
     border-radius: 4px;
     width: 100%;
     min-width: 100px;
@@ -234,9 +287,12 @@ tr.low-stock:hover {
 }
 
 .editable-cell.bajo-stock {
-    background-color: rgba(254, 243, 199, 0.4);
+    background-color: rgba(248, 215, 218, 0.4);
+    color: #721c24;
+    font-weight: 500;
 }
 
+/* Botones de toggle de estado */
 .status-toggle button {
     transition: all 0.3s ease;
     width: 130px;
@@ -245,45 +301,117 @@ tr.low-stock:hover {
     padding: 8px 12px;
     font-weight: 500;
     cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Estilos de botones */
+.btn {
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    outline: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    box-shadow: var(--shadow-sm);
+    font-size: 14px;
+    height: 40px;
 }
 
 .btn-success {
-    background-color: #10b981;
+    background-color: var(--success-color);
     color: white;
 }
 
 .btn-success:hover {
-    background-color: #059669;
+    background-color: var(--success-hover);
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.2);
+    transform: translateY(-2px);
 }
 
 .btn-danger {
-    background-color: #ef4444;
+    background-color: var(--danger-color);
     color: white;
 }
 
 .btn-danger:hover {
-    background-color: #dc2626;
+    background-color: var(--danger-hover);
+    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.2);
+    transform: translateY(-2px);
 }
 
 .btn-secondary {
-    background-color: #6b7280;
+    background-color: var(--secondary-color);
     color: white;
 }
 
 .btn-secondary:hover {
-    background-color: #4b5563;
+    background-color: var(--secondary-hover);
+    box-shadow: 0 4px 8px rgba(108, 117, 125, 0.2);
+    transform: translateY(-2px);
 }
 
 .btn-primary {
-    background-color: #3b82f6;
+    background-color: var(--primary-color);
     color: white;
 }
 
 .btn-primary:hover {
-    background-color: #2563eb;
+    background-color: var(--primary-hover);
+    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.2);
+    transform: translateY(-2px);
 }
 
+/* Botones de navegación - Estilo consistente */
+.navigation-btns {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+}
+
+.navigation-btns .btn {
+    height: 45px;
+    padding: 0 20px;
+    font-weight: 600;
+    font-size: 15px;
+    border-radius: 8px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.navigation-btns .btn:before {
+    margin-right: 10px;
+    font-size: 16px;
+}
+
+.navigation-btns .btn-back:before {
+    content: "←";
+}
+
+.navigation-btns .btn-view:before {
+    content: "👁️";
+}
+
+.navigation-btns .btn:hover {
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-3px);
+}
+
+.navigation-btns .btn:active {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Container para acciones en cada fila */
 .actions {
     display: flex;
     flex-wrap: wrap;
@@ -292,7 +420,8 @@ tr.low-stock:hover {
     min-width: 200px;
 }
 
-.actions button, .actions form {
+.actions button, 
+.actions form {
     margin: 4px;
     flex-shrink: 0;
 }
@@ -318,49 +447,20 @@ tr.low-stock:hover {
     animation: spin 1s infinite linear;
 }
 
-.btn-primary.mb-3 {
-    background-color: #4a6da7;
-    border-color: #3a5a8a;
-    color: #ffffff;
-    padding: 10px 20px;
-    font-weight: 600;
-    border-radius: 8px;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    text-decoration: none;
-}
-
-.btn-primary.mb-3:before {
-    content: "←";
-    margin-right: 8px;
-    font-size: 1.1em;
-}
-
-.btn-primary.mb-3:hover {
-    background-color: #3a5a8a;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    transform: translateY(-2px);
-}
-
-.btn-primary.mb-3:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
 
 .no-products {
     text-align: center;
-    color: #6b7280;
+    color: var(--text-light);
     font-style: italic;
-    padding: 30px 0;
+    padding: 40px 0;
     background-color: #f9fafb;
+    border-radius: var(--border-radius);
 }
 
+/* Estilos responsivos */
 @media (max-width: 1200px) {
     .stock-container {
         overflow-x: auto;
@@ -370,6 +470,15 @@ tr.low-stock:hover {
     
     .stock-table {
         min-width: 1000px;
+    }
+
+    .navigation-btns {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .navigation-btns .btn {
+        width: 100%;
     }
 }
 
@@ -395,7 +504,7 @@ tr.low-stock:hover {
         min-width: 800px;
         font-size: 14px;
     }
-    
+        
     .stock-table th, 
     .stock-table td {
         padding: 8px 6px;
@@ -415,389 +524,422 @@ tr.low-stock:hover {
         width: 100%;
         margin: 2px 0;
     }
-}
-
-.edit-btn:active, .save-btn:active, .btn-danger:active, .btn-success:active, .btn-primary:active {
-    transform: translateY(1px);
-}
-
-.btn:focus, .form-control:focus {
-    outline: 2px solid #3b82f6;
-    outline-offset: 2px;
-}
-
-.actions .btn {
-    margin-bottom: 5px;
-    width: 100%;
-    max-width: 120px;
-}
-
-.actions form {
-    width: auto;
-    display: inline-block;
-}
-
-.actions form button {
-    margin-bottom: 5px;
-    width: 100%;
-    max-width: 120px;
-}
-
-.alert, .stock-warning, .stock-container, .stock-table, 
-.status-badge, .editable-cell, .actions button {
-    transition: all 0.3s ease;
-}
-
-.editable-cell.editing input.form-control {
-    font-size: 14px;
-}
-
-.editable-cell[data-field="description"] {
-    max-width: 250px;
-    white-space: normal;
-    word-break: break-word;
-}
-
-.status-toggle {
-    display: flex;
-    justify-content: center;
-}
-.stock-table {
-    font-size: 14px;  /* Reducir el tamaño de fuente para acomodar más columnas */
-}
-
-.stock-table td {
-    max-width: 200px;  /* Limitar el ancho máximo de las celdas */
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-/* Para mostrar el contenido completo al hacer hover */
-.stock-table td:hover {
-    white-space: normal;
-    overflow: visible;
-    position: relative;
-    z-index: 1;
-    background-color: #fff;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-}
-
-/* Ajustar el ancho mínimo de la tabla para scroll horizontal */
-@media (max-width: 1600px) {
-    .stock-table {
-        min-width: 1800px;  /* Aumentar para acomodar todas las columnas */
+    
+    .edit-btn:active, .save-btn:active, .btn-danger:active, .btn-success:active, .btn-primary:active {
+        transform: translateY(1px);
     }
-}
-
-/* Estilo para campos específicos */
-.editable-cell[data-field="description"],
-.editable-cell[data-field="compatibleModels"],
-.editable-cell[data-field="installationRequirements"] {
-    min-width: 200px;
-    max-width: 300px;
-}
-
-.editable-cell[data-field="dimensions"],
-.editable-cell[data-field="material"],
-.editable-cell[data-field="mountingType"] {
-    min-width: 120px;
-}
-
-.editable-cell[data-field="weight"],
-.editable-cell[data-field="estimatedLifeHours"] {
-    min-width: 100px;
-}
-
-.btn.loading {
-    position: relative;
-    pointer-events: none;
-    opacity: 0.8;
-}
-
-.btn.loading::after {
-    content: '';
-    position: absolute;
-    width: 16px;
-    height: 16px;
-    top: 50%;
-    left: 50%;
-    margin-top: -8px;
-    margin-left: -8px;
-    border: 2px solid rgba(255,255,255,0.3);
-    border-radius: 50%;
-    border-top-color: #fff;
-    animation: spin 1s ease-in-out infinite;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-.alert {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 1050;
-    min-width: 200px;
-}
-
-.stock-table td {
-    vertical-align: middle;
-}
-
-.editable-cell.editing {
-    padding: 0;
-}
-
-.editable-cell.editing input,
-.editable-cell.editing select,
-.editable-cell.editing textarea {
-    margin: 0;
-    width: 100%;
-    height: 100%;
-    box-sizing: border-box;
-}
-
-.brand-suggestions {
-    position: absolute;
-    width: 100%;
-    max-height: 200px;
-    overflow-y: auto;
-    background: white;
-    border: 1px solid var(--border-color);
-    border-radius: 0 0 8px 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
-    display: none;
-    margin-top: 1px;
-}
-
-.suggestion-item {
-    padding: 10px 15px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.suggestion-item:last-child {
-    border-bottom: none;
-}
-
-.suggestion-item:hover, 
-.suggestion-item.selected {
-    background-color: var(--hover-color);
-    color: var(--primary-color);
-}
-
-.input-wrapper {
-    position: relative;
-}
-
-.brand-input-wrapper {
-    position: relative !important;
-    width: 100% !important;
-}
-
-.brand-suggestions {
-    position: absolute !important;
-    width: 100% !important;
-    top: 100% !important;
-    left: 0 !important;
-    z-index: 1050 !important;
-    background-color: white !important;
-    border: 1px solid #ced4da !important;
-    border-top: none !important;
-    border-radius: 0 0 4px 4px !important;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
-}
-
-.suggestion-item {
-    padding: 8px 12px !important;
-    cursor: pointer !important;
-    border-bottom: 1px solid #eee !important;
-}
-
-.suggestion-item:hover {
-    background-color: #f8f9fa !important;
-}
-
-.suggestion-item.selected {
-    background-color: #e9ecef !important;
-}
-
-.filters-container {
-    background-color: #f8f9fa;
-    padding: 15px;
-    border-radius: 5px;
-    margin-bottom: 20px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.filters-container label {
-    font-weight: 600;
-    color: #495057;
-    margin-bottom: 5px;
-}
-
-.filters-container select,
-.filters-container input {
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-    padding: 8px 12px;
-}
-
-.filters-container select:focus,
-.filters-container input:focus {
-    border-color: #80bdff;
-    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
-}
-
-.no-results {
-    text-align: center;
-    padding: 20px;
-    color: #6c757d;
-    font-style: italic;
-}
-
-.editable-cell select {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-    background-color: #fff;
-    font-size: 14px;
-}
-
-.editable-cell select:focus {
-    border-color: #80bdff;
-    outline: 0;
-    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
-}
-
-.editable-cell select option {
-    padding: 8px;
-}
-
-.editable-cell select option:first-child {
-    font-style: italic;
-    color: #6c757d;
-}
-
-.stock-table td {
-    padding: 14px 16px;
-    border-bottom: 1px solid #e5e7eb;
-    vertical-align: middle;
-    transition: background-color 0.2s;
-    word-wrap: break-word;
-    white-space: nowrap; /* Prevent text wrapping by default */
-    overflow: hidden; /* Hide overflow content */
-    text-overflow: ellipsis; /* Show ellipsis for overflow content */
-    max-width: 200px; /* Set maximum width for cells */
-    min-width: 100px; /* Set minimum width for cells */
-    position: relative; /* For proper positioning of expanded content */
-}
-
-/* Specific widths for different types of fields */
-.stock-table td[data-field="name"],
-.stock-table td[data-field="description"],
-.stock-table td[data-field="compatibleModels"],
-.stock-table td[data-field="installationRequirements"] {
-    min-width: 200px;
-    max-width: 300px;
-}
-
-.stock-table td[data-field="partNumber"],
-.stock-table td[data-field="brand"],
-.stock-table td[data-field="material"] {
-    min-width: 120px;
-    max-width: 200px;
-}
-
-.stock-table td[data-field="quantity"],
-.stock-table td[data-field="minStock"],
-.stock-table td[data-field="price"],
-.stock-table td[data-field="weight"],
-.stock-table td[data-field="estimatedLifeHours"] {
-    min-width: 80px;
-    max-width: 120px;
-    text-align: right; /* Right align numbers */
-}
-
-/* Style for editable cells */
-.editable-cell.editing {
-    padding: 0;
-    white-space: normal; /* Allow wrapping when editing */
-    overflow: visible;
-}
-
-.editable-cell.editing input,
-.editable-cell.editing select,
-.editable-cell.editing textarea {
-    width: 100%;
-    padding: 8px;
-    box-sizing: border-box;
-    margin: 0;
-    border: 2px solid #3b82f6;
-    border-radius: 4px;
-    min-height: 36px; /* Ensure consistent height */
-}
-
-/* Expand cell content on hover */
-.stock-table td:hover {
-    white-space: normal;
-    overflow: visible;
-    position: relative;
-    z-index: 10;
-    background-color: #fff;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    min-height: 100%;
-}
-
-/* Container styles to handle overflow */
-.stock-container {
-    overflow-x: auto;
-    max-width: 100%;
-    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
-}
-
-/* Table layout */
-.stock-table {
-    table-layout: fixed; /* Fixed layout for better control */
-    width: 100%;
-    min-width: 1200px; /* Minimum width to ensure all columns are visible */
-}
-
-/* Ensure header cells match content cells */
-.stock-table th {
-    padding: 16px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    background-color: #f3f4f6;
-    position: sticky;
-    top: 0;
-    z-index: 5;
-}
-
-/* Add responsive adjustments */
-@media (max-width: 1600px) {
-    .stock-table {
-        min-width: 1800px;
+    
+    .btn:focus, .form-control:focus {
+        outline: 2px solid var(--primary-color);
+        outline-offset: 2px;
     }
-}
-
-@media (max-width: 768px) {
-    .stock-table td,
-    .stock-table th {
+    
+    .actions .btn {
+        margin-bottom: 5px;
+        width: 100%;
+        max-width: 120px;
+    }
+    
+    .actions form {
+        width: auto;
+        display: inline-block;
+    }
+    
+    .actions form button {
+        margin-bottom: 5px;
+        width: 100%;
+        max-width: 120px;
+    }
+    
+    .alert, .stock-warning, .stock-container, .stock-table, 
+    .status-badge, .editable-cell, .actions button {
+        transition: var(--transition);
+    }
+    
+    .editable-cell.editing input.form-control {
         font-size: 14px;
-        padding: 8px 6px;
     }
-}
-
-/* Style for textarea fields */
-.editable-cell textarea {
-    resize: vertical;
-    min-height: 60px;
-    max-height: 200px;
+    
+    .editable-cell[data-field="description"] {
+        max-width: 250px;
+        white-space: normal;
+        word-break: break-word;
+    }
+    
+    .status-toggle {
+        display: flex;
+        justify-content: center;
+    }
+    
+    /* Specific widths for different types of fields */
+    .editable-cell[data-field="description"],
+    .editable-cell[data-field="compatibleModels"],
+    .editable-cell[data-field="installationRequirements"] {
+        min-width: 200px;
+        max-width: 300px;
+    }
+    
+    .editable-cell[data-field="dimensions"],
+    .editable-cell[data-field="material"],
+    .editable-cell[data-field="mountingType"] {
+        min-width: 120px;
+    }
+    
+    .editable-cell[data-field="weight"],
+    .editable-cell[data-field="estimatedLifeHours"] {
+        min-width: 100px;
+    }
+    
+    .editable-cell[data-field="quantity"],
+    .editable-cell[data-field="minStock"],
+    .editable-cell[data-field="price"],
+    .editable-cell[data-field="weight"],
+    .editable-cell[data-field="estimatedLifeHours"] {
+        min-width: 80px;
+        max-width: 120px;
+        text-align: right; /* Right align numbers */
+    }
+    
+    .btn.loading {
+        position: relative;
+        pointer-events: none;
+        opacity: 0.8;
+    }
+    
+    .btn.loading::after {
+        content: '';
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        top: 50%;
+        left: 50%;
+        margin-top: -8px;
+        margin-left: -8px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    .alert {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1050;
+        min-width: 200px;
+    }
+    
+    .stock-table td {
+        vertical-align: middle;
+    }
+    
+    .editable-cell.editing {
+        padding: 0;
+    }
+    
+    .editable-cell.editing input,
+    .editable-cell.editing select,
+    .editable-cell.editing textarea {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* Style for textarea fields */
+    .editable-cell textarea {
+        resize: vertical;
+        min-height: 60px;
+        max-height: 200px;
+    }
+    
+    .brand-suggestions {
+        position: absolute;
+        width: 100%;
+        max-height: 200px;
+        overflow-y: auto;
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 0 0 8px 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        display: none;
+        margin-top: 1px;
+    }
+    
+    .suggestion-item {
+        padding: 10px 15px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .suggestion-item:last-child {
+        border-bottom: none;
+    }
+    
+    .suggestion-item:hover, 
+    .suggestion-item.selected {
+        background-color: #f1f5f9;
+        color: var(--primary-color);
+    }
+    
+    .input-wrapper {
+        position: relative;
+    }
+    
+    .brand-input-wrapper {
+        position: relative !important;
+        width: 100% !important;
+    }
+    
+    .brand-suggestions {
+        position: absolute !important;
+        width: 100% !important;
+        top: 100% !important;
+        left: 0 !important;
+        z-index: 1050 !important;
+        background-color: white !important;
+        border: 1px solid #ced4da !important;
+        border-top: none !important;
+        border-radius: 0 0 4px 4px !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    }
+    
+    .suggestion-item {
+        padding: 8px 12px !important;
+        cursor: pointer !important;
+        border-bottom: 1px solid #eee !important;
+    }
+    
+    .suggestion-item:hover {
+        background-color: #f8f9fa !important;
+    }
+    
+    .suggestion-item.selected {
+        background-color: #e9ecef !important;
+    }
+    
+    .filters-container {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 25px;
+        box-shadow: var(--shadow-md);
+        border: 1px solid #eaeaea;
+    }
+    
+    .filters-container .row {
+        display: flex;
+        margin: 0 -10px;
+    }
+    
+    .filters-container .col-md-4 {
+        flex: 0 0 33.333333%;
+        max-width: 33.333333%;
+        padding: 0 10px;
+    }
+    
+    .filters-container label {
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+        display: block;
+        font-size: 14px;
+    }
+    
+    .filters-container select,
+    .filters-container input {
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        padding: 10px 12px;
+        width: 100%;
+        font-size: 14px;
+        transition: all 0.2s ease;
+    }
+    
+    .filters-container select:focus,
+    .filters-container input:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(59, 118, 239, 0.25);
+        outline: none;
+    }
+    
+    .no-results {
+        text-align: center;
+        padding: 30px;
+        color: var(--text-light);
+        font-style: italic;
+        background-color: #fafafa;
+        border-radius: 8px;
+        margin: 20px 0;
+        border: 1px dashed #ddd;
+    }
+    
+    .editable-cell select {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        background-color: #fff;
+        font-size: 14px;
+    }
+    
+    .editable-cell select:focus {
+        border-color: var(--primary-color);
+        outline: 0;
+        box-shadow: 0 0 0 0.2rem rgba(59, 118, 239, 0.25);
+    }
+    
+    .editable-cell select option {
+        padding: 8px;
+    }
+    
+    .editable-cell select option:first-child {
+        font-style: italic;
+        color: var(--text-light);
+    }
+    
+    /* Expand cell content on hover */
+    .stock-table td:hover {
+        white-space: normal;
+        overflow: visible;
+        position: relative;
+        z-index: 10;
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        min-height: 100%;
+    }
+    
+    /* Modificación del HTML para agregar la clase a los botones de navegación */
+    .btn-primary.mb-3 {
+        margin-right: 15px;
+    }
+    
+    /* Modal styles */
+    .modal-content {
+        border-radius: 8px;
+        border: none;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    
+    .modal-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #eaeaea;
+        padding: 15px 20px;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+    }
+    
+    .modal-title {
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+    
+    .modal-body {
+        padding: 20px;
+    }
+    
+    .modal-footer {
+        background-color: #f8f9fa;
+        border-top: 1px solid #eaeaea;
+        padding: 15px 20px;
+        border-bottom-left-radius: 8px;
+        border-bottom-right-radius: 8px;
+    }
+    
+    #errorList {
+        margin: 0;
+        padding-left: 20px;
+    }
+    
+    #errorList li {
+        color: var(--danger-color);
+        margin-bottom: 8px;
+    }
+    
+    .close {
+        font-size: 1.5rem;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+    }
+    
+    .close:hover {
+        opacity: 1;
+    }
+    
+    /* Para asegurar que los botones de navegación tengan el mismo estilo */
+    .btn-primary.mb-3,
+    a[href$="view_deleted_stock"] {
+        height: 45px;
+        padding: 0 20px;
+        font-weight: 600;
+        font-size: 15px;
+        border-radius: 8px;
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        transition: all 0.3s ease;
+        margin-bottom: 20px;
+    }
+    
+    .btn-primary.mb-3:hover,
+    a[href$="view_deleted_stock"]:hover {
+        background-color: var(--primary-hover);
+        box-shadow: 0 6px 12px rgba(59, 118, 239, 0.2);
+        transform: translateY(-2px);
+    }
+    
+    .btn-primary.mb-3:before {
+        content: "←";
+        margin-right: 10px;
+        font-size: 16px;
+    }
+    
+    a[href$="view_deleted_stock"]:before {
+        content: "👁️";
+        margin-right: 10px;
+        font-size: 16px;
+    }
+    
+    /* Fix para el espaciado entre botones de navegación */
+    .page-stock > a.btn:first-of-type {
+        margin-right: 15px;
+    }
+    
+    /* Estilos adicionales para mejorar la apariencia profesional */
+    .page-stock {
+        background-color: #f8fafc;
+    }
+    
+    body {
+        min-height: 100vh;
+        background: linear-gradient(to bottom, #f1f5f9, #f8fafc);
+    }
+    
+    /* Tooltip para mostrar información al hacer hover en los campos pequeños */
+    .editable-cell[title]:hover::after {
+        content: attr(title);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #333;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 12px;
+        white-space: nowrap;
+        z-index: 20;
+        pointer-events: none;
+    }
 }
