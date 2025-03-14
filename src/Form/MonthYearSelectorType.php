@@ -33,7 +33,7 @@ class MonthYearSelectorType extends AbstractType
 
         $builder
             ->add('month', ChoiceType::class, [
-                'choices' => $months, // Cambiamos aquí: NO usar array_flip
+                'choices' => $months,
                 'label' => 'Mes',
                 'data' => $options['data']['month'] ?? (int)date('m'),
             ])
@@ -44,6 +44,9 @@ class MonthYearSelectorType extends AbstractType
             ])
             ->add('submit', SubmitType::class, [
                 'label' => 'Ver Estadísticas',
+            ])
+            ->add('filter_year', SubmitType::class, [
+                'label' => 'Consultar Año',
             ]);
     }
 
@@ -51,8 +54,8 @@ class MonthYearSelectorType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => null,
-            'method' => 'GET', // Cambiamos a GET para tener URLs navegables
-            'csrf_protection' => false, // Desactivamos CSRF para formularios GET
+            'method' => 'POST',  // Cambiado de GET a POST
+            'csrf_protection' => true,  // Activar protección CSRF para POST
         ]);
     }
 }

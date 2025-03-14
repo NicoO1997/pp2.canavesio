@@ -29,11 +29,11 @@
             </div>
 
             <div class="register-field">
-                {{ form_label(registrationForm.username, 'Nombre de usuario', {'label_attr': {'class': 'register-label'}}) }}
+                {{ form_label(registrationForm.username, 'Nombre completo', {'label_attr': {'class': 'register-label'}}) }}
                 {{ form_widget(registrationForm.username, {
                     'attr': {
                         'class': 'register-input',
-                        'placeholder': 'Nombre de usuario'
+                        'placeholder': 'Nombre completo'
                     }
                 }) }}
                 {{ form_errors(registrationForm.username) }}

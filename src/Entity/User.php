@@ -34,15 +34,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $email = null;
 
     #[ORM\Column(type: 'string', length: 255, unique: true, nullable: true)]
-    #[Assert\NotBlank(message: 'El nombre de usuario no puede estar vacío', groups: ['registration'])]
-    #[Assert\Type(type: 'string', message: 'El nombre de usuario debe ser texto')]
-    #[Assert\Regex(
-        pattern: '/^[a-zA-Z0-9]+$/',
-        message: 'El nombre de usuario solo puede contener letras y números'
-    )]
+    #[Assert\NotBlank(message: 'El nombre completo no puede estar vacío', groups: ['registration'])]
+    #[Assert\Type(type: 'string', message: 'El nombre completo debe ser texto')]
     private ?string $username = null;
 
-    #[ORM\Column(type: 'string', length: 15, nullable: true)]
+    #[ORM\Column(type: 'string', length: 40, nullable: true)]
     private ?string $phone = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]

@@ -22,6 +22,7 @@ class ProductMovementController extends AbstractController
     {
         $month = (int)date('m');
         $year = (int)date('Y');
+        $filterByYear = false;
         
         $form = $this->createForm(MonthYearSelectorType::class, [
             'month' => $month,
@@ -32,11 +33,24 @@ class ProductMovementController extends AbstractController
         
         if ($form->isSubmitted() && $form->isValid()) {
             $data = $form->getData();
-            $month = (int)$data['month'];
             $year = (int)$data['year'];
+            
+            // Verificar qué botón fue presionado usando el array de datos de la solicitud
+            if ($request->request->has('month_year_selector')) {
+                $formData = $request->request->all('month_year_selector');
+                // Si el botón filter_year fue presionado, su valor aparecerá en el array de datos
+                $filterByYear = isset($formData['filter_year']);
+            }
+            
+            if (!$filterByYear) {
+                // Solo si no estamos filtrando por año, usamos el mes seleccionado
+                $month = (int)$data['month'];
+            }
         } else {
+            // Manejo de parámetros GET para poder compartir URLs
             $requestedMonth = $request->query->get('month');
             $requestedYear = $request->query->get('year');
+            $requestedFilterByYear = $request->query->get('filterByYear');
             
             if ($requestedMonth) {
                 $month = (int)$requestedMonth;
@@ -45,17 +59,28 @@ class ProductMovementController extends AbstractController
             if ($requestedYear) {
                 $year = (int)$requestedYear;
             }
+            
+            if ($requestedFilterByYear === '1') {
+                $filterByYear = true;
+            }
         }
-        
-        $month = max(1, min(12, $month));
         
         $conn = $em->getConnection();
         
-        $daysInMonth = date('t', mktime(0, 0, 0, $month, 1, $year));
-        $startDate = sprintf('%d-%02d-01 00:00:00', $year, $month);
-        $endDate = sprintf('%d-%02d-%d 23:59:59', $year, $month, $daysInMonth);
+        if ($filterByYear) {
+            $startDate = sprintf('%d-01-01 00:00:00', $year);
+            $endDate = sprintf('%d-12-31 23:59:59', $year);
+            
+            // Cuando filtramos por año, ponemos mes a 0 para la plantilla
+            $month = 0;
+        } else {
+            $month = max(1, min(12, $month)); // Asegurar que el mes esté entre 1 y 12
+            $daysInMonth = date('t', mktime(0, 0, 0, $month, 1, $year));
+            $startDate = sprintf('%d-%02d-01 00:00:00', $year, $month);
+            $endDate = sprintf('%d-%02d-%d 23:59:59', $year, $month, $daysInMonth);
+        }
         
-        // Consulta actualizada para incluir el monto total por producto
+        // Consulta para obtener estadísticas de ventas
         $sqlStats = "
             SELECT p.id, p.name as product_name, ABS(SUM(m.quantity)) AS total_quantity, 
                    ABS(SUM(m.quantity)) * p.price AS total_amount_per_product
@@ -74,6 +99,7 @@ class ProductMovementController extends AbstractController
         
         $statistics = $stmt->fetchAllAssociative();
         
+        // Consulta para obtener el monto total
         $sqlTotal = "
             SELECT COALESCE(SUM(ABS(m.quantity) * p.price), 0) as total_amount
             FROM product_movement m
@@ -96,7 +122,8 @@ class ProductMovementController extends AbstractController
             'totalAmount' => $totalAmount ?: 0,
             'form' => $form->createView(),
             'currentDateTime' => new DateTime('now', new DateTimeZone('America/Argentina/Buenos_Aires')),
-            'currentUser' => $this->getUser() ? $this->getUser()->getUserIdentifier() : 'Guest'
+            'currentUser' => $this->getUser() ? $this->getUser()->getUserIdentifier() : 'Guest',
+            'filterByYear' => $filterByYear
         ]);
     }
 

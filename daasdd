@@ -1,0 +1,255 @@
+[33mcommit 1e5d13b5027f689ec2340d16561dd2ad9c93ea26[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m)[m
+Author: SantiAragon <aragonsanti82@gmail.com>
+Date:   Thu Mar 13 20:23:14 2025 -0300
+
+    Revert "version prueba imagen"
+    
+    This reverts commit 300343afdf4c19ee55979e773a809c77bac2b4ad.
+
+[33mcommit 205253aba37ef8bdc0b85623dc6c43cdf85519ef[m
+Author: SantiAragon <aragonsanti82@gmail.com>
+Date:   Thu Mar 13 20:22:13 2025 -0300
+
+    Revert "no importa"
+    
+    This reverts commit 41b4ab5f4313687e01644d9f320b63ef6d1adc68.
+
+[33mcommit 41b4ab5f4313687e01644d9f320b63ef6d1adc68[m
+Author: SantiAragon <aragonsanti82@gmail.com>
+Date:   Thu Mar 13 20:20:36 2025 -0300
+
+    no importa
+
+[33mcommit 300343afdf4c19ee55979e773a809c77bac2b4ad[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: SantiAragon <aragonsanti82@gmail.com>
+Date:   Wed Mar 12 22:50:17 2025 -0300
+
+    version prueba imagen
+
+[33mcommit 22e6eac76689a63fdb73b8d10f14c8d1cfc5b8dc[m
+Author: SantiAragon <aragonsanti82@gmail.com>
+Date:   Tue Mar 11 23:01:41 2025 -0300
+
+    cambios para probar
+
+[33mcommit 8cc10007e0658e27bef796fdadeb88189bd05f9b[m
+Author: Fernando Nicolas Castillo <ncastillo@escribanos.local>
+Date:   Tue Mar 11 12:25:03 2025 -0300
+
+    Varias cositas nuevas.
+
+[33mcommit 27d457f0d8f63a254f3d404892832f04b71a30c5[m
+Author: SantiAragon <aragonsanti82@gmail.com>
+Date:   Mon Mar 10 22:12:02 2025 -0300
+
+    cardilli me rompe las bolas
+
+[33mcommit e70e39c339020de6bb3784a7dc730b51d0e827b2[m
+Author: NicoO1997 <nicol4cho1997@gmail.com>
+Date:   Mon Mar 10 21:39:14 2025 -0300
+
+    Gráficos listos
+
+[33mcommit b9c5f9f26d8dd37af75df75cf003b544c001af04[m
+Author: Fernando Nicolas Castillo <ncastillo@escribanos.local>
+Date:   Mon Mar 10 12:46:59 2025 -0300
+
+    Falta lo que te pase al wts
+
+[33mcommit 0070f24005bee46d6a605231123016ad7df32713[m
+Author: Fernando Nicolas Castillo <ncastillo@escribanos.local>
+Date:   Mon Mar 10 12:41:04 2025 -0300
+
+    Falta lo que te pase
+
+[33mcommit 48514757d3ab27481b92668414f4b0a9686a5b7d[m
+Author: SantiAragon <aragonsanti82@gmail.com>
+Date:   Sun Mar 9 23:03:57 2025 -0300
+
+    proyecto a espera de pruebas
+
+[33mcommit 51b908f5fdbd138f1f5bda35c34899cea5e17195[m
+Author: NicoO1997 <nicol4cho1997@gmail.com>
+Date:   Sun Mar 9 19:01:03 2025 -0300
+
+    Maquinaria lista y sql maquinaria
+
+[33mcommit f95dde60f70922a1d4dd1f498f9edc59023d180b[m
+Author: NicoO1997 <nicol4cho1997@gmail.com>
+Date:   Sun Mar 9 18:59:38 2025 -0300
+
+    Maquinaria lista
+
+[33mcommit 8317fa517ccff581c10f8fd46029b0309a7c3627[m
+Author: SantiAragon <aragonsanti82@gmail.com>
+Date:   Sun Mar 9 14:39:53 2025 -0300
+
+    .
+
+[33mcommit d119bdb650a7fe0033075c71c8fa5657fa1ce4e9[m
+Author: SantiAragon <aragonsanti82@gmail.com>
+Date:   Sun Mar 9 14:29:47 2025 -0300
+
+    cambios pusheados falta carga de productos y filtro stock
+
+[33mcommit 159554aacff91d40736e5a18f84d2d6bfb394867[m
+Author: SantiAragon <aragonsanti82@gmail.com>
+Date:   Fri Mar 7 00:24:56 2025 -0300
+
+    falta la pagina de los registros, implementada vista productos eliminados
+
+[33mcommit 52d444a0ddf2e6c35ade509d3c7ba7ab9811dc25[m
+Author: Fernando Nicolas Castillo <ncastillo@escribanos.local>
+Date:   Thu Mar 6 14:00:35 2025 -0300
+
+    Revisar eliminar repuestos y registros de edición
+
+[33mcommit 1aa887086c31e102cd9f9ac1a649e216ac1416b7[m
+Author: SantiAragon <aragonsanti82@gmail.com>
+Date:   Wed Mar 5 23:58:34 2025 -0300
+
+    faltaria pulir compra y manejar registros
+
+[33mcommit 49c76956ecc64a654390d15ab33f4ccd88e1af19[m
+Author: Fernando Nicolas Castillo <ncastillo@escribanos.local>
+Date:   Wed Mar 5 13:43:19 2025 -0300
+
+    Reservas terminado y retoques de ROLE_INVITADO y alertas de home-page.
+
+[33mcommit fe6cda12ec1bfac44d45ef7b4a335704344df62b[m
+Author: SantiAragon <aragonsanti82@gmail.com>
+Date:   Wed Mar 5 00:33:06 2025 -0300
+
+    listo el filtrado de marcas por tipo de repuesto en agregar producto y falta arreglar el filtro del listado de productos
+
+[33mcommit 9f9e3c7f7a26bb21317d84d40de0d5e71faa5a58[m
+Author: SantiAragon <aragonsanti82@gmail.com>
+Date:   Wed Mar 5 00:22:28 2025 -0300
+
+    falta terminar detalles del agregar producto y el filtro del listado de productos
+
+[33mcommit 5c5f6767b7358742d104bd250fcee23babbcad91[m
+Author: NicoO1997 <nicol4cho1997@gmail.com>
+Date:   Sun Mar 2 14:12:06 2025 -0300
+
+    Agregar, mostrar y detalles de maquinaria terminado.
+
+[33mcommit d4b3e01ed8fca60516248389915b8330d5d4255f[m
+Author: NicoO1997 <nicol4cho1997@gmail.com>
+Date:   Sat Mar 1 19:11:26 2025 -0300
+
+    Agregar maquinaria, visualizarla y detalles listo.
+
+[33mcommit cd087193f0b2080c13720d5492572285b34ef1be[m
+Author: SantiAragon <aragonsanti82@gmail.com>
+Date:   Thu Feb 27 23:17:32 2025 -0300
+
+    ultimos cambios antes de revision
+
+[33mcommit c310adf95b633f79b4d600c886622ae62f93adeb[m
+Author: Fernando Nicolas Castillo <ncastillo@escribanos.local>
+Date:   Thu Feb 27 11:39:35 2025 -0300
+
+    Proyecto final
+
+[33mcommit 34608f3ca8dd293896dd7fbddae03e357cc3cc71[m
+Author: Fernando Nicolas Castillo <ncastillo@escribanos.local>
+Date:   Thu Feb 27 09:59:56 2025 -0300
+
+    Proyecto Final.
+
+[33mcommit 96674cbbb18c778d21ca6c196b28a55000199f05[m
+Author: SantiAragon <aragonsanti82@gmail.com>
+Date:   Thu Feb 27 02:17:04 2025 -0300
+
+    faltan botones volver y estilos en algunas vistas como catalogo
+
+[33mcommit 678dce69303c016cfe86db7420d22605e627170b[m
+Author: Fernando Nicolas Castillo <ncastillo@escribanos.local>
+Date:   Wed Feb 26 09:46:36 2025 -0300
+
+    Solo falta Validaciones y casos de uso
+
+[33mcommit cefb12e1ffe8bd15eb01bfada190f44f68589e6e[m
+Author: Fernando Nicolas Castillo <ncastillo@escribanos.local>
+Date:   Tue Feb 25 12:47:19 2025 -0300
+
+    Falta validaciones y acomodar Diagrama de Casos de Uso.
+
+[33mcommit 3fe00d05f60230ad0f183b8146d0b7f2906818cd[m
+Author: Fernando Nicolas Castillo <ncastillo@escribanos.local>
+Date:   Tue Feb 25 08:16:28 2025 -0300
+
+    Solo falta validaciones y revisar alertas.
+
+[33mcommit 33c2d9b2984d0e304459632ec4fc60e6ccddd087[m
+Author: SantiAragon <aragonsanti82@gmail.com>
+Date:   Mon Feb 24 21:47:56 2025 -0300
+
+    falta division de maquinaria usada y nueva en viewusedmachinery, y relleno de home page, y otras cosas qsy
+
+[33mcommit 00a141101cf7df71fe2a3bb3887cbff12dd31c3f[m
+Author: Fernando Nicolas Castillo <ncastillo@escribanos.local>
+Date:   Mon Feb 24 13:06:48 2025 -0300
+
+    Varias cosas arregladas - Falta solución de Estilos.
+
+[33mcommit 573b9191ad29c877958d9c40e9250f9bdbc34f7d[m
+Author: Fernando Nicolas Castillo <ncastillo@escribanos.local>
+Date:   Mon Feb 24 13:05:15 2025 -0300
+
+    Actualizar .gitignore para excluir node_modules y otros archivos
+
+[33mcommit abe4f2fcc676702d7ce31dfc21ca50109fd4f795[m
+Author: Fernando Nicolas Castillo <ncastillo@escribanos.local>
+Date:   Mon Feb 24 13:04:15 2025 -0300
+
+    Actualizar .gitignore para excluir node_modules y otros archivos
+
+[33mcommit 099468d92d48a8695e8da40be3ae7a166acbe41f[m
+Author: Fernando Nicolas Castillo <ncastillo@escribanos.local>
+Date:   Mon Feb 24 12:36:44 2025 -0300
+
+    Normalize line endings
+
+[33mcommit 2ab32fea3b99a0fe697432d7a299daef3572885f[m
+Author: NicoO1997 <nicol4cho1997@gmail.com>
+Date:   Sun Feb 23 19:00:37 2025 -0300
+
+    Solucionado el cambiar estado del botón en el Stock.
+
+[33mcommit 3a4e03bc0f6c5722fc5b251726430060e36a1045[m
+Author: SantiAragon <aragonsanti82@gmail.com>
+Date:   Sun Feb 23 12:31:41 2025 -0300
+
+    cambios vista used machineries y arreglos
+
+[33mcommit 77f9aa18bc26f001b2b6e08f789964cb6461c217[m
+Author: NicoO1997 <nicol4cho1997@gmail.com>
+Date:   Thu Feb 20 20:38:04 2025 -0300
+
+    Solución de Agregar repuesto - /product/new
+
+[33mcommit 5e6a3f4404ee936730543c1aa0351f2424acc31f[m
+Author: NicoO1997 <nicol4cho1997@gmail.com>
+Date:   Sat Feb 15 18:58:48 2025 -0300
+
+    Ultimos cambios 15/02/25
+
+[33mcommit 6e73a75bfab6122200fb160436f14d273924c25d[m
+Author: NicoO1997 <nicol4cho1997@gmail.com>
+Date:   Fri Feb 14 21:02:59 2025 -0300
+
+    Solución de algunos problemas
+
+[33mcommit 68162509e93b0384f06dc25c8ae3e29c036d0916[m
+Author: NicoO1997 <nicol4cho1997@gmail.com>
+Date:   Mon Feb 3 20:56:58 2025 -0300
+
+    Actualización de estilos y prueba de recuperar contraseña
+
+[33mcommit a3eb85dd1877f8502851c7b9d9380d51bed88973[m
+Author: NicoO1997 <nicol4cho1997@gmail.com>
+Date:   Mon Feb 3 20:51:57 2025 -0300
+
+    Initial commit

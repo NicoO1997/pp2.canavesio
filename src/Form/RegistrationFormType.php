@@ -49,30 +49,19 @@ class RegistrationFormType extends AbstractType
             ]
         ])
             ->add('username', TextType::class, [
-                'label' => 'Nombre de usuario',
+                'label' => 'Nombre completo',
                 'attr' => [
-                    'placeholder' => 'Nombre de usuario',
-                    'minlength' => '3',
-                    'maxlength' => '10'
+                    'placeholder' => 'Nombre completo'
                 ],
                 'constraints' => [
                     new NotBlank([
-                        'message' => 'El nombre de usuario no puede estar vacío'
+                        'message' => 'El nombre no puede estar vacío'
                     ]),
                     new Type([
                         'type' => 'string',
-                        'message' => 'El nombre de usuario debe ser texto'
-                    ]),
-                    new Length([
-                        'min' => 3,
-                        'max' => 10,
-                        'minMessage' => 'El nombre de usuario debe tener al menos {{ limit }} caracteres',
-                        'maxMessage' => 'El nombre de usuario no puede tener más de {{ limit }} caracteres'
-                    ]),
-                    new Regex([
-                        'pattern' => '/^[a-zA-Z0-9]+$/',
-                        'message' => 'El nombre de usuario solo puede contener letras y números'
+                        'message' => 'El nombre debe ser texto'
                     ])
+                    // Eliminamos la expresión regular restrictiva
                 ]
             ])
             ->add('phone', TelType::class, [

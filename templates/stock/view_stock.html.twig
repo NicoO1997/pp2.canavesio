@@ -93,9 +93,9 @@
 							<tr data-id="{{ product.id }}" class="{{ product.needsRestock ? 'low-stock' : '' }}">
 								<td>
 									{% if product.image %}
-										<img src="{{ asset('assets/imagenes/' ~ product.image) }}" alt="{{ product.name }}" class="product-image">
+										<img src="{{ asset('imagenes/' ~ product.image) }}" alt="{{ product.name }}" class="product-image">
 									{% else %}
-										<img src="{{ asset('assets/imagenes/no-image.png') }}" alt="No image available" class="product-image">
+										<img src="{{ asset('imagenes/no-image.png') }}" alt="No image available" class="product-image">
 									{% endif %}
 								</td>
 								<td class="editable-cell" data-field="name">{{ product.name }}</td>

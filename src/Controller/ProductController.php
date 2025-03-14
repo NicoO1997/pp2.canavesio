@@ -64,7 +64,7 @@ class ProductController extends AbstractController
                     $newFilename = $originalFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
 
                     $imageFile->move(
-                        'assets/imagenes',
+                        $this->getParameter('kernel.project_dir') . '/public/imagenes',
                         $newFilename
                     );
 

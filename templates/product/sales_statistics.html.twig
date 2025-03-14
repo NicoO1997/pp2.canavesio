@@ -7,7 +7,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 {% endblock %}
 
-{% block title %}Estadísticas de Ventas {{ month }}/{{ year }}{% endblock %}
+{% block title %}
+    {% if filterByYear %}
+        Estadísticas de Ventas {{ year }}
+    {% else %}
+        Estadísticas de Ventas {{ month }}/{{ year }}
+    {% endif %}
+{% endblock %}
 
 {% block body %}
 <div class="statistics-container">
@@ -17,7 +23,11 @@
                 <i class="fas fa-arrow-left"></i> Volver
             </a>
         </div>
-        <h1>Estadísticas de Ventas: {{ month }}/{{ year }}</h1>
+        {% if filterByYear %}
+            <h1>Estadísticas de Ventas: {{ year }}</h1>
+        {% else %}
+            <h1>Estadísticas de Ventas: {{ month }}/{{ year }}</h1>
+        {% endif %}
         <div class="current-info">
             <span class="datetime">
                 <i class="fas fa-clock"></i>
@@ -34,7 +44,7 @@
             <div class="col-md-4">
                 <div class="form-group">
                     {{ form_label(form.month, 'Mes') }}
-                    {{ form_widget(form.month, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_widget(form.month, {'attr': {'class': 'form-control', 'id': 'month-selector'}}) }}
                 </div>
             </div>
             <div class="col-md-4">
@@ -49,6 +59,12 @@
                     {{ form_widget(form.submit, {'attr': {'class': 'btn btn-primary'}}) }}
                 </div>
             </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    {{ form_widget(form.filter_year, {'attr': {'class': 'btn btn-secondary', 'id': 'filter-year-btn'}}) }}
+                </div>
+            </div>
         </div>
         {{ form_end(form) }}
     </div>
@@ -57,8 +73,12 @@
         <p><strong>Fecha de consulta:</strong> {{ startDate }} al {{ endDate }}</p>
         {% set monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'] %}
         {% set monthIndex = month > 0 and month <= 12 ? month - 1 : 0 %}
-        <p><strong>Mes seleccionado:</strong> {{ month }} ({{ monthNames[monthIndex] }})</p>
-        <p><strong>Año seleccionado:</strong> {{ year }}</p>
+        {% if filterByYear %}
+            <p><strong>Año completo seleccionado:</strong> {{ year }}</p>
+        {% else %}
+            <p><strong>Mes seleccionado:</strong> {{ month }} ({{ monthNames[monthIndex] }})</p>
+            <p><strong>Año seleccionado:</strong> {{ year }}</p>
+        {% endif %}
         <p><strong>Registros encontrados:</strong> {{ statistics|length }}</p>
     </div>
 
@@ -98,7 +118,11 @@
         {% else %}
             <div class="empty-state">
                 <i class="fas fa-search"></i>
-                <p>No se encontraron ventas para {{ monthNames[monthIndex] }} de {{ year }}</p>
+                {% if filterByYear %}
+                    <p>No se encontraron ventas para el año {{ year }}</p>
+                {% else %}
+                    <p>No se encontraron ventas para {{ monthNames[monthIndex] }} de {{ year }}</p>
+                {% endif %}
             </div>
         {% endif %}
     </div>
@@ -182,7 +206,11 @@
                 plugins: {
                     title: {
                         display: true,
-                        text: 'Top 5 Repuestos Más Vendidos - {{ monthNames[monthIndex] }} {{ year }}',
+                        {% if filterByYear %}
+                            text: 'Top 5 Repuestos Más Vendidos - {{ year }}',
+                        {% else %}
+                            text: 'Top 5 Repuestos Más Vendidos - {{ monthNames[monthIndex] }} {{ year }}',
+                        {% endif %}
                         font: {
                             size: 16
                         }
@@ -200,6 +228,34 @@
             document.getElementById('productsChart'),
             productsChartConfig
         );
+        
+        // Gestión del selector de mes
+        const monthSelector = document.getElementById('month-selector');
+        const filterYearBtn = document.getElementById('filter-year-btn');
+        
+        // Inicialmente, si estamos en modo año completo, deshabilitamos el selector de mes
+        {% if filterByYear %}
+        if (monthSelector) {
+            monthSelector.disabled = true;
+        }
+        {% endif %}
+        
+        // Habilitar el selector de mes al hacer clic en él
+        if (monthSelector) {
+            monthSelector.addEventListener('click', function() {
+                // Habilitar el selector de mes al hacer clic en él
+                this.disabled = false;
+            });
+        }
+        
+        // Deshabilitar el selector de mes al hacer clic en Consultar Año
+        if (filterYearBtn) {
+            filterYearBtn.addEventListener('click', function() {
+                if (monthSelector) {
+                    monthSelector.disabled = true;
+                }
+            });
+        }
     });
 </script>
 {% endblock %}
