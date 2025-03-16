@@ -68,7 +68,7 @@
                                             <td>{{ machinery.brand }}</td>
                                             <td>{{ machinery.category ? machinery.category.name : 'Sin categoría' }}</td>
                                             <td>{{ machinery.locality }}, {{ machinery.provincia }}</td>
-                                            <td>${{ machinery.price|number_format(2, '.', ',')|default('0.00') }}</td>
+                                            <td>USD {{ machinery.price|number_format(2, '.', ',')|default('0.00') }}</td>
                                             <td>
                                                 {% set vatRate = {
                                                     'responsable_inscripto': '21%',
@@ -78,7 +78,7 @@
                                                 } %}
                                                 {{ vatRate[machinery.taxpayerType]|default('N/A') }}
                                             </td>
-                                            <td>${{ machinery.priceWithVAT|number_format(2, '.', ',')|default('0.00') }}</td>
+                                            <td>USD {{ machinery.priceWithVAT|number_format(2, '.', ',')|default('0.00') }}</td>
                                             <td class="image-cell">
                                                 {% if machinery.imageFilenames|length > 0 %}
                                                     <img src="{{ asset('imagenes/' ~ machinery.imageFilenames[0]) }}" 
@@ -148,7 +148,7 @@
                                             <td>{{ machinery.brand }}</td>
                                             <td>{{ machinery.category ? machinery.category.name : 'Sin categoría' }}</td>
                                             <td>{{ machinery.locality }}, {{ machinery.provincia }}</td>
-                                            <td>${{ machinery.price|number_format(2, '.', ',')|default('0.00') }}</td>
+                                            <td>USD {{ machinery.price|number_format(2, '.', ',')|default('0.00') }}</td>
                                             <td>
                                                 {% set vatRate = {
                                                     'responsable_inscripto': '21%',
@@ -158,7 +158,7 @@
                                                 } %}
                                                 {{ vatRate[machinery.taxpayerType]|default('N/A') }}
                                             </td>
-                                            <td>${{ machinery.priceWithVAT|number_format(2, '.', ',')|default('0.00') }}</td>
+                                            <td>USD {{ machinery.priceWithVAT|number_format(2, '.', ',')|default('0.00') }}</td>
                                             <td>{{ machinery.manufacturingDate ? machinery.manufacturingDate|date('d/m/Y') : 'N/A' }}</td>
                                             <td>{{ machinery.hoursOfUse }} horas</td>
                                             <td>{{ machinery.lastService ? machinery.lastService|date('d/m/Y') : 'N/A' }}</td>

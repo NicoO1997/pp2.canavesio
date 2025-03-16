@@ -22,7 +22,7 @@
             <div class="usedMachinery-info">
               <h2>{{ machinery.brand }} {{ machinery.model }}</h2>
               <p class="usedMachinery-location">{{ machinery.locality }}, {{ machinery.provincia }}</p>
-              <p class="usedMachinery-price">${{ machinery.price|number_format(2, ',', '.') }}</p>
+              <p class="usedMachinery-price">USD {{ machinery.price|number_format(2, ',', '.') }}</p>
               <span class="usedMachinery-status {{ machinery.isNew ? 'new' : 'used' }}">
                 {{ machinery.isNew ? 'Nueva' : 'Usada' }}
               </span>

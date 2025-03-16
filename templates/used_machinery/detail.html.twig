@@ -78,23 +78,23 @@
                         </tr>
                         <tr>
                             <th>Precio Base:</th>
-                            <td class="price-value">${{ machinery.price|number_format(2, '.', ',') }}</td>
+                            <td class="price-value">USD {{ machinery.price|number_format(2, '.', ',') }}</td>
                         </tr>
                         <tr>
                             <th>IVA:</th>
                             <td class="price-value">
                                 {% if machinery.taxpayerType == 'responsable_inscripto' %}
-                                    ${{ (machinery.priceWithVAT - machinery.price)|number_format(2, '.', ',') }} (21%)
+                                    USD {{ (machinery.priceWithVAT - machinery.price)|number_format(2, '.', ',') }} (21%)
                                 {% elseif machinery.taxpayerType == 'consumidor_final' %}
-                                    ${{ (machinery.priceWithVAT - machinery.price)|number_format(2, '.', ',') }} (10%)
+                                    USD {{ (machinery.priceWithVAT - machinery.price)|number_format(2, '.', ',') }} (10%)
                                 {% else %}
-                                    $0.00 (0%)
+                                    USD 0.00 (0%)
                                 {% endif %}
                             </td>
                         </tr>
                         <tr>
                             <th>Precio Final:</th>
-                            <td class="price-value">${{ machinery.priceWithVAT|number_format(2, '.', ',') }}</td>
+                            <td class="price-value">USD {{ machinery.priceWithVAT|number_format(2, '.', ',') }}</td>
                         </tr>
                         <tr>
                             <th>Capacidad de tanque:</th>

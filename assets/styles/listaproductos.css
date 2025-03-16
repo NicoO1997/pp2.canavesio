@@ -442,7 +442,7 @@ button.volver-btn:active {
 
 .producto-info {
     padding: 1.2rem;
-    background-color: rgb(211, 192, 18);
+    background-color: rgb(240, 187, 16);
     text-align: center;
     position: relative;
     border-top: 1px solid rgba(0,0,0,0.05);
@@ -490,6 +490,8 @@ button.volver-btn:active {
     border-radius: var(--border-radius);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
     padding: 0.5rem;
+    color: black;
+    cursor: pointer;
 }
 
 .ui-menu-item-wrapper {

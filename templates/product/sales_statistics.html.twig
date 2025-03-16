@@ -10,6 +10,8 @@
 {% block title %}
     {% if filterByYear %}
         Estadísticas de Ventas {{ year }}
+    {% elseif filterByDateRange %}
+        Estadísticas de Ventas {{ startDateObj|date('d/m/Y') }} al {{ endDateObj|date('d/m/Y') }}
     {% else %}
         Estadísticas de Ventas {{ month }}/{{ year }}
     {% endif %}
@@ -25,6 +27,8 @@
         </div>
         {% if filterByYear %}
             <h1>Estadísticas de Ventas: {{ year }}</h1>
+        {% elseif filterByDateRange %}
+            <h1>Estadísticas de Ventas: {{ startDateObj|date('d/m/Y') }} al {{ endDateObj|date('d/m/Y') }}</h1>
         {% else %}
             <h1>Estadísticas de Ventas: {{ month }}/{{ year }}</h1>
         {% endif %}
@@ -40,32 +44,58 @@
 
     <div class="statistics-form">
         {{ form_start(form) }}
-        <div class="row">
-            <div class="col-md-4">
-                <div class="form-group">
-                    {{ form_label(form.month, 'Mes') }}
-                    {{ form_widget(form.month, {'attr': {'class': 'form-control', 'id': 'month-selector'}}) }}
+        <div class="filter-type-selector">
+            {{ form_row(form.date_range) }}
+        </div>
+        
+        <div class="month-year-filters" id="month-year-filters">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        {{ form_label(form.month, 'Mes') }}
+                        {{ form_widget(form.month, {'attr': {'class': 'form-control', 'id': 'month-selector'}}) }}
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-4">
-                <div class="form-group">
-                    {{ form_label(form.year, 'Año') }}
-                    {{ form_widget(form.year, {'attr': {'class': 'form-control'}}) }}
+                <div class="col-md-4">
+                    <div class="form-group">
+                        {{ form_label(form.year, 'Año') }}
+                        {{ form_widget(form.year, {'attr': {'class': 'form-control'}}) }}
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-4">
-                <div class="form-group">
-                    <label>&nbsp;</label>
-                    {{ form_widget(form.submit, {'attr': {'class': 'btn btn-primary'}}) }}
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="form-group">
-                    <label>&nbsp;</label>
-                    {{ form_widget(form.filter_year, {'attr': {'class': 'btn btn-secondary', 'id': 'filter-year-btn'}}) }}
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        {{ form_widget(form.filter_year, {'attr': {'class': 'btn btn-secondary', 'id': 'filter-year-btn'}}) }}
+                    </div>
                 </div>
             </div>
         </div>
+        
+        <div class="date-range-filters" id="date-range-filters" style="display: none;">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        {{ form_label(form.start_date, 'Fecha Inicio') }}
+                        {{ form_widget(form.start_date, {'attr': {'class': 'form-control date-picker'}}) }}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        {{ form_label(form.end_date, 'Fecha Fin') }}
+                        {{ form_widget(form.end_date, {'attr': {'class': 'form-control date-picker'}}) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-3">
+            <div class="col-md-4">
+                <div class="form-group">
+                    {{ form_widget(form.submit, {'attr': {'class': 'btn btn-primary'}}) }}
+                </div>
+            </div>
+        </div>
+        
         {{ form_end(form) }}
     </div>
 
@@ -73,7 +103,9 @@
         <p><strong>Fecha de consulta:</strong> {{ startDate }} al {{ endDate }}</p>
         {% set monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'] %}
         {% set monthIndex = month > 0 and month <= 12 ? month - 1 : 0 %}
-        {% if filterByYear %}
+        {% if filterByDateRange %}
+            <p><strong>Período seleccionado:</strong> {{ startDateObj|date('d/m/Y') }} al {{ endDateObj|date('d/m/Y') }}</p>
+        {% elseif filterByYear %}
             <p><strong>Año completo seleccionado:</strong> {{ year }}</p>
         {% else %}
             <p><strong>Mes seleccionado:</strong> {{ month }} ({{ monthNames[monthIndex] }})</p>
@@ -82,7 +114,6 @@
         <p><strong>Registros encontrados:</strong> {{ statistics|length }}</p>
     </div>
 
-    <!-- Sección de gráficos -->
     <div class="charts-container">
         <div class="chart-box">
             <h3 class="chart-title">Repuestos Más Vendidos</h3>
@@ -118,7 +149,9 @@
         {% else %}
             <div class="empty-state">
                 <i class="fas fa-search"></i>
-                {% if filterByYear %}
+                {% if filterByDateRange %}
+                    <p>No se encontraron ventas para el período {{ startDateObj|date('d/m/Y') }} al {{ endDateObj|date('d/m/Y') }}</p>
+                {% elseif filterByYear %}
                     <p>No se encontraron ventas para el año {{ year }}</p>
                 {% else %}
                     <p>No se encontraron ventas para {{ monthNames[monthIndex] }} de {{ year }}</p>
@@ -128,12 +161,61 @@
     </div>
 </div>
 
-<!-- Incluir Chart.js desde CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Datos para el gráfico de productos
+        const today = new Date().toISOString().split('T')[0];
+        
+        const endDateInput = document.querySelector('input[name="month_year_selector[end_date]"]');
+        if (endDateInput) {
+            endDateInput.setAttribute('max', today);
+        }
+        
+        function toggleFilters() {
+            const filterType = document.querySelector('input[name="month_year_selector[date_range]"]:checked').value;
+            const monthYearFilters = document.getElementById('month-year-filters');
+            const dateRangeFilters = document.getElementById('date-range-filters');
+            
+            if (filterType === 'date_range') {
+                monthYearFilters.style.display = 'none';
+                dateRangeFilters.style.display = 'block';
+            } else {
+                monthYearFilters.style.display = 'block';
+                dateRangeFilters.style.display = 'none';
+            }
+        }
+        
+        toggleFilters();
+        
+        const radioButtons = document.querySelectorAll('input[name="month_year_selector[date_range]"]');
+        radioButtons.forEach(function(radio) {
+            radio.addEventListener('change', toggleFilters);
+        });
+        
+        const monthSelector = document.getElementById('month-selector');
+        const filterYearBtn = document.getElementById('filter-year-btn');
+        
+        {% if filterByYear %}
+        if (monthSelector) {
+            monthSelector.disabled = true;
+        }
+        {% endif %}
+        
+        if (monthSelector) {
+            monthSelector.addEventListener('click', function() {
+                this.disabled = false;
+            });
+        }
+        
+        if (filterYearBtn) {
+            filterYearBtn.addEventListener('click', function() {
+                if (monthSelector) {
+                    monthSelector.disabled = true;
+                }
+            });
+        }
+        
         var productsData = {
             labels: [
                 {% for stat in statistics|slice(0, 5) %}
@@ -169,7 +251,6 @@
             ]
         };
 
-        // Configuración del gráfico de productos
         var productsChartConfig = {
             type: 'bar',
             data: productsData,
@@ -206,7 +287,9 @@
                 plugins: {
                     title: {
                         display: true,
-                        {% if filterByYear %}
+                        {% if filterByDateRange %}
+                            text: 'Top 5 Repuestos Más Vendidos - {{ startDateObj|date('d/m/Y') }} al {{ endDateObj|date('d/m/Y') }}',
+                        {% elseif filterByYear %}
                             text: 'Top 5 Repuestos Más Vendidos - {{ year }}',
                         {% else %}
                             text: 'Top 5 Repuestos Más Vendidos - {{ monthNames[monthIndex] }} {{ year }}',
@@ -218,44 +301,14 @@
                     legend: {
                         display: true
                     }
-                    
                 }
             }
         };
 
-        // Crear el gráfico de productos
         var productsChart = new Chart(
             document.getElementById('productsChart'),
             productsChartConfig
         );
-        
-        // Gestión del selector de mes
-        const monthSelector = document.getElementById('month-selector');
-        const filterYearBtn = document.getElementById('filter-year-btn');
-        
-        // Inicialmente, si estamos en modo año completo, deshabilitamos el selector de mes
-        {% if filterByYear %}
-        if (monthSelector) {
-            monthSelector.disabled = true;
-        }
-        {% endif %}
-        
-        // Habilitar el selector de mes al hacer clic en él
-        if (monthSelector) {
-            monthSelector.addEventListener('click', function() {
-                // Habilitar el selector de mes al hacer clic en él
-                this.disabled = false;
-            });
-        }
-        
-        // Deshabilitar el selector de mes al hacer clic en Consultar Año
-        if (filterYearBtn) {
-            filterYearBtn.addEventListener('click', function() {
-                if (monthSelector) {
-                    monthSelector.disabled = true;
-                }
-            });
-        }
     });
 </script>
 {% endblock %}

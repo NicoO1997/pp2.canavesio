@@ -346,14 +346,14 @@
 				
 				if (item.image) {
 					const $img = $('<img>')
-						.attr('src', '/assets/imagenes/' + item.image)
+						.attr('src', "{{ asset('imagenes/') }}" + item.image)
 						.addClass('search-result-thumbnail')
 						.css({
 							'max-width': '50px',
 							'max-height': '50px',
 							'margin-right': '10px'
 						});
-					
+
 					$content.prepend($img);
 				}
 				
