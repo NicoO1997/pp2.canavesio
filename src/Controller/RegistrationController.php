@@ -27,53 +27,44 @@ class RegistrationController extends AbstractController
         $form = $this->createForm(RegistrationFormType::class, $user);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted()) {
-            $plainPassword = $form->get('plainPassword')->getData();
-            
-            // Validación estricta de la longitud
-            if (strlen($plainPassword) > 12) {
-                $form->get('plainPassword')->addError(new FormError('La contraseña no puede superar los 255 caracteres.'));
-            }
-
-            if ($form->isValid()) {
-                try {
-                    $user->setSecurityQuestion($form->get('securityQuestion')->getData());
-                    $user->setSecurityAnswer($form->get('securityAnswer')->getData());
-                    
-                    // Obtener el email del usuario
-                    $email = $user->getEmail();
-                    
-                    // Lógica de asignación de roles
-                    $roles = ['ROLE_INVITADO'];
-                    if (strpos($email, 'ADMIN@canavesio.org.ar') !== false) {
-                        $roles = ['ROLE_ADMIN'];
-                    } elseif (strpos($email, 'GESTORSTOCK@canavesio.org.ar') !== false) {
-                        $roles = ['ROLE_GESTORSTOCK'];              
-                    } elseif (strpos($email, 'VENDEDOR@canavesio.org.ar') !== false) {
-                        $roles = ['ROLE_VENDEDOR'];
-                    } else {
-                        $roles = ['ROLE_USUARIO'];
-                    }
-            
-                    // Asignar los roles al usuario
-                    $user->setRoles($roles);
-            
-                    // Codificar contraseña
-                    $user->setPassword(
-                        $userPasswordHasher->hashPassword(
-                            $user,
-                            $plainPassword
-                        )
-                    );
-            
-                    $entityManager->persist($user);
-                    $entityManager->flush();
-            
-                    return $this->redirectToRoute('app_login');
-                } catch (\Exception $e) {
-                    $this->addFlash('error', 'Ha ocurrido un error al registrar el usuario.');
-                    return $this->redirectToRoute('app_register');
+        if ($form->isSubmitted() && $form->isValid()) {
+            try {
+                $user->setSecurityQuestion($form->get('securityQuestion')->getData());
+                $user->setSecurityAnswer($form->get('securityAnswer')->getData());
+                
+                // Obtener el email del usuario
+                $email = $user->getEmail();
+                
+                // Lógica de asignación de roles
+                $roles = ['ROLE_INVITADO'];
+                if (strpos($email, 'ADMIN@canavesio.org.ar') !== false) {
+                    $roles = ['ROLE_ADMIN'];
+                } elseif (strpos($email, 'GESTORSTOCK@canavesio.org.ar') !== false) {
+                    $roles = ['ROLE_GESTORSTOCK'];              
+                } elseif (strpos($email, 'VENDEDOR@canavesio.org.ar') !== false) {
+                    $roles = ['ROLE_VENDEDOR'];
+                } else {
+                    $roles = ['ROLE_USUARIO'];
                 }
+        
+                // Asignar los roles al usuario
+                $user->setRoles($roles);
+        
+                // Codificar contraseña
+                $user->setPassword(
+                    $userPasswordHasher->hashPassword(
+                        $user,
+                        $form->get('plainPassword')->getData()
+                    )
+                );
+        
+                $entityManager->persist($user);
+                $entityManager->flush();
+        
+                return $this->redirectToRoute('app_login');
+            } catch (\Exception $e) {
+                $this->addFlash('error', 'Ha ocurrido un error al registrar el usuario.');
+                return $this->redirectToRoute('app_register');
             }
         }
 

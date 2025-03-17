@@ -164,7 +164,13 @@
 							{% endif %}
 							</td>
 							<td>{{ movement.newStock }}</td>
-							<td>{{ movement.performedBy }}</td>
+							<td>
+								{% if '@' in movement.performedBy %}
+									{{ movement.performedBy }}
+								{% else %}
+									{{ 'VENDEDOR' }}
+								{% endif %}
+							</td>
 							<td>{{ movement.description }}</td>
 						</tr>
 					{% else %}

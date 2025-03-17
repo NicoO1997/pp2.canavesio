@@ -119,25 +119,6 @@
             once: true,
             easing: 'ease-out-cubic'
         });
-
-        const passwordField = document.querySelector('[name="registration_form[plainPassword]"]');
-        if (passwordField) {
-            const form = passwordField.closest('form');
-
-            form.addEventListener('submit', function(e) {
-                if (passwordField.value.length > 12) {
-                    e.preventDefault();
-                    alert('La contraseña no puede superar los 12 caracteres.');
-                    passwordField.focus();
-                }
-            });
-
-            passwordField.addEventListener('input', function() {
-                if (this.value.length > 12) {
-                    this.value = this.value.slice(0, 12);
-                }
-            });
-        }
     });
 </script>
 {% endblock %}

@@ -9,13 +9,13 @@
 {% endblock %}
 
 {% block body %}
-	{% for type, messages in app.flashes %}
+	{# {% for type, messages in app.flashes %}
 		{% for message in messages %}
 			<div class="alert alert-{{ type }}">
 				{{ message }}
 			</div>
 		{% endfor %}
-	{% endfor %}
+	{% endfor %} #}
 	<div class="page-stock">
 		<h1>Stock de Productos</h1>
 
@@ -83,7 +83,7 @@
 						<th>Dimensiones</th>
 						<th>Material</th>
 						<th>Peso</th>
-						<th>Vida Útil (Horas)</th>
+						<th>Vida Útil (Meses)</th>
 						<th>Requisitos de Instalación</th>
 						<th>Estado</th>
 						<th>Acciones</th>

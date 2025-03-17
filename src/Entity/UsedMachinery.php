@@ -47,7 +47,7 @@ class UsedMachinery
     #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $hoursOfUse = null;
 
-    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true)]
+    #[ORM\Column(type: 'decimal', precision: 25, scale: 2, nullable: true)]
     private ?float $price = null;
 
     #[ORM\ManyToOne(targetEntity: Category::class)]

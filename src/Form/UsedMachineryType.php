@@ -21,6 +21,7 @@ use Symfony\Component\Validator\Constraints\Positive;
 use Symfony\Component\Validator\Constraints\All;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Symfony\Component\Validator\Constraints\Length;
 
 class UsedMachineryType extends AbstractType
 {
@@ -108,7 +109,12 @@ class UsedMachineryType extends AbstractType
                 'required' => true,
                 'attr' => ['class' => 'form-control'],
                 'constraints' => [
-                    new Positive(['message' => 'El precio debe ser positivo'])
+                    new Positive(['message' => 'El precio debe ser positivo']),
+                    new NotBlank(['message' => 'Este campo no puede estar vacío']),
+                    new Length([
+                        'max' => 25,
+                        'maxMessage' => 'El precio no puede tener más de {{ limit }} dígitos en total',
+                    ]),
                 ]
             ])
             ->add('taxpayerType', ChoiceType::class, [

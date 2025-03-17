@@ -46,11 +46,6 @@
 							<span class="especificacion-valor">{{ product.brand }}</span>
 						</div>
 
-						{# <div class="especificacion-item">
-							<span class="especificacion-label">Tipo de Repuesto</span>
-							<span class="especificacion-valor">{{ product.partType|replace({'_': ' '})|title }}</span>
-						</div> #}
-
 						<div class="especificacion-item">
 							<span class="especificacion-label">Material</span>
 							<span class="especificacion-valor">{{ product.material }}</span>
@@ -66,16 +61,14 @@
 						{% if product.weight %}
 							<div class="especificacion-item">
 								<span class="especificacion-label">Peso</span>
-								<span class="especificacion-valor">{{ product.weight }}
-									kg</span>
+								<span class="especificacion-valor">{{ product.weight }} kg</span>
 							</div>
 						{% endif %}
 
 						{% if product.estimatedLifeHours %}
 							<div class="especificacion-item">
 								<span class="especificacion-label">Vida Útil Estimada</span>
-								<span class="especificacion-valor">{{ product.estimatedLifeHours }}
-									horas</span>
+								<span class="especificacion-valor">{{ product.estimatedLifeHours }} horas</span>
 							</div>
 						{% endif %}
 
@@ -136,16 +129,16 @@
 									<input type="number" id="quantity" name="quantity" min="1" max="{{ product.quantity }}" value="1" onchange="validateQuantity(this)" required/>
 									<button type="button" class="qty-btn" onclick="incrementQuantity()">+</button>
 								</div>
-								<span class="stock-max">Máx:
-									{{ product.quantity }}</span>
+								<span class="stock-max">Máx: {{ product.quantity }}</span>
 							</div>
 						{% endif %}
 
 						{% if is_granted('ROLE_INVITADO') %}
-							<a href="{{ path('app_login') }}" class="btn-guest">
+							<a href="#" class="btn-guest" id="btn-guest-favoritos">
 								<i class="fas fa-heart"></i>
 								Agregar a Favoritos
 							</a>
+							<div class="alert-container" id="alert-container-favoritos"></div>
 						{% elseif is_granted('ROLE_USUARIO') %}
 							{% if product.id not in favoriteProductIds %}
 								<form action="{{ path('add_favorite', { id: product.id }) }}" method="post" class="form-favorito">
@@ -165,10 +158,11 @@
 
 					<div class="columna-derecha">
 						{% if is_granted('ROLE_INVITADO') %}
-							<a href="{{ path('app_login') }}" class="btn-guest">
+							<a href="#" class="btn-guest" id="btn-guest-carrito">
 								<i class="fas fa-shopping-cart"></i>
 								Agregar al Carrito
 							</a>
+							<div class="alert-container" id="alert-container-carrito"></div>
 						{% elseif is_granted('ROLE_USUARIO') %}
 							{% if product.quantity > 0 %}
 
@@ -335,6 +329,25 @@
             if (quantityInput) {
                 updateAllQuantities();
             }
+
+            // Mostrar alerta para usuarios invitados
+            const guestButtons = document.querySelectorAll('.btn-guest');
+            guestButtons.forEach(button => {
+                button.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    const alertContainer = this.id === 'btn-guest-favoritos' ? document.getElementById('alert-container-favoritos') : document.getElementById('alert-container-carrito');
+                    showGuestAlert(alertContainer);
+                });
+            });
         });
+
+        function showGuestAlert(alertContainer) {
+            alertContainer.style.display = 'flex'; // Ensure the container is visible
+            alertContainer.innerHTML = '<div class="custom-alert">Canavesio Hnos: Recuerde que para disfrutar de estas funcionalidades debe estar registrado en el sistema.</div>';
+            setTimeout(() => {
+                alertContainer.innerHTML = '';
+                alertContainer.style.display = 'none';
+            }, 4000);
+        }
     </script>
 {% endblock %}
